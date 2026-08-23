@@ -22,7 +22,7 @@ export function LoginForm() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
@@ -75,7 +75,7 @@ export function LoginForm() {
             Revisá tu email
           </p>
           <p className="text-body-sm font-body-sm text-on-surface-variant">
-            Te enviamos un link para ingresar. Hacé click y serás redirigido.
+            Te enviamos un link para ingresar. Abrí el link desde este mismo navegador.
           </p>
         </div>
       ) : (

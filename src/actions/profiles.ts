@@ -46,15 +46,12 @@ export async function updateProfile(
     return { success: false, error: firstError ?? "Datos inválidos." };
   }
 
+  let profile;
   try {
-    const profile = await updateOwnProfile(supabase, user.id, {
+    profile = await updateOwnProfile(supabase, user.id, {
       username: usernameResult.data,
       display_name: displayNameResult.data,
     });
-
-    revalidatePath("/");
-    revalidatePath(`/@${profile.username}`);
-    redirect("/");
   } catch (err: unknown) {
     // Map Postgres unique violation on username to a friendly Spanish error.
     if (
@@ -70,4 +67,8 @@ export async function updateProfile(
     }
     return { success: false, error: "Error al actualizar el perfil." };
   }
+
+  revalidatePath("/");
+  revalidatePath(`/@${profile.username}`);
+  redirect("/");
 }
