@@ -3,6 +3,8 @@ import { cookies } from "next/headers";
 import { env } from "@/lib/env";
 import type { Database } from "@/types/database.types";
 
+export type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
 // Creates a Supabase client for Server Components, Server Actions, and Route Handlers.
 export async function createClient() {
   const cookieStore = await cookies();
