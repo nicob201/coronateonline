@@ -170,7 +170,7 @@ export type Database = {
         ];
       };
     };
-    Views: {};
+    Views: { [_ in never]: never };
     Functions: {
       create_claim: {
         Args: { p_title_id: string; p_amount: number };
@@ -185,7 +185,7 @@ export type Database = {
         Returns: void;
       };
     };
-    Enums: {};
-    CompositeTypes: {};
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
 };
