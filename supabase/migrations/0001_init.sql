@@ -86,10 +86,11 @@ BEGIN
   v_raw := COALESCE(
     NEW.raw_user_meta_data ->> 'username',
     NEW.raw_user_meta_data ->> 'full_name',
-    split_part(NEW.email, '@', 1)
+    split_part(NEW.email, '@', 1),
+    ''
   );
-  -- Normalize: lowercase, strip non-[a-z0-9_], enforce minimum length
-  v_base := lower(regexp_replace(v_raw, '[^a-z0-9_]', '', 'g'));
+  -- Normalize: lowercase first, then strip non-[a-z0-9_], enforce minimum length
+  v_base := regexp_replace(lower(v_raw), '[^a-z0-9_]', '', 'g');
   IF length(v_base) < 3 THEN
     v_base := 'usuario';
   ELSIF length(v_base) > 15 THEN
