@@ -1,13 +1,14 @@
 "use server";
 
-import { z } from "zod/v4";
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { updateOwnProfile } from "@/services/profiles.server";
 import type { ActionResult, Profile } from "@/types";
 
 const usernameSchema = z.string().regex(/^[a-z0-9_]{3,20}$/, {
-  error: "El username debe tener entre 3 y 20 caracteres (letras, numeros, guion bajo).",
+  error: "El username debe tener entre 3 y 20 caracteres (letras, números y guión bajo).",
 });
 
 const displayNameSchema = z
@@ -42,7 +43,7 @@ export async function updateProfile(
       : !displayNameResult.success
         ? displayNameResult.error.issues[0]?.message
         : undefined;
-    return { success: false, error: firstError ?? "Datos invalidos." };
+    return { success: false, error: firstError ?? "Datos inválidos." };
   }
 
   try {
@@ -53,7 +54,7 @@ export async function updateProfile(
 
     revalidatePath("/");
     revalidatePath(`/@${profile.username}`);
-    return { success: true, data: profile };
+    redirect("/");
   } catch (err: unknown) {
     // Map Postgres unique violation on username to a friendly Spanish error.
     if (
@@ -64,7 +65,7 @@ export async function updateProfile(
     ) {
       return {
         success: false,
-        error: "Ese username ya esta en uso.",
+        error: "Ese username ya está en uso.",
       };
     }
     return { success: false, error: "Error al actualizar el perfil." };

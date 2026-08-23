@@ -1,15 +1,20 @@
-"use client";
-
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { getOwnProfile } from "@/services/profiles.server";
 import { signOut } from "@/actions/auth";
-import { useTransition } from "react";
 
-interface SiteHeaderProps {
-  username?: string | null;
-}
+// Fetches the authenticated user's profile and renders the site header.
+export async function SiteHeader() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-export function SiteHeader({ username }: SiteHeaderProps) {
-  const [pending, startTransition] = useTransition();
+  let username: string | null = null;
+  if (user) {
+    const profile = await getOwnProfile(supabase, user.id);
+    username = profile?.username ?? null;
+  }
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 md:px-16 py-1 h-20 bg-surface/70 backdrop-blur-xl border-b border-outline-variant/30 shadow-md">
@@ -42,16 +47,9 @@ export function SiteHeader({ username }: SiteHeaderProps) {
             >
               @{username}
             </Link>
-            <form
-              action={() => {
-                startTransition(() => {
-                  signOut();
-                });
-              }}
-            >
+            <form action={signOut}>
               <button
                 type="submit"
-                disabled={pending}
                 className="hidden md:block px-4 py-2 text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors"
               >
                 Salir
@@ -63,7 +61,7 @@ export function SiteHeader({ username }: SiteHeaderProps) {
             href="/login"
             className="hidden md:block px-4 py-2 text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors"
           >
-            Iniciar sesion
+            Iniciar sesión
           </Link>
         )}
       </div>

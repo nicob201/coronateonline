@@ -1,13 +1,15 @@
-// Fetches the current user's own profile.
+import type { SupabaseServerClient } from "@/lib/supabase/server";
+
+// Fetches the current user's own profile, or null if none exists.
 export async function getOwnProfile(
-  supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>,
+  supabase: SupabaseServerClient,
   userId: string,
 ) {
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
   return data;
@@ -15,7 +17,7 @@ export async function getOwnProfile(
 
 // Fetches a profile by username.
 export async function getProfileByUsername(
-  supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>,
+  supabase: SupabaseServerClient,
   username: string,
 ) {
   const { data, error } = await supabase
@@ -30,7 +32,7 @@ export async function getProfileByUsername(
 
 // Updates the current user's own profile (username + display_name).
 export async function updateOwnProfile(
-  supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>>,
+  supabase: SupabaseServerClient,
   userId: string,
   updates: { username: string; display_name: string },
 ) {

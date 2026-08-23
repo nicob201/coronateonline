@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Montserrat, Inter, JetBrains_Mono } from "next/font/google";
 import { Background } from "@/components/background";
-import { Header } from "@/components/header-server";
+import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -26,7 +26,7 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CoronaTeOnline - Que queres ser?",
+  title: "CoronaTeOnline - ¿Qué querés ser?",
   description:
     "El under digital donde el estatus se paga y se defiende. Coronate.",
 };
@@ -47,7 +47,7 @@ export default function RootLayout({
       </head>
       <body className="bg-background text-on-background font-body-sm min-h-full flex flex-col cyber-grain overflow-x-hidden">
         <Background />
-        <Header />
+        <SiteHeader />
         <div className="mt-20 flex-1 flex flex-col">{children}</div>
       </body>
     </html>

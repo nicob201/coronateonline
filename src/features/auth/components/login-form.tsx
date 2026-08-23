@@ -63,7 +63,7 @@ export function LoginForm() {
         <span className="text-gradient-primary">Ingresar</span>
       </h1>
       <p className="text-body-sm font-body-sm text-on-surface-variant mb-8 text-center">
-        Elegí tu titulo. Coronate. Hacete conocido.
+        Elegí tu título. Coronate. Hacete conocido.
       </p>
 
       {state === "success" ? (
@@ -72,10 +72,10 @@ export function LoginForm() {
             mail
           </span>
           <p className="text-body-lg font-body-lg text-on-surface font-bold mb-2">
-            Revisa tu email
+            Revisá tu email
           </p>
           <p className="text-body-sm font-body-sm text-on-surface-variant">
-            Te enviamos un link para ingresar. Hacé click en el y serás redirigido.
+            Te enviamos un link para ingresar. Hacé click y serás redirigido.
           </p>
         </div>
       ) : (
@@ -110,7 +110,7 @@ export function LoginForm() {
               disabled={pending || state === "loading"}
               className="btn-gradient px-6 py-3 rounded-lg text-label-caps font-label-caps text-on-primary-fixed font-bold tracking-widest disabled:opacity-50"
             >
-              {state === "loading" ? "ENVIANDO..." : "ENVIAR LINK MAGICO"}
+              {state === "loading" ? "ENVIANDO..." : "ENVIAR LINK MÁGICO"}
             </button>
           </form>
 

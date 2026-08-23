@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getOwnProfile } from "@/services/profiles.server";
 import { OnboardingForm } from "@/features/auth/components/onboarding-form";
 
 // Redirects to home if not authenticated, shows onboarding if display_name is missing.
@@ -13,11 +14,7 @@ export default async function OnboardingPage() {
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("username, display_name")
-    .eq("id", user.id)
-    .single();
+  const profile = await getOwnProfile(supabase, user.id);
 
   // If user already completed onboarding, redirect to home.
   if (profile?.display_name) {

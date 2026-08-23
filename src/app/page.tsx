@@ -6,11 +6,11 @@ export default function Home() {
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center text-center py-20 relative">
         <h1 className="text-headline-lg-mobile md:text-display-xl font-display-xl text-on-surface mb-6 uppercase tracking-tighter">
-          QUE{" "}
-          <span className="text-gradient-primary">QUERES SER?</span>
+          {"¿QUÉ "}
+          <span className="text-gradient-primary">{"QUERÉS SER?"}</span>
         </h1>
         <p className="text-body-lg font-body-lg text-on-surface-variant max-w-2xl mb-12">
-          Elegi tu titulo. Coronate. Hacete conocido. El under digital donde el
+          Elegí tu título. Coronate. Hacete conocido. El under digital donde el
           estatus se paga y se defiende.
         </p>
         <div className="flex flex-col sm:flex-row gap-6">
