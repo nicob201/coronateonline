@@ -7,7 +7,8 @@
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS profiles (
   id         uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  username   text UNIQUE NOT NULL,
+  username   text UNIQUE NOT NULL
+             CONSTRAINT profiles_username_format CHECK (username ~ '^[a-z0-9_]{3,20}$'),
   display_name text,
   avatar_url text,
   bio        text,
@@ -76,17 +77,36 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = ''
 AS $$
+DECLARE
+  v_raw text;
+  v_base text;
 BEGIN
-  INSERT INTO public.profiles (id, username)
-  VALUES (
-    NEW.id,
-    COALESCE(
-      NEW.raw_user_meta_data ->> 'username',
-      NEW.raw_user_meta_data ->> 'full_name',
-      split_part(NEW.email, '@', 1)
-    )
+  v_raw := COALESCE(
+    NEW.raw_user_meta_data ->> 'username',
+    NEW.raw_user_meta_data ->> 'full_name',
+    split_part(NEW.email, '@', 1)
   );
+  -- Normalize: lowercase, strip non-[a-z0-9_], enforce minimum length
+  v_base := lower(regexp_replace(v_raw, '[^a-z0-9_]', '', 'g'));
+  IF length(v_base) < 3 THEN
+    v_base := 'usuario';
+  ELSIF length(v_base) > 15 THEN
+    v_base := left(v_base, 15);
+  END IF;
+  -- Ensure uniqueness: try base, then base_XXXX
+  IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE username = v_base) THEN
+    INSERT INTO public.profiles (id, username) VALUES (NEW.id, v_base);
+  ELSE
+    LOOP
+      v_base := left(v_base, 15 - 5) || '_' || lpad(floor(random() * 10000)::text, 4, '0');
+      IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE username = v_base) THEN
+        INSERT INTO public.profiles (id, username) VALUES (NEW.id, v_base);
+        EXIT;
+      END IF;
+    END LOOP;
+  END IF;
   RETURN NEW;
 END;
 $$;
@@ -114,6 +134,12 @@ CREATE POLICY "Users can update own profile"
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
+-- Column-level privilege escalation fix: deny UPDATE to anon+authenticated,
+-- then grant only the non-sensitive columns.
+REVOKE UPDATE ON public.profiles FROM anon, authenticated;
+GRANT UPDATE (username, display_name, avatar_url, bio, instagram, tiktok, youtube, x, twitch, website)
+  ON public.profiles TO authenticated;
+
 -- titles
 ALTER TABLE titles ENABLE ROW LEVEL SECURITY;
 
@@ -136,7 +162,7 @@ CREATE POLICY "Claims are viewable by owner and admins"
   USING (
     auth.uid() = user_id
     OR EXISTS (
-      SELECT 1 FROM profiles
+      SELECT 1 FROM public.profiles
       WHERE profiles.id = auth.uid() AND profiles.is_admin = true
     )
   );
@@ -151,14 +177,15 @@ CREATE POLICY "Claims are viewable by owner and admins"
 
 -- create_claim: authenticated user creates a dethrone attempt
 CREATE OR REPLACE FUNCTION public.create_claim(p_title_id uuid, p_amount integer)
-RETURNS claims
+RETURNS public.claims
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = ''
 AS $$
 DECLARE
   v_user_id uuid := auth.uid();
   v_active_reign record;
-  v_claim claims;
+  v_claim public.claims;
 BEGIN
   IF v_user_id IS NULL THEN
     RAISE EXCEPTION 'Not authenticated';
@@ -170,7 +197,7 @@ BEGIN
 
   -- Find active reign for this title
   SELECT * INTO v_active_reign
-  FROM reigns
+  FROM public.reigns
   WHERE title_id = p_title_id AND ended_at IS NULL;
 
   IF FOUND THEN
@@ -189,7 +216,7 @@ BEGIN
     END IF;
   END IF;
 
-  INSERT INTO claims (title_id, user_id, amount)
+  INSERT INTO public.claims (title_id, user_id, amount)
   VALUES (p_title_id, v_user_id, p_amount)
   RETURNING * INTO v_claim;
 
@@ -202,40 +229,58 @@ CREATE OR REPLACE FUNCTION public.apply_claim(p_claim_id uuid)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = ''
 AS $$
 DECLARE
   v_admin boolean;
-  v_claim claims;
+  v_claim public.claims;
+  v_active_reign record;
 BEGIN
   -- Verify caller is admin
   SELECT is_admin INTO v_admin
-  FROM profiles
+  FROM public.profiles
   WHERE id = auth.uid();
 
   IF v_admin IS NOT true THEN
     RAISE EXCEPTION 'Unauthorized';
   END IF;
 
+  -- Lock the claim row to prevent concurrent applies
   SELECT * INTO v_claim
-  FROM claims
-  WHERE id = p_claim_id AND status = 'pending';
+  FROM public.claims
+  WHERE id = p_claim_id AND status = 'pending'
+  FOR UPDATE;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Claim not found or already resolved';
   END IF;
 
+  -- Re-validate at apply time against live reign data
+  SELECT * INTO v_active_reign
+  FROM public.reigns
+  WHERE title_id = v_claim.title_id AND ended_at IS NULL;
+
+  IF v_active_reign.user_id = v_claim.user_id THEN
+    RAISE EXCEPTION 'User already holds this title';
+  END IF;
+
+  IF v_active_reign.price_paid IS NOT NULL
+     AND v_claim.amount < v_active_reign.price_paid + 1000 THEN
+    RAISE EXCEPTION 'Claim amount is below the current price';
+  END IF;
+
   -- Mark claim as applied
-  UPDATE claims
+  UPDATE public.claims
   SET status = 'applied', resolved_at = now()
   WHERE id = p_claim_id;
 
   -- Close current active reign (if any)
-  UPDATE reigns
+  UPDATE public.reigns
   SET ended_at = now()
   WHERE title_id = v_claim.title_id AND ended_at IS NULL;
 
   -- Start new reign
-  INSERT INTO reigns (title_id, user_id, price_paid)
+  INSERT INTO public.reigns (title_id, user_id, price_paid)
   VALUES (v_claim.title_id, v_claim.user_id, v_claim.amount);
 END;
 $$;
@@ -245,19 +290,20 @@ CREATE OR REPLACE FUNCTION public.reject_claim(p_claim_id uuid)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = ''
 AS $$
 DECLARE
   v_admin boolean;
 BEGIN
   SELECT is_admin INTO v_admin
-  FROM profiles
+  FROM public.profiles
   WHERE id = auth.uid();
 
   IF v_admin IS NOT true THEN
     RAISE EXCEPTION 'Unauthorized';
   END IF;
 
-  UPDATE claims
+  UPDATE public.claims
   SET status = 'rejected', resolved_at = now()
   WHERE id = p_claim_id AND status = 'pending';
 
@@ -268,13 +314,13 @@ END;
 $$;
 
 -- ---------------------------------------------------------------------------
--- 8. GRANT execute to authenticated only, revoke from anon
+-- 8. GRANT execute — revoke from PUBLIC and anon, grant to authenticated only
 -- ---------------------------------------------------------------------------
-REVOKE EXECUTE ON FUNCTION public.create_claim(uuid, integer) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.create_claim(uuid, integer) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.create_claim(uuid, integer) TO authenticated;
 
-REVOKE EXECUTE ON FUNCTION public.apply_claim(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.apply_claim(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.apply_claim(uuid) TO authenticated;
 
-REVOKE EXECUTE ON FUNCTION public.reject_claim(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.reject_claim(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.reject_claim(uuid) TO authenticated;

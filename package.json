@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "update-types": "supabase gen types typescript --linked > src/types/database.types.ts"
+    "update-types": "npx supabase gen types typescript --linked > src/types/database.types.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

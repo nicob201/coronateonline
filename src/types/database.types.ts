@@ -53,6 +53,7 @@ export type Database = {
           is_admin?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
       titles: {
         Row: {
@@ -79,6 +80,7 @@ export type Database = {
           description?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       reigns: {
         Row: {
@@ -105,6 +107,22 @@ export type Database = {
           started_at?: string;
           ended_at?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: "reigns_title_id_fkey";
+            columns: ["title_id"];
+            isOneToOne: false;
+            referencedRelation: "titles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reigns_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       claims: {
         Row: {
@@ -134,8 +152,25 @@ export type Database = {
           created_at?: string;
           resolved_at?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: "claims_title_id_fkey";
+            columns: ["title_id"];
+            isOneToOne: false;
+            referencedRelation: "titles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "claims_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
+    Views: {};
     Functions: {
       create_claim: {
         Args: { p_title_id: string; p_amount: number };
@@ -150,5 +185,7 @@ export type Database = {
         Returns: void;
       };
     };
+    Enums: {};
+    CompositeTypes: {};
   };
 };
