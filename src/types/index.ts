@@ -23,6 +23,7 @@ export type TitleCard = Pick<
   "id" | "slug" | "name" | "emoji" | "description" | "created_at"
 > & {
   holder: TitleHolder | null;
+  holderUserId: string | null;
   price: number | null;
   reignStartedAt: string | null;
   rarity: Rarity;

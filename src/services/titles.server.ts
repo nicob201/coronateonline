@@ -11,7 +11,7 @@ import type {
 
 const TITLE_WITH_REIGNS = `
   id, slug, name, emoji, description, created_at,
-  reigns ( id, price_paid, started_at, ended_at,
+  reigns ( id, user_id, price_paid, started_at, ended_at,
     profiles ( username, display_name, avatar_url ) )
 `;
 
@@ -48,6 +48,7 @@ function toTitleCard(row: TitleRow): TitleCard {
     description: row.description,
     created_at: row.created_at,
     holder: active?.profiles ?? null,
+    holderUserId: active?.user_id ?? null,
     price: active?.price_paid ?? null,
     reignStartedAt: active?.started_at ?? null,
     rarity: rarity(active?.price_paid ?? null),

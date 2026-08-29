@@ -40,6 +40,7 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
     : null;
 
   const isHeld = title.holder !== null;
+  const iAmHolder = !!user && user.id === title.holderUserId;
   const currentPrice = title.price;
   const nextPrice = minClaimAmount(currentPrice);
 
@@ -92,7 +93,17 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
             </div>
           </div>
 
-          {pendingClaim ? (
+          {iAmHolder ? (
+            <div className="glass-panel rounded-xl p-6 flex flex-col gap-2 border-l-4 border-l-tertiary">
+              <h2 className="text-title-md font-title-md text-on-surface">
+                El trono es tuyo 👑
+              </h2>
+              <p className="text-body-sm font-body-sm text-on-surface-variant">
+                Lo mantenés hasta que alguien pague más. Compartí tu perfil para
+                que sepan quién manda.
+              </p>
+            </div>
+          ) : pendingClaim ? (
             <PaymentInstructions claim={pendingClaim} alias={env.PAYMENT_ALIAS} />
           ) : (
             <div className="glass-panel rounded-xl p-6 flex flex-col gap-4">
