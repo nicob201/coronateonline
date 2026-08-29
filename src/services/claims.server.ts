@@ -6,10 +6,12 @@ export async function createClaim(
   supabase: SupabaseServerClient,
   titleId: string,
   amount: number,
+  message?: string,
 ): Promise<Claim> {
   const { data, error } = await supabase.rpc("create_claim", {
     p_title_id: titleId,
     p_amount: amount,
+    ...(message !== undefined ? { p_message: message } : {}),
   });
 
   if (error) throw error;
@@ -41,7 +43,7 @@ export async function getPendingClaims(
   const { data, error } = await supabase
     .from("claims")
     .select(
-      "id, amount, created_at, title_id, profiles ( username, display_name ), titles ( name, slug )",
+      "id, amount, created_at, message, title_id, profiles ( username, display_name ), titles ( name, slug )",
     )
     .eq("status", "pending")
     .order("created_at", { ascending: true });
@@ -72,6 +74,7 @@ export async function getPendingClaims(
     titleName: row.titles?.name ?? "Título eliminado",
     titleSlug: row.titles?.slug ?? "",
     currentPrice: priceByTitle.get(row.title_id) ?? null,
+    message: row.message,
   }));
 }
 
@@ -79,8 +82,12 @@ export async function getPendingClaims(
 export async function applyClaim(
   supabase: SupabaseServerClient,
   claimId: string,
+  clearMessage = false,
 ): Promise<void> {
-  const { error } = await supabase.rpc("apply_claim", { p_claim_id: claimId });
+  const { error } = await supabase.rpc("apply_claim", {
+    p_claim_id: claimId,
+    p_clear_message: clearMessage,
+  });
   if (error) throw error;
 }
 

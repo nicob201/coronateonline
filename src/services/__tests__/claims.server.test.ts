@@ -25,6 +25,25 @@ describe("createClaim", () => {
     expect(result).toEqual(claimRow);
   });
 
+  it("forwards p_message when provided", async () => {
+    const supabase = createSupabaseMock({ rpc: { data: claimRow, error: null } });
+    await createClaim(supabase, "t1", 5000, "Soy el rey");
+    expect(supabase.rpc).toHaveBeenCalledWith("create_claim", {
+      p_title_id: "t1",
+      p_amount: 5000,
+      p_message: "Soy el rey",
+    });
+  });
+
+  it("sends p_message as null when omitted", async () => {
+    const supabase = createSupabaseMock({ rpc: { data: claimRow, error: null } });
+    await createClaim(supabase, "t1", 5000);
+    expect(supabase.rpc).toHaveBeenCalledWith("create_claim", {
+      p_title_id: "t1",
+      p_amount: 5000,
+    });
+  });
+
   it("throws when the RPC returns an error", async () => {
     const supabase = createSupabaseMock({
       rpc: { data: null, error: { message: "Amount must be at least 6000" } },
@@ -56,6 +75,7 @@ describe("getPendingClaims", () => {
         id: "c1",
         amount: 5000,
         created_at: "2026-08-29T00:00:00Z",
+        message: "Soy el rey",
         title_id: "t1",
         profiles: { username: "nico", display_name: "Nico B" },
         titles: { name: "Rey de Córdoba", slug: "rey-de-cordoba" },
@@ -77,6 +97,7 @@ describe("getPendingClaims", () => {
         titleName: "Rey de Córdoba",
         titleSlug: "rey-de-cordoba",
         currentPrice: 44000,
+        message: "Soy el rey",
       },
     ]);
   });
@@ -87,6 +108,7 @@ describe("getPendingClaims", () => {
         id: "c1",
         amount: 5000,
         created_at: "2026-08-29T00:00:00Z",
+        message: null,
         title_id: "t1",
         profiles: { username: "nico", display_name: "Nico B" },
         titles: { name: "Rey de Córdoba", slug: "rey-de-cordoba" },
@@ -115,6 +137,19 @@ describe("applyClaim / rejectClaim", () => {
   it("applyClaim resolves when the RPC succeeds", async () => {
     const supabase = createSupabaseMock({ rpc: { data: null, error: null } });
     await expect(applyClaim(supabase, "c1")).resolves.toBeUndefined();
+    expect(supabase.rpc).toHaveBeenCalledWith("apply_claim", {
+      p_claim_id: "c1",
+      p_clear_message: false,
+    });
+  });
+
+  it("applyClaim forwards p_clear_message when true", async () => {
+    const supabase = createSupabaseMock({ rpc: { data: null, error: null } });
+    await applyClaim(supabase, "c1", true);
+    expect(supabase.rpc).toHaveBeenCalledWith("apply_claim", {
+      p_claim_id: "c1",
+      p_clear_message: true,
+    });
   });
 
   it("applyClaim throws when the RPC returns an error", async () => {

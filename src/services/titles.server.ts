@@ -1,6 +1,6 @@
 import { type QueryData } from "@supabase/supabase-js";
 import type { SupabaseServerClient } from "@/lib/supabase/server";
-import { rarity } from "@/lib/titles";
+import { BASE_PRICE, type ReignForRanking, rankReignsByDuration, rarity } from "@/lib/titles";
 import type {
   Coronation,
   HallOfFameEntry,
@@ -14,14 +14,14 @@ const coronationsQuery = (supabase: SupabaseServerClient) =>
   supabase
     .from("reigns")
     .select(
-      "id, price_paid, started_at, titles ( name, emoji, slug ), profiles ( username, display_name )",
+      "id, price_paid, started_at, titles ( name, emoji, slug ), profiles!reigns_user_id_fkey ( username, display_name ), dethroned:profiles!reigns_dethroned_user_id_fkey ( username, display_name )",
     );
 type CoronationRow = QueryData<ReturnType<typeof coronationsQuery>>[number];
 
 const hallOfFameQuery = (supabase: SupabaseServerClient) =>
   supabase
     .from("reigns")
-    .select("started_at, profiles ( username, display_name, avatar_url ), titles ( name )");
+    .select("started_at, profiles!reigns_user_id_fkey ( username, display_name, avatar_url ), titles ( name )");
 type HallOfFameRow = QueryData<ReturnType<typeof hallOfFameQuery>>[number];
 
 const pricedQuery = (supabase: SupabaseServerClient) =>
@@ -31,7 +31,7 @@ type PricedRow = QueryData<ReturnType<typeof pricedQuery>>[number];
 const pastReignsQuery = (supabase: SupabaseServerClient, titleId: string) =>
   supabase
     .from("reigns")
-    .select("id, price_paid, started_at, ended_at, profiles ( username, display_name )")
+    .select("id, price_paid, started_at, ended_at, message, profiles!reigns_user_id_fkey ( username, display_name )")
     .eq("title_id", titleId)
     .not("ended_at", "is", null)
     .order("started_at", { ascending: false });
@@ -111,13 +111,44 @@ export async function getTitleBySlug(
     pricePaid: r.price_paid,
     startedAt: r.started_at,
     endedAt: r.ended_at,
+    message: r.message,
   }));
+
+  const closed: ReignForRanking[] = pastReigns.map((r) => ({
+    id: r.id,
+    holderName: r.holderName,
+    pricePaid: r.pricePaid,
+    startedAt: r.startedAt,
+    endedAt: r.endedAt,
+  }));
+
+  const activeReign: ReignForRanking | null =
+    data.reign_id && data.holder_paid !== null && data.reign_started_at
+      ? {
+          id: data.reign_id,
+          holderName: card.holder ? displayName(card.holder) : "Anónimo",
+          pricePaid: data.holder_paid,
+          startedAt: data.reign_started_at,
+          endedAt: null,
+        }
+      : null;
+
+  const allReigns = activeReign ? [...closed, activeReign] : closed;
+
+  const priceHistory = [
+    ...[...closed].reverse().map((r) => r.pricePaid),
+    ...(activeReign ? [activeReign.pricePaid] : []),
+  ];
 
   return {
     ...card,
     holderName: card.holder ? displayName(card.holder) : null,
     holderPaid: data.holder_paid,
     pastReigns,
+    holderMessage: data.holder_message,
+    longestReigns: rankReignsByDuration(allReigns, 5),
+    priceHistory,
+    pricePeak: Math.max(BASE_PRICE, ...priceHistory),
   };
 }
 
@@ -144,6 +175,7 @@ export async function getRecentCoronations(
       titleEmoji: r.titles.emoji,
       titleSlug: r.titles.slug,
       holderName: displayName(r.profiles),
+      dethronedName: r.dethroned ? displayName(r.dethroned) : null,
     }));
 }
 

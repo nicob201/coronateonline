@@ -37,6 +37,7 @@ export type PastReign = {
   pricePaid: number;
   startedAt: string;
   endedAt: string | null;
+  message: string | null;
 };
 
 // A title's detail view: the card plus a resolved holder name and full past-reign history.
@@ -44,6 +45,10 @@ export type TitleDetail = TitleCard & {
   holderName: string | null;
   holderPaid: number | null;
   pastReigns: PastReign[];
+  holderMessage: string | null;
+  longestReigns: RankedReign[];
+  priceHistory: number[];
+  pricePeak: number;
 };
 
 // A coronation entry for the activity ticker.
@@ -54,6 +59,7 @@ export type Coronation = {
   titleEmoji: string;
   titleSlug: string;
   holderName: string;
+  dethronedName: string | null;
 };
 
 // One reign (past or current) shown on a public profile.
@@ -64,6 +70,7 @@ export type ProfileReign = {
   pricePaid: number;
   startedAt: string;
   endedAt: string | null;
+  message: string | null;
 };
 
 // Social platform keys that can appear on a public profile.
@@ -89,6 +96,7 @@ export type PendingClaimListItem = {
   titleName: string;
   titleSlug: string;
   currentPrice: number | null;
+  message: string | null;
 };
 
 // A ranked user in the Hall of Fame.
@@ -98,6 +106,25 @@ export type HallOfFameEntry = {
   avatarUrl: string | null;
   reignCount: number;
   latestTitleName: string;
+};
+
+// A ranked reign in the "longest reigns" leaderboard.
+export type RankedReign = {
+  id: string;
+  holderName: string;
+  durationLabel: string;
+  pricePaid: number;
+  isActive: boolean;
+};
+
+// A notice shown when a user was dethroned in the last 14 days.
+export type DethroneNotice = {
+  titleName: string;
+  titleEmoji: string;
+  titleSlug: string;
+  byName: string;
+  message: string | null;
+  at: string;
 };
 
 export type { Database };
