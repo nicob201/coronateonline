@@ -46,3 +46,24 @@ INSERT INTO reigns (id, title_id, user_id, price_paid, started_at, ended_at) VAL
   ('b6666666-6666-4666-8666-666666666666', (SELECT id FROM titles WHERE slug = 'rey-de-la-pizza'),   'a2222222-2222-4222-8222-222222222222',  6000, now() - interval '3 days',  NULL),
   ('b7777777-7777-4777-8777-777777777777', (SELECT id FROM titles WHERE slug = 'ceo-de-los-lunes'),  'a1111111-1111-4111-8111-111111111111', 13000, now() - interval '1 day',   NULL)
 ON CONFLICT (id) DO NOTHING;
+
+-- ---------------------------------------------------------------------------
+-- Nivel 0 — emotion layer seed data (guarded UPDATEs, idempotent)
+-- ---------------------------------------------------------------------------
+
+-- rey-de-cordoba reign chain: dethroned_user_id for closed reigns
+UPDATE reigns SET dethroned_user_id = 'a4444444-4444-4444-8444-444444444444'
+WHERE id = 'b2222222-2222-4222-8222-222222222222' AND dethroned_user_id IS NULL;
+
+UPDATE reigns SET dethroned_user_id = 'a2222222-2222-4222-8222-222222222222'
+WHERE id = 'b3333333-3333-4333-8333-333333333333' AND dethroned_user_id IS NULL;
+
+-- Coronation messages (Spanish, <= 80 chars)
+UPDATE reigns SET message = 'Arranca el reinado, cordobeses. ¡No me miren, admiren!'
+WHERE id = 'b3333333-3333-4333-8333-333333333333' AND message IS NULL;
+
+UPDATE reigns SET message = 'La pizza Perfecta tiene masa, queso y actitud. Punto.'
+WHERE id = 'b6666666-6666-4666-8666-666666666666' AND message IS NULL;
+
+UPDATE reigns SET message = 'Los lunes se conquistan con café y audacia. ¡Hola, equipo!'
+WHERE id = 'b7777777-7777-4777-8777-777777777777' AND message IS NULL;
