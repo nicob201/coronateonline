@@ -30,6 +30,11 @@ function ClaimRow({ claim }: { claim: PendingClaimListItem }) {
             {formatARS(minClaimAmount(claim.currentPrice))}
           </span>
         )}
+        {claim.message && (
+          <span className="text-body-sm font-body-sm text-on-surface-variant italic">
+            &laquo;{claim.message}&raquo;
+          </span>
+        )}
         {state?.success === false && state.error && (
           <span className="text-body-sm font-body-sm text-error">{state.error}</span>
         )}
@@ -39,6 +44,16 @@ function ClaimRow({ claim }: { claim: PendingClaimListItem }) {
         <span className="text-title-md font-title-md text-tertiary font-black">
           {formatARS(claim.amount)}
         </span>
+        {claim.message && (
+          <label className="flex items-center gap-1.5 text-body-sm font-body-sm text-on-surface-variant cursor-pointer">
+            <input
+              type="checkbox"
+              name="clearMessage"
+              className="rounded border-outline-variant/40 text-primary focus:ring-primary/50"
+            />
+            Publicar sin el mensaje
+          </label>
+        )}
         <button
           type="submit"
           name="decision"

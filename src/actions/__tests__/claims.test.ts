@@ -113,7 +113,10 @@ describe("resolverClaim", () => {
     requireAdminMock.mockResolvedValue({ supabase });
     const result = await resolverClaim(null, adminForm({ decision: "apply" }));
     expect(result).toEqual({ success: true, data: null });
-    expect(supabase.rpc).toHaveBeenCalledWith("apply_claim", { p_claim_id: CLAIM_ID });
+    expect(supabase.rpc).toHaveBeenCalledWith("apply_claim", {
+      p_claim_id: CLAIM_ID,
+      p_clear_message: false,
+    });
     expect(revalidatePathMock).toHaveBeenCalledWith("/admin");
   });
 

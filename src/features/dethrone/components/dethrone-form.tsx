@@ -39,6 +39,25 @@ export function DethroneForm({ titleId, slug, minAmount, isHeld }: DethroneFormP
         />
       </div>
 
+      <div className="flex flex-col gap-1.5">
+        <label
+          htmlFor="message"
+          className="text-label-caps font-label-caps text-on-surface-variant"
+        >
+          TU MENSAJE AL CORONARTE (OPCIONAL)
+        </label>
+        <textarea
+          id="message"
+          name="message"
+          maxLength={80}
+          rows={2}
+          className="w-full px-4 py-3 rounded-lg bg-surface-container-high border border-outline-variant/30 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-colors resize-none"
+        />
+        <span className="text-body-xs font-body-xs text-on-surface-variant">
+          Máx. 80 caracteres
+        </span>
+      </div>
+
       {state?.success === false && state.error && (
         <p className="text-body-sm font-body-sm text-error">{state.error}</p>
       )}

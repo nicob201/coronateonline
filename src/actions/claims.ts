@@ -25,6 +25,9 @@ function translateRpcError(message: string): string {
   if (message.includes("not found or already resolved")) {
     return "La solicitud ya no está pendiente.";
   }
+  if (message.includes("Message too long")) {
+    return "El mensaje es demasiado largo (máx. 80 caracteres).";
+  }
   if (message.includes("Not authenticated")) return NOT_AUTH;
   if (message.includes("multiple of 1000") || message.includes("Minimum claim")) {
     return "Monto inválido.";
@@ -48,6 +51,7 @@ export async function destronar(
     titleId: formData.get("titleId"),
     slug: formData.get("slug"),
     amount: formData.get("amount"),
+    message: formData.get("message") ?? undefined,
   });
 
   if (!parsed.success) {
@@ -57,11 +61,11 @@ export async function destronar(
     };
   }
 
-  const { titleId, slug, amount } = parsed.data;
+  const { titleId, slug, amount, message } = parsed.data;
 
   let claim: Claim;
   try {
-    claim = await createClaim(supabase, titleId, amount);
+    claim = await createClaim(supabase, titleId, amount, message);
   } catch (err: unknown) {
     const message =
       typeof err === "object" && err !== null && "message" in err
@@ -79,6 +83,7 @@ const resolveClaimSchema = z.object({
   claimId: z.uuid(),
   slug: z.string().optional(),
   decision: z.enum(["apply", "reject"]),
+  clearMessage: z.coerce.boolean().optional().default(false),
 });
 
 // Admin-only: applies or rejects a pending claim, then revalidates the affected pages.
@@ -92,17 +97,18 @@ export async function resolverClaim(
     claimId: formData.get("claimId"),
     slug: formData.get("slug") ?? undefined,
     decision: formData.get("decision"),
+    clearMessage: formData.get("clearMessage"),
   });
 
   if (!parsed.success) {
     return { success: false, error: "Solicitud inválida." };
   }
 
-  const { claimId, slug, decision } = parsed.data;
+  const { claimId, slug, decision, clearMessage } = parsed.data;
 
   try {
     if (decision === "apply") {
-      await applyClaim(supabase, claimId);
+      await applyClaim(supabase, claimId, clearMessage);
     } else {
       await rejectClaim(supabase, claimId);
     }

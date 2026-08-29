@@ -33,4 +33,37 @@ describe("dethroneSchema", () => {
     const result = dethroneSchema.safeParse({ ...validInput, slug: "" });
     expect(result.success).toBe(false);
   });
+
+  it("keeps a valid 80-char message", () => {
+    const msg = "a".repeat(80);
+    const result = dethroneSchema.safeParse({ ...validInput, message: msg });
+    expect(result.success).toBe(true);
+    expect(result.data?.message).toBe(msg);
+  });
+
+  it("rejects a message longer than 80 characters", () => {
+    const result = dethroneSchema.safeParse({
+      ...validInput,
+      message: "a".repeat(81),
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("transforms empty string message to undefined", () => {
+    const result = dethroneSchema.safeParse({ ...validInput, message: "" });
+    expect(result.success).toBe(true);
+    expect(result.data?.message).toBeUndefined();
+  });
+
+  it("transforms whitespace-only message to undefined", () => {
+    const result = dethroneSchema.safeParse({ ...validInput, message: "   " });
+    expect(result.success).toBe(true);
+    expect(result.data?.message).toBeUndefined();
+  });
+
+  it("treats omitted message as undefined", () => {
+    const result = dethroneSchema.safeParse(validInput);
+    expect(result.success).toBe(true);
+    expect(result.data?.message).toBeUndefined();
+  });
 });
