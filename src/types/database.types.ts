@@ -44,6 +44,7 @@ export type Database = {
           amount: number
           created_at: string
           id: string
+          message: string | null
           resolved_at: string | null
           status: string
           title_id: string
@@ -53,6 +54,7 @@ export type Database = {
           amount: number
           created_at?: string
           id?: string
+          message?: string | null
           resolved_at?: string | null
           status?: string
           title_id: string
@@ -62,6 +64,7 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
+          message?: string | null
           resolved_at?: string | null
           status?: string
           title_id?: string
@@ -168,30 +171,43 @@ export type Database = {
       }
       reigns: {
         Row: {
+          dethroned_user_id: string | null
           ended_at: string | null
           id: string
+          message: string | null
           price_paid: number
           started_at: string
           title_id: string
           user_id: string
         }
         Insert: {
+          dethroned_user_id?: string | null
           ended_at?: string | null
           id?: string
+          message?: string | null
           price_paid: number
           started_at?: string
           title_id: string
           user_id: string
         }
         Update: {
+          dethroned_user_id?: string | null
           ended_at?: string | null
           id?: string
+          message?: string | null
           price_paid?: number
           started_at?: string
           title_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reigns_dethroned_user_id_fkey"
+            columns: ["dethroned_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reigns_title_id_fkey"
             columns: ["title_id"]
@@ -252,6 +268,7 @@ export type Database = {
           emoji: string | null
           holder_avatar_url: string | null
           holder_display_name: string | null
+          holder_message: string | null
           holder_paid: number | null
           holder_user_id: string | null
           holder_username: string | null
@@ -274,13 +291,17 @@ export type Database = {
       }
     }
     Functions: {
-      apply_claim: { Args: { p_claim_id: string }; Returns: undefined }
+      apply_claim: {
+        Args: { p_claim_id: string; p_clear_message?: boolean }
+        Returns: undefined
+      }
       create_claim: {
-        Args: { p_amount: number; p_title_id: string }
+        Args: { p_amount: number; p_message?: string; p_title_id: string }
         Returns: {
           amount: number
           created_at: string
           id: string
+          message: string | null
           resolved_at: string | null
           status: string
           title_id: string
