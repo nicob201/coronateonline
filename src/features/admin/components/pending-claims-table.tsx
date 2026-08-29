@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { resolverClaim } from "@/actions/claims";
 import { formatARS, formatReignDuration } from "@/lib/format";
+import { minClaimAmount } from "@/lib/titles";
 import type { PendingClaimListItem } from "@/types";
 
 function ClaimRow({ claim }: { claim: PendingClaimListItem }) {
@@ -26,7 +27,7 @@ function ClaimRow({ claim }: { claim: PendingClaimListItem }) {
         {claim.currentPrice !== null && (
           <span className="text-label-caps font-label-caps text-on-surface-variant">
             precio ahora {formatARS(claim.currentPrice)} · mínimo{" "}
-            {formatARS(claim.currentPrice + 1000)}
+            {formatARS(minClaimAmount(claim.currentPrice))}
           </span>
         )}
         {state?.success === false && state.error && (

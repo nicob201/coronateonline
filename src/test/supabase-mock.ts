@@ -30,8 +30,7 @@ function makeBuilder(result: Result) {
   return builder;
 }
 
-// Builds a chainable Supabase client mock. `from(table)` returns the same
-// builder per table name, resolving to queryByTable[table] ?? query.
+// Builds a chainable Supabase client mock; from(table) returns a stable per-table builder resolving to queryByTable[table] ?? query.
 export function createSupabaseMock(options: SupabaseMockOptions = {}) {
   const fallback: Result = options.query ?? { data: null, error: null };
   const rpcResult: Result = options.rpc ?? { data: null, error: null };
@@ -47,10 +46,11 @@ export function createSupabaseMock(options: SupabaseMockOptions = {}) {
 
   const client = {
     from: vi.fn((table: string) => {
-      if (!builders.has(table)) {
-        builders.set(table, makeBuilder(options.queryByTable?.[table] ?? fallback));
-      }
-      return builders.get(table)!;
+      const existing = builders.get(table);
+      if (existing) return existing;
+      const created = makeBuilder(options.queryByTable?.[table] ?? fallback);
+      builders.set(table, created);
+      return created;
     }),
     rpc: vi.fn(async () => rpcResult),
     storage: { from: vi.fn(() => storageBucket) },
