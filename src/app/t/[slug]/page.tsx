@@ -81,6 +81,26 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                 {formatARS(currentPrice ?? nextPrice)}
               </span>
             </div>
+            {isHeld && title.holderPaid !== null && title.holderPaid !== currentPrice && (
+              <div className="flex justify-between items-center border-b border-outline-variant/20 pb-2">
+                <span className="text-label-caps font-label-caps text-on-surface-variant">
+                  CORONADO POR
+                </span>
+                <span className="text-body-lg font-body-lg text-on-surface-variant">
+                  {formatARS(title.holderPaid)}
+                </span>
+              </div>
+            )}
+            {isHeld && (
+              <div className="flex justify-between items-center border-b border-outline-variant/20 pb-2">
+                <span className="text-label-caps font-label-caps text-on-surface-variant">
+                  PISO
+                </span>
+                <span className="text-body-lg font-body-lg text-on-surface-variant">
+                  {formatARS(title.priceFloor)}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between items-center pt-1">
               <span className="text-label-caps font-label-caps text-on-surface-variant">
                 TIEMPO DE REINADO

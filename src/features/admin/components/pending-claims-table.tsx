@@ -23,6 +23,12 @@ function ClaimRow({ claim }: { claim: PendingClaimListItem }) {
         <span className="text-label-caps font-label-caps text-on-surface-variant">
           {claim.claimantName} · hace {formatReignDuration(claim.createdAt)}
         </span>
+        {claim.currentPrice !== null && (
+          <span className="text-label-caps font-label-caps text-on-surface-variant">
+            precio ahora {formatARS(claim.currentPrice)} · mínimo{" "}
+            {formatARS(claim.currentPrice + 1000)}
+          </span>
+        )}
         {state?.success === false && state.error && (
           <span className="text-body-sm font-body-sm text-error">{state.error}</span>
         )}
