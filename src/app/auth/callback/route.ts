@@ -12,8 +12,11 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?error=no_code`);
   }
 
-  // Only allow relative redirects.
-  const safeNext = next.startsWith("/") ? next : "/";
+  // Only allow same-origin relative redirects — reject protocol-relative (`//`, `/\`) targets.
+  const safeNext =
+    next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\")
+      ? next
+      : "/";
 
   const supabase = await createClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
