@@ -141,6 +141,8 @@ body {
 /* ── Ticker ── */
 .ticker-wrap {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow: hidden;
   background: rgba(15, 15, 15, 0.9);
   border-bottom: 1px solid rgba(221, 183, 255, 0.1);
@@ -149,6 +151,7 @@ body {
 
 .ticker {
   display: inline-block;
+  min-width: 0;
   white-space: nowrap;
   padding-right: 100%;
   animation: ticker-anim 20s linear infinite;
@@ -277,4 +280,31 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* ── Floating hero crown ── */
+.crown-float {
+  animation: crown-float-anim 6s ease-in-out infinite;
+  filter: drop-shadow(0 20px 40px rgba(249, 189, 34, 0.25));
+}
+
+@keyframes crown-float-anim {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-16px) rotate(2deg);
+  }
+}
+
+/* ── Respect reduced-motion: drop decorative animation ── */
+@media (prefers-reduced-motion: reduce) {
+  .ticker,
+  .shimmer::before,
+  .btn-destronar,
+  .bg-animated,
+  .crown-float {
+    animation: none;
+  }
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat, Inter, JetBrains_Mono } from "next/font/google";
 import { Background } from "@/components/background";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { env } from "@/lib/env";
 import "./globals.css";
 
@@ -39,7 +40,7 @@ export default function RootLayout({
   return (
     <html
       lang="es-AR"
-      className={`${montserrat.variable} ${inter.variable} ${jetbrains.variable} h-full antialiased`}
+      className={`${montserrat.variable} ${inter.variable} ${jetbrains.variable} h-full antialiased overflow-x-hidden`}
     >
       <head>
         <link
@@ -50,7 +51,8 @@ export default function RootLayout({
       <body className="bg-background text-on-background font-body-sm min-h-full flex flex-col cyber-grain overflow-x-hidden">
         <Background />
         <SiteHeader />
-        <div className="mt-20 flex-1 flex flex-col">{children}</div>
+        <div className="mt-20 flex-1 flex flex-col min-w-0 max-w-full">{children}</div>
+        <SiteFooter />
       </body>
     </html>
   );

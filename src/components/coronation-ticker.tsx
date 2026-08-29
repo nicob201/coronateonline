@@ -11,8 +11,8 @@ export function CoronationTicker({ coronations }: { coronations: Coronation[] })
         {coronations.map((c, i) => (
           <span key={c.id}>
             {i > 0 && <span className="mx-8 text-outline-variant">•</span>}
-            🔥 {c.holderName.toUpperCase()} SE CORONÓ {c.titleName.toUpperCase()} —{" "}
-            {formatARS(c.pricePaid)}
+            🔥 {c.holderName.toUpperCase()} ACABA DE CORONARSE{" "}
+            {c.titleName.toUpperCase()} — {formatARS(c.pricePaid)}
           </span>
         ))}
       </div>
