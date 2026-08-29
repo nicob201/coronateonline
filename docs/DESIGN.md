@@ -24,9 +24,12 @@ A held title's **current price is not static**. It is `price_paid` of the active
 reign decayed toward a per-title floor: after a 3-day grace period the price
 loses ~0.7%/day (compounding). The floor is
 `max($1.000, 25% of the title's recent price peak, $2.000 × dethrones in the
-last 30 days)`. So an undefended crown slowly gets cheaper (≈1–2 months to reach
-its floor), a hot title keeps a high floor, and a title that cooled off becomes
-affordable again. The dethrone threshold is `current effective price + $1.000`.
+last 30 days)`. So an undefended crown slowly gets cheaper (~6 months at the
+default rate to reach its floor), a hot title keeps a high floor, and a title
+that cooled off becomes affordable again. That high floor only holds while the
+active reign's `price_paid` is still inside the peak window (`peak_window_days`,
+default 90 days); once it ages out the peak term collapses and a long-undefended
+crown decays toward the $1.000 base. The dethrone threshold is `current effective price + $1.000`.
 All decay parameters live in a single-row `pricing_config` table, tunable with an
 `UPDATE`. The effective price is computed on read (no cron, no stored column) by
 the `title_current_price` Postgres function and exposed through the

@@ -11,10 +11,12 @@ game goes stale. Unpopular titles never move either.
 
 This change makes the current price a **time-decayed function** of the active
 reign, floored per title by that title's recent activity and its recent price
-peak. A crown nobody defends slowly loses value toward its floor (≈1–2 months to
-reach it at the default rate); a hot title keeps a high floor and stays a
-valuable target; a title that cooled off sees its floor fall and becomes
-affordable again. Self-correcting per title, no global reset.
+peak. A crown nobody defends slowly loses value toward its floor (~6 months at
+the default rate); a hot title keeps a high floor and stays a valuable target,
+but only while the active reign's `price_paid` is inside the peak window (default
+90 days) — once it ages out the peak term collapses and a long-undefended crown
+decays toward the $1.000 base. A title that cooled off sees its floor fall and
+becomes affordable again. Self-correcting per title, no global reset.
 
 Virtual currency ("coronas") was considered and deferred — it weakens the MVP's
 validation signal ("will people pay real money for an absurd title") and adds a
