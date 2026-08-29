@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { getPublicProfile } from "../profiles.server";
+import {
+  getPublicProfile,
+  removeAvatarByUrl,
+  updateOwnProfile,
+  uploadAvatar,
+} from "../profiles.server";
 import { createSupabaseMock } from "@/test/supabase-mock";
+
+function pngFile(name = "a.png"): File {
+  return new File([new Uint8Array([1, 2, 3])], name, { type: "image/png" });
+}
 
 function profileRow(overrides: Record<string, unknown> = {}) {
   return {
@@ -81,5 +90,63 @@ describe("getPublicProfile", () => {
     const supabase = createSupabaseMock({ query: { data: profileRow(), error: null } });
     const result = await getPublicProfile(supabase, "nico");
     expect(result?.socials).toEqual({ instagram: "nico" });
+  });
+});
+
+describe("updateOwnProfile", () => {
+  it("forwards the given fields to the profiles update", async () => {
+    const supabase = createSupabaseMock({ query: { data: { username: "n" }, error: null } });
+    await updateOwnProfile(supabase, "u1", {
+      bio: "hola",
+      instagram: "https://instagram.com/n",
+    });
+    const builder = supabase.from("profiles");
+    expect(builder.update).toHaveBeenCalledWith({
+      bio: "hola",
+      instagram: "https://instagram.com/n",
+    });
+  });
+});
+
+describe("uploadAvatar", () => {
+  it("returns the public URL of the uploaded file", async () => {
+    const supabase = createSupabaseMock({ publicUrl: "https://cdn.test/u1/x.png" });
+    const url = await uploadAvatar(supabase, "u1", pngFile());
+    expect(url).toBe("https://cdn.test/u1/x.png");
+  });
+
+  it("uploads under the user's own folder", async () => {
+    const supabase = createSupabaseMock();
+    await uploadAvatar(supabase, "u1", pngFile());
+    const bucket = supabase.storage.from("avatars");
+    const [path] = (bucket.upload as unknown as { mock: { calls: unknown[][] } }).mock
+      .calls[0];
+    expect(String(path).startsWith("u1/")).toBe(true);
+  });
+
+  it("throws when storage rejects the upload", async () => {
+    const supabase = createSupabaseMock({
+      storageUpload: { data: null, error: { message: "Payload too large" } },
+    });
+    await expect(uploadAvatar(supabase, "u1", pngFile())).rejects.toMatchObject({
+      message: "Payload too large",
+    });
+  });
+});
+
+describe("removeAvatarByUrl", () => {
+  it("removes the object path parsed from a public avatars URL", async () => {
+    const supabase = createSupabaseMock();
+    await removeAvatarByUrl(
+      supabase,
+      "https://x.supabase.co/storage/v1/object/public/avatars/u1/123.png",
+    );
+    expect(supabase.storage.from("avatars").remove).toHaveBeenCalledWith(["u1/123.png"]);
+  });
+
+  it("ignores a URL outside the avatars bucket", async () => {
+    const supabase = createSupabaseMock();
+    await removeAvatarByUrl(supabase, "https://example.com/pic.png");
+    expect(supabase.storage.from("avatars").remove).not.toHaveBeenCalled();
   });
 });

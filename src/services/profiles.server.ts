@@ -1,8 +1,21 @@
 import { type QueryData } from "@supabase/supabase-js";
 import type { SupabaseServerClient } from "@/lib/supabase/server";
-import type { ProfileReign, PublicProfile, SocialKey } from "@/types";
+import type { Profile, ProfileReign, PublicProfile, SocialKey } from "@/types";
 
 const SOCIAL_KEYS: SocialKey[] = ["instagram", "tiktok", "youtube", "x", "twitch", "website"];
+
+const AVATAR_BUCKET = "avatars";
+const EXT_BY_TYPE: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+};
+
+// Fields a user may edit on their own profile.
+export type ProfileUpdate = Partial<
+  Pick<Profile, "username" | "display_name" | "bio" | "avatar_url" | SocialKey>
+>;
 
 // Fetches the current user's own profile, or null if none exists.
 export async function getOwnProfile(
@@ -89,19 +102,50 @@ export async function getPublicProfile(
   };
 }
 
-// Updates the current user's own profile (username + display_name).
+// Updates the given editable fields on the current user's own profile.
 export async function updateOwnProfile(
   supabase: SupabaseServerClient,
   userId: string,
-  updates: { username: string; display_name: string },
+  updates: ProfileUpdate,
 ) {
   const { data, error } = await supabase
     .from("profiles")
-    .update({ username: updates.username, display_name: updates.display_name })
+    .update(updates)
     .eq("id", userId)
     .select()
     .single();
 
   if (error) throw error;
   return data;
+}
+
+// Uploads an avatar image under avatars/{userId}/ and returns its public URL.
+export async function uploadAvatar(
+  supabase: SupabaseServerClient,
+  userId: string,
+  file: File,
+): Promise<string> {
+  const ext = EXT_BY_TYPE[file.type] ?? "png";
+  const path = `${userId}/${Date.now()}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from(AVATAR_BUCKET)
+    .upload(path, file, { contentType: file.type, upsert: true });
+
+  if (error) throw error;
+
+  return supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+// Best-effort delete of an avatar object given its public URL (used for rollback and replacement).
+export async function removeAvatarByUrl(
+  supabase: SupabaseServerClient,
+  url: string,
+): Promise<void> {
+  const marker = `/${AVATAR_BUCKET}/`;
+  const index = url.indexOf(marker);
+  if (index === -1) return;
+
+  const path = url.slice(index + marker.length);
+  await supabase.storage.from(AVATAR_BUCKET).remove([path]);
 }
