@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS pricing_config (
   peak_floor_fraction numeric NOT NULL DEFAULT 0.25
                         CHECK (peak_floor_fraction >= 0 AND peak_floor_fraction <= 1),
   peak_window_days    integer NOT NULL DEFAULT 90  CHECK (peak_window_days > 0),
-  activity_floor_unit integer NOT NULL DEFAULT 2000 CHECK (activity_floor_unit >= 0)
+  activity_floor_unit integer NOT NULL DEFAULT 2000
+                        CHECK (activity_floor_unit >= 0 AND activity_floor_unit % 1000 = 0)
 );
 
 INSERT INTO pricing_config (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
@@ -104,7 +105,7 @@ BEGIN
 
   RETURN GREATEST(
     public.title_price_floor(p_title_id),
-    (round(v_decayed / 1000) * 1000)::integer
+    (round((v_decayed / 1000)::numeric) * 1000)::integer
   );
 END;
 $$;
