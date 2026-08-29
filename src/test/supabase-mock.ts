@@ -8,25 +8,34 @@ export interface SupabaseMockOptions {
   user?: { id: string } | null;
   rpc?: Result;
   query?: Result;
+  queryByTable?: Record<string, Result>;
   storageUpload?: Result;
   storageRemove?: Result;
   publicUrl?: string;
 }
 
-// Builds a chainable Supabase client mock: query builder methods return the
-// builder, terminal calls (maybeSingle/single/await) resolve to `query`.
-export function createSupabaseMock(options: SupabaseMockOptions = {}) {
-  const queryResult: Result = options.query ?? { data: null, error: null };
-  const rpcResult: Result = options.rpc ?? { data: null, error: null };
+const BUILDER_METHODS = [
+  "select", "insert", "update", "delete",
+  "eq", "in", "is", "not", "order", "limit",
+];
 
+function makeBuilder(result: Result) {
   const builder: Record<string, unknown> = {};
   const chain = () => builder;
-  for (const method of ["select", "insert", "update", "delete", "eq", "is", "order", "limit"]) {
-    builder[method] = vi.fn(chain);
-  }
-  builder.maybeSingle = vi.fn(async () => queryResult);
-  builder.single = vi.fn(async () => queryResult);
-  builder.then = (resolve: (r: Result) => unknown) => Promise.resolve(queryResult).then(resolve);
+  for (const method of BUILDER_METHODS) builder[method] = vi.fn(chain);
+  builder.maybeSingle = vi.fn(async () => result);
+  builder.single = vi.fn(async () => result);
+  builder.then = (resolve: (r: Result) => unknown) =>
+    Promise.resolve(result).then(resolve);
+  return builder;
+}
+
+// Builds a chainable Supabase client mock. `from(table)` returns the same
+// builder per table name, resolving to queryByTable[table] ?? query.
+export function createSupabaseMock(options: SupabaseMockOptions = {}) {
+  const fallback: Result = options.query ?? { data: null, error: null };
+  const rpcResult: Result = options.rpc ?? { data: null, error: null };
+  const builders = new Map<string, ReturnType<typeof makeBuilder>>();
 
   const storageBucket = {
     upload: vi.fn(async () => options.storageUpload ?? { data: { path: "p" }, error: null }),
@@ -37,7 +46,12 @@ export function createSupabaseMock(options: SupabaseMockOptions = {}) {
   };
 
   const client = {
-    from: vi.fn(() => builder),
+    from: vi.fn((table: string) => {
+      if (!builders.has(table)) {
+        builders.set(table, makeBuilder(options.queryByTable?.[table] ?? fallback));
+      }
+      return builders.get(table)!;
+    }),
     rpc: vi.fn(async () => rpcResult),
     storage: { from: vi.fn(() => storageBucket) },
     auth: {

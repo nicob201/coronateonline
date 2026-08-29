@@ -4,20 +4,11 @@ import { rarity } from "@/lib/titles";
 import type {
   Coronation,
   HallOfFameEntry,
+  PastReign,
   TitleCard,
   TitleDetail,
   TitleHolder,
 } from "@/types";
-
-const TITLE_WITH_REIGNS = `
-  id, slug, name, emoji, description, created_at,
-  reigns ( id, user_id, price_paid, started_at, ended_at,
-    profiles ( username, display_name, avatar_url ) )
-`;
-
-const titlesQuery = (supabase: SupabaseServerClient) =>
-  supabase.from("titles").select(TITLE_WITH_REIGNS);
-type TitleRow = QueryData<ReturnType<typeof titlesQuery>>[number];
 
 const coronationsQuery = (supabase: SupabaseServerClient) =>
   supabase
@@ -33,13 +24,43 @@ const hallOfFameQuery = (supabase: SupabaseServerClient) =>
     .select("started_at, profiles ( username, display_name, avatar_url ), titles ( name )");
 type HallOfFameRow = QueryData<ReturnType<typeof hallOfFameQuery>>[number];
 
-function displayName(profile: TitleHolder | Pick<TitleHolder, "username" | "display_name"> | null): string {
+const pricedQuery = (supabase: SupabaseServerClient) =>
+  supabase.from("titles_priced").select("*");
+type PricedRow = QueryData<ReturnType<typeof pricedQuery>>[number];
+
+const pastReignsQuery = (supabase: SupabaseServerClient, titleId: string) =>
+  supabase
+    .from("reigns")
+    .select("id, price_paid, started_at, ended_at, profiles ( username, display_name )")
+    .eq("title_id", titleId)
+    .not("ended_at", "is", null)
+    .order("started_at", { ascending: false });
+type PastReignRow = QueryData<ReturnType<typeof pastReignsQuery>>[number];
+
+// Resolves a holder's best display name, or a fallback.
+function displayName(
+  profile: Pick<TitleHolder, "username" | "display_name"> | null,
+): string {
   return profile?.display_name?.trim() || profile?.username || "Anónimo";
 }
 
-// Flattens a title + its reigns into the card shape (current holder/price derived from the active reign).
-function toTitleCard(row: TitleRow): TitleCard {
-  const active = row.reigns.find((r) => r.ended_at === null) ?? null;
+// Flattens a titles_priced row into the card shape.
+function toTitleCard(row: PricedRow): TitleCard {
+  if (
+    row.id === null || row.slug === null || row.name === null ||
+    row.emoji === null || row.description === null || row.created_at === null
+  ) {
+    throw new Error("titles_priced row is missing base title columns");
+  }
+
+  const holder: TitleHolder | null = row.holder_username
+    ? {
+        username: row.holder_username,
+        display_name: row.holder_display_name,
+        avatar_url: row.holder_avatar_url,
+      }
+    : null;
+
   return {
     id: row.id,
     slug: row.slug,
@@ -47,51 +68,55 @@ function toTitleCard(row: TitleRow): TitleCard {
     emoji: row.emoji,
     description: row.description,
     created_at: row.created_at,
-    holder: active?.profiles ?? null,
-    holderUserId: active?.user_id ?? null,
-    price: active?.price_paid ?? null,
-    reignStartedAt: active?.started_at ?? null,
-    rarity: rarity(active?.price_paid ?? null),
+    holder,
+    holderUserId: row.holder_user_id,
+    price: row.current_price,
+    priceFloor: row.price_floor ?? 1000,
+    reignStartedAt: row.reign_started_at,
+    rarity: rarity(row.current_price),
   };
 }
 
-// Fetches every title with its current holder and price, ordered by creation.
+// Fetches every title with its effective current price and holder, oldest first.
 export async function getTitlesWithCurrentReign(
   supabase: SupabaseServerClient,
 ): Promise<TitleCard[]> {
-  const { data, error } = await titlesQuery(supabase)
-    .is("reigns.ended_at", null)
-    .order("created_at", { ascending: true });
+  const { data, error } = await pricedQuery(supabase).order("created_at", {
+    ascending: true,
+  });
 
   if (error) throw error;
   return data.map(toTitleCard);
 }
 
-// Fetches one title by slug plus its full reign history (most recent first), or null if not found.
+// Fetches one title by slug with its effective price and full past-reign history.
 export async function getTitleBySlug(
   supabase: SupabaseServerClient,
   slug: string,
 ): Promise<TitleDetail | null> {
-  const { data, error } = await titlesQuery(supabase).eq("slug", slug).maybeSingle();
+  const { data, error } = await pricedQuery(supabase).eq("slug", slug).maybeSingle();
 
   if (error) throw error;
   if (!data) return null;
 
   const card = toTitleCard(data);
-  const pastReigns = data.reigns
-    .filter((r) => r.ended_at !== null)
-    .sort((a, b) => b.started_at.localeCompare(a.started_at))
-    .map((r) => ({
-      id: r.id,
-      holderName: displayName(r.profiles),
-      pricePaid: r.price_paid,
-      startedAt: r.started_at,
-      endedAt: r.ended_at,
-    }));
+
+  const { data: pastRows, error: pastError } = await pastReignsQuery(supabase, card.id);
+  if (pastError) throw pastError;
+
+  const rows: PastReignRow[] = pastRows ?? [];
+  const pastReigns: PastReign[] = rows.map((r) => ({
+    id: r.id,
+    holderName: displayName(r.profiles),
+    pricePaid: r.price_paid,
+    startedAt: r.started_at,
+    endedAt: r.ended_at,
+  }));
 
   return {
     ...card,
     holderName: card.holder ? displayName(card.holder) : null,
+    holderPaid: data.holder_paid,
     pastReigns,
   };
 }
