@@ -18,6 +18,20 @@ There are no timers, no auction rounds, no bidding wars with countdowns.
 - All amounts are integer ARS, multiples of $1.000 ($1.000 = 1 unit).
 - Reigns do NOT expire. You hold the crown until someone pays more.
 
+### Price decay (v1.1)
+
+A held title's **current price is not static**. It is `price_paid` of the active
+reign decayed toward a per-title floor: after a 3-day grace period the price
+loses ~0.7%/day (compounding). The floor is
+`max($1.000, 25% of the title's recent price peak, $2.000 × dethrones in the
+last 30 days)`. So an undefended crown slowly gets cheaper (≈1–2 months to reach
+its floor), a hot title keeps a high floor, and a title that cooled off becomes
+affordable again. The dethrone threshold is `current effective price + $1.000`.
+All decay parameters live in a single-row `pricing_config` table, tunable with an
+`UPDATE`. The effective price is computed on read (no cron, no stored column) by
+the `title_current_price` Postgres function and exposed through the
+`titles_priced` view.
+
 ### Dethrone flow (v1 — manual payment confirmation)
 
 1. Logged-in user on a title page taps **"Destronar por $X"** (X ≥ current + 1.000, user may offer more).
@@ -47,6 +61,10 @@ Four tables. One source of truth: current holder and current price are always de
 ### `reigns` (the history — feed and rankings are queries over this table)
 - `id`, `title_id` (FK), `user_id` (FK → profiles), `price_paid` (integer ARS), `started_at`, `ended_at` (nullable)
 - **Active reign = `ended_at IS NULL`.** Partial unique index: at most one active reign per title.
+- The **current price is derived, then time-decayed**: `title_current_price(title_id)`
+  applies `pricing_config` decay to the active reign's `price_paid` / `started_at`,
+  floored by `title_price_floor(title_id)`. `reigns.price_paid` always records the
+  real amount paid; decay only affects the live threshold, never stored history.
 - Activity feed = recent reigns ordered by `started_at`. Season number = position in the title's reign sequence.
 
 ### `claims` (dethrone attempts / payment tracking)
