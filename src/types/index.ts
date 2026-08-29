@@ -11,4 +11,55 @@ export type Title = Database["public"]["Tables"]["titles"]["Row"];
 export type Reign = Database["public"]["Tables"]["reigns"]["Row"];
 export type Claim = Database["public"]["Tables"]["claims"]["Row"];
 
+// Cosmetic rarity tier derived from a title's current price.
+export type Rarity = "legendario" | "epico" | "comun";
+
+// Public subset of a profile shown as a title's holder.
+export type TitleHolder = Pick<Profile, "username" | "display_name" | "avatar_url">;
+
+// A title with its current holder, price and rarity derived from the active reign.
+export type TitleCard = Pick<
+  Title,
+  "id" | "slug" | "name" | "emoji" | "description" | "created_at"
+> & {
+  holder: TitleHolder | null;
+  price: number | null;
+  reignStartedAt: string | null;
+  rarity: Rarity;
+};
+
+// A past reign shown in a title's throne history.
+export type PastReign = {
+  id: string;
+  holderName: string;
+  pricePaid: number;
+  startedAt: string;
+  endedAt: string | null;
+};
+
+// A title's detail view: the card plus a resolved holder name and full past-reign history.
+export type TitleDetail = TitleCard & {
+  holderName: string | null;
+  pastReigns: PastReign[];
+};
+
+// A coronation entry for the activity ticker.
+export type Coronation = {
+  id: string;
+  pricePaid: number;
+  titleName: string;
+  titleEmoji: string;
+  titleSlug: string;
+  holderName: string;
+};
+
+// A ranked user in the Hall of Fame.
+export type HallOfFameEntry = {
+  username: string;
+  name: string;
+  avatarUrl: string | null;
+  reignCount: number;
+  latestTitleName: string;
+};
+
 export type { Database };
