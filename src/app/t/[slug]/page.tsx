@@ -6,6 +6,9 @@ import { env } from "@/lib/env";
 import { getTitleBySlug } from "@/services/titles.server";
 import { getPendingClaim } from "@/services/claims.server";
 import { ReignHistory } from "@/components/reign-history";
+import { PriceSparkline } from "@/components/price-sparkline";
+import { LongestReigns } from "@/components/longest-reigns";
+import { ShareButton } from "@/components/share-button";
 import { DethroneForm } from "@/features/dethrone/components/dethrone-form";
 import { PaymentInstructions } from "@/features/dethrone/components/payment-instructions";
 import { formatARS, formatReignDuration } from "@/lib/format";
@@ -58,6 +61,14 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
           <p className="text-body-sm font-body-sm text-on-surface-variant mt-4 max-w-md">
             {title.description}
           </p>
+          <div className="mt-4">
+            <ShareButton
+              path={`/t/${slug}`}
+              title={`${title.name} — CoronaTeOnline`}
+              text={isHeld ? `Rey/Reina: ${title.holderName}` : "Trono vacante"}
+              label="Compartí este título"
+            />
+          </div>
         </div>
 
         <div className="lg:col-span-5 flex flex-col gap-8">
@@ -111,7 +122,29 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                   : "—"}
               </span>
             </div>
+            {isHeld && title.holderMessage && (
+              <p className="text-body-sm font-body-sm italic text-on-surface-variant mt-2">
+                «{title.holderMessage}»
+              </p>
+            )}
           </div>
+
+          {title.priceHistory.length >= 2 && (
+            <div className="glass-panel rounded-xl p-6 flex flex-col gap-3 border-l-4 border-l-primary">
+              <h2 className="text-title-md font-title-md text-on-surface mb-1">
+                Historia de precio
+              </h2>
+              <p className="text-body-sm font-body-sm text-on-surface-variant">
+                Valió hasta {formatARS(title.pricePeak)}
+              </p>
+              <PriceSparkline prices={title.priceHistory} />
+              {title.price !== null && title.price <= title.pricePeak * 0.35 && (
+                <span className="inline-block self-start bg-tertiary/20 text-tertiary text-xs px-2 py-0.5 rounded-full font-bold">
+                  🔻 mínimo histórico
+                </span>
+              )}
+            </div>
+          )}
 
           {iAmHolder ? (
             <div className="glass-panel rounded-xl p-6 flex flex-col gap-2 border-l-4 border-l-tertiary">
@@ -162,6 +195,8 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
       </div>
 
       <ReignHistory pastReigns={title.pastReigns} />
+
+      <LongestReigns reigns={title.longestReigns} />
     </main>
   );
 }

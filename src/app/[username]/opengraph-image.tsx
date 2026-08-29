@@ -1,6 +1,16 @@
 import { ImageResponse } from "next/og";
 import { createClient } from "@/lib/supabase/server";
 import { getPublicProfile } from "@/services/profiles.server";
+import type { SocialKey } from "@/types";
+
+const SOCIAL_LABELS: Record<SocialKey, string> = {
+  instagram: "Instagram",
+  tiktok: "TikTok",
+  youtube: "YouTube",
+  x: "X",
+  twitch: "Twitch",
+  website: "Sitio web",
+};
 
 export const alt = "Perfil en CoronaTeOnline";
 export const size = { width: 1200, height: 630 };
@@ -66,6 +76,20 @@ export default async function Image({
             }}
           >
             Reina en {crown.titleName}
+          </div>
+        ) : null}
+        {profile && Object.keys(profile.socials).length > 0 ? (
+          <div
+            style={{
+              display: "flex",
+              fontSize: 26,
+              marginTop: 16,
+              color: "#cfc2d6",
+            }}
+          >
+            {Object.keys(profile.socials)
+              .map((key) => SOCIAL_LABELS[key as SocialKey])
+              .join(" · ")}
           </div>
         ) : null}
       </div>

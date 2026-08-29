@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireOnboardedUser } from "@/services/auth.server";
+import { getLatestDethrone } from "@/services/profiles.server";
 import { ProfileEditForm } from "@/features/profile/components/profile-edit-form";
+import { DethroneBanner } from "@/features/profile/components/dethrone-banner";
 
 export const metadata: Metadata = {
   title: "Editar perfil - CoronaTeOnline",
@@ -10,10 +12,13 @@ export const metadata: Metadata = {
 
 // Lets the authenticated user edit their own profile.
 export default async function EditProfilePage() {
-  const { profile } = await requireOnboardedUser();
+  const { supabase, user, profile } = await requireOnboardedUser();
+  const dethroneNotice = await getLatestDethrone(supabase, user.id);
 
   return (
     <main className="relative z-10 container mx-auto px-5 md:px-16 max-w-[720px] pt-16 pb-32 flex flex-col gap-8">
+      {dethroneNotice && <DethroneBanner notice={dethroneNotice} />}
+
       <div className="flex items-baseline justify-between gap-4">
         <h1 className="text-headline-lg-mobile md:text-display-xl font-display-xl text-on-surface uppercase tracking-tighter">
           Editar <span className="text-gradient-primary">perfil</span>

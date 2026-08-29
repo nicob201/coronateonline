@@ -3,7 +3,6 @@ interface PriceSparklineProps {
   className?: string;
 }
 
-// Inline SVG sparkline that maps a price history array to a polyline path.
 function buildPoints(prices: number[]): string {
   const min = Math.min(...prices);
   const max = Math.max(...prices);
@@ -21,6 +20,7 @@ function buildPoints(prices: number[]): string {
     .join(" ");
 }
 
+// Inline SVG sparkline that maps a price history array to a polyline path.
 export function PriceSparkline({ prices, className }: PriceSparklineProps) {
   if (prices.length < 2) return null;
 
