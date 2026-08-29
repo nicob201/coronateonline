@@ -55,7 +55,8 @@ Single-row table, seeded by the migration. Tuning is `UPDATE pricing_config SET 
 Constraints: `id integer primary key default 1 check (id = 1)` (enforces one row);
 `decay_rate_daily >= 0 and decay_rate_daily < 1`; `grace_days >= 0`;
 `peak_floor_fraction >= 0 and peak_floor_fraction <= 1`; `peak_window_days > 0`;
-`activity_floor_unit >= 0`.
+`activity_floor_unit >= 0 and activity_floor_unit % 1000 = 0` (the activity term is
+the one floor sub-term not rounded, so it must itself be a multiple of 1000).
 
 RLS enabled, `SELECT USING (true)` (game rules are public), no write policy.
 `GRANT SELECT ON pricing_config TO anon, authenticated`.
@@ -71,9 +72,10 @@ recent_peak  := COALESCE(
                    WHERE title_id = p_title_id
                      AND started_at > now() - make_interval(days => cfg.peak_window_days)),
                   0);
-recent_count := (SELECT count(*) FROM public.reigns
+recent_count := (SELECT count(*) FROM public.reigns   -- ended reigns = actual dethrones
                  WHERE title_id = p_title_id
-                   AND started_at > now() - interval '30 days');
+                   AND ended_at IS NOT NULL
+                   AND ended_at > now() - interval '30 days');
 
 RETURN GREATEST(
   1000,                                                              -- BASE_PRICE
@@ -84,6 +86,9 @@ RETURN GREATEST(
 
 Notes:
 - `recent_peak` includes the current reign (its `started_at` is recent).
+- `recent_count` counts only **ended** reigns — actual dethrones. Counting the
+  just-started active reign would push the floor above what the new holder just
+  paid (since `activity_floor_unit` > the min increment).
 - A title with no reigns at all → `GREATEST(1000, 0, 0)` = 1000.
 - Result is always a positive multiple of 1000.
 
@@ -106,7 +111,7 @@ decayed    := r.price_paid * power((1 - cfg.decay_rate_daily)::double precision,
 
 RETURN GREATEST(
   public.title_price_floor(p_title_id),
-  (round(decayed / 1000) * 1000)::int
+  (round((decayed / 1000)::numeric) * 1000)::int   -- numeric round = deterministic tie-break
 );
 ```
 
