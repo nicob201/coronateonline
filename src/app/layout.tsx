@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat, Inter, JetBrains_Mono } from "next/font/google";
 import { Background } from "@/components/background";
 import { SiteHeader } from "@/components/site-header";
+import { env } from "@/lib/env";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -26,6 +27,7 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   title: "CoronaTeOnline - ¿Qué querés ser?",
   description:
     "El under digital donde el estatus se paga y se defiende. Coronate.",
