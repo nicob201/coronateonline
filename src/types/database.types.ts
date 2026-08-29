@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -76,6 +71,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "claims_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles_priced"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "claims_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -83,6 +85,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pricing_config: {
+        Row: {
+          activity_floor_unit: number
+          decay_rate_daily: number
+          grace_days: number
+          id: number
+          peak_floor_fraction: number
+          peak_window_days: number
+        }
+        Insert: {
+          activity_floor_unit?: number
+          decay_rate_daily?: number
+          grace_days?: number
+          id?: number
+          peak_floor_fraction?: number
+          peak_window_days?: number
+        }
+        Update: {
+          activity_floor_unit?: number
+          decay_rate_daily?: number
+          grace_days?: number
+          id?: number
+          peak_floor_fraction?: number
+          peak_window_days?: number
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -166,6 +195,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reigns_title_id_fkey"
+            columns: ["title_id"]
+            isOneToOne: false
+            referencedRelation: "titles_priced"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reigns_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -203,7 +239,34 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      titles_priced: {
+        Row: {
+          created_at: string | null
+          current_price: number | null
+          description: string | null
+          emoji: string | null
+          holder_avatar_url: string | null
+          holder_display_name: string | null
+          holder_paid: number | null
+          holder_user_id: string | null
+          holder_username: string | null
+          id: string | null
+          name: string | null
+          price_floor: number | null
+          reign_id: string | null
+          reign_started_at: string | null
+          slug: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reigns_user_id_fkey"
+            columns: ["holder_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       apply_claim: { Args: { p_claim_id: string }; Returns: undefined }
@@ -226,6 +289,8 @@ export type Database = {
         }
       }
       reject_claim: { Args: { p_claim_id: string }; Returns: undefined }
+      title_current_price: { Args: { p_title_id: string }; Returns: number }
+      title_price_floor: { Args: { p_title_id: string }; Returns: number }
     }
     Enums: {
       [_ in never]: never
@@ -361,3 +426,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
