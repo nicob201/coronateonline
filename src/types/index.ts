@@ -25,6 +25,7 @@ export type TitleCard = Pick<
   holder: TitleHolder | null;
   holderUserId: string | null;
   price: number | null;
+  priceFloor: number;
   reignStartedAt: string | null;
   rarity: Rarity;
 };
@@ -41,6 +42,7 @@ export type PastReign = {
 // A title's detail view: the card plus a resolved holder name and full past-reign history.
 export type TitleDetail = TitleCard & {
   holderName: string | null;
+  holderPaid: number | null;
   pastReigns: PastReign[];
 };
 
@@ -86,6 +88,7 @@ export type PendingClaimListItem = {
   claimantName: string;
   titleName: string;
   titleSlug: string;
+  currentPrice: number | null;
 };
 
 // A ranked user in the Hall of Fame.
