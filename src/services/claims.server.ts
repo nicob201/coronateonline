@@ -1,4 +1,3 @@
-import { type QueryData } from "@supabase/supabase-js";
 import type { SupabaseServerClient } from "@/lib/supabase/server";
 import type { Claim, PendingClaimListItem } from "@/types";
 
@@ -35,24 +34,35 @@ export async function getPendingClaim(
   return data;
 }
 
-const pendingClaimsQuery = (supabase: SupabaseServerClient) =>
-  supabase
-    .from("claims")
-    .select(
-      "id, amount, created_at, profiles ( username, display_name ), titles ( name, slug )",
-    )
-    .eq("status", "pending")
-    .order("created_at", { ascending: true });
-type PendingClaimRow = QueryData<ReturnType<typeof pendingClaimsQuery>>[number];
-
-// Lists every pending claim with claimant and title info, oldest first (admin only via RLS).
+// Lists every pending claim with claimant, title, and the title's current effective price.
 export async function getPendingClaims(
   supabase: SupabaseServerClient,
 ): Promise<PendingClaimListItem[]> {
-  const { data, error } = await pendingClaimsQuery(supabase);
+  const { data, error } = await supabase
+    .from("claims")
+    .select(
+      "id, amount, created_at, title_id, profiles ( username, display_name ), titles ( name, slug )",
+    )
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
+
   if (error) throw error;
 
-  const rows: PendingClaimRow[] = data;
+  const rows = data;
+  const titleIds = [...new Set(rows.map((r) => r.title_id))];
+
+  const priceByTitle = new Map<string, number | null>();
+  if (titleIds.length > 0) {
+    const { data: priced, error: pricedError } = await supabase
+      .from("titles_priced")
+      .select("id, current_price")
+      .in("id", titleIds);
+    if (pricedError) throw pricedError;
+    for (const p of priced) {
+      if (p.id !== null) priceByTitle.set(p.id, p.current_price);
+    }
+  }
+
   return rows.map((row) => ({
     id: row.id,
     amount: row.amount,
@@ -61,6 +71,7 @@ export async function getPendingClaims(
       row.profiles?.display_name?.trim() || row.profiles?.username || "Anónimo",
     titleName: row.titles?.name ?? "Título eliminado",
     titleSlug: row.titles?.slug ?? "",
+    currentPrice: priceByTitle.get(row.title_id) ?? null,
   }));
 }
 

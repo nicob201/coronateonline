@@ -56,11 +56,17 @@ describe("getPendingClaims", () => {
         id: "c1",
         amount: 5000,
         created_at: "2026-08-29T00:00:00Z",
+        title_id: "t1",
         profiles: { username: "nico", display_name: "Nico B" },
         titles: { name: "Rey de Córdoba", slug: "rey-de-cordoba" },
       },
     ];
-    const supabase = createSupabaseMock({ query: { data: rows, error: null } });
+    const supabase = createSupabaseMock({
+      queryByTable: {
+        claims: { data: rows, error: null },
+        titles_priced: { data: [{ id: "t1", current_price: 44000 }], error: null },
+      },
+    });
     const result = await getPendingClaims(supabase);
     expect(result).toEqual([
       {
@@ -70,8 +76,31 @@ describe("getPendingClaims", () => {
         claimantName: "Nico B",
         titleName: "Rey de Córdoba",
         titleSlug: "rey-de-cordoba",
+        currentPrice: 44000,
       },
     ]);
+  });
+
+  it("merges the current effective price for each claim's title", async () => {
+    const claimRows = [
+      {
+        id: "c1",
+        amount: 5000,
+        created_at: "2026-08-29T00:00:00Z",
+        title_id: "t1",
+        profiles: { username: "nico", display_name: "Nico B" },
+        titles: { name: "Rey de Córdoba", slug: "rey-de-cordoba" },
+      },
+    ];
+    const supabase = createSupabaseMock({
+      queryByTable: {
+        claims: { data: claimRows, error: null },
+        titles_priced: { data: [{ id: "t1", current_price: 47000 }], error: null },
+      },
+    });
+
+    const result = await getPendingClaims(supabase);
+    expect(result[0].currentPrice).toBe(47000);
   });
 
   it("throws when the query returns an error", async () => {
