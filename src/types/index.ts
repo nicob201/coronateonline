@@ -53,6 +53,30 @@ export type Coronation = {
   holderName: string;
 };
 
+// One reign (past or current) shown on a public profile.
+export type ProfileReign = {
+  titleName: string;
+  titleEmoji: string;
+  titleSlug: string;
+  pricePaid: number;
+  startedAt: string;
+  endedAt: string | null;
+};
+
+// Social platform keys that can appear on a public profile.
+export type SocialKey = "instagram" | "tiktok" | "youtube" | "x" | "twitch" | "website";
+
+// A public shareable profile: identity, non-null socials, and reign history.
+export type PublicProfile = {
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  socials: Partial<Record<SocialKey, string>>;
+  currentReigns: ProfileReign[];
+  pastReigns: ProfileReign[];
+};
+
 // A pending claim shown in the admin queue.
 export type PendingClaimListItem = {
   id: string;
