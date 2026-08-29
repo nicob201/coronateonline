@@ -47,6 +47,12 @@ export async function SiteHeader() {
             >
               @{username}
             </Link>
+            <Link
+              href="/perfil"
+              className="hidden md:block px-4 py-2 text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors"
+            >
+              Perfil
+            </Link>
             <form action={signOut}>
               <button
                 type="submit"
