@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { env } from "@/lib/env";
 import { getTitleBySlug } from "@/services/titles.server";
+import { getPendingClaim } from "@/services/claims.server";
 import { ReignHistory } from "@/components/reign-history";
+import { DethroneForm } from "@/features/dethrone/components/dethrone-form";
+import { PaymentInstructions } from "@/features/dethrone/components/payment-instructions";
 import { formatARS, formatReignDuration } from "@/lib/format";
 import { minClaimAmount, RARITY_LABELS } from "@/lib/titles";
 
@@ -26,6 +31,13 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
   const title = await getTitleBySlug(supabase, slug);
 
   if (!title) notFound();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const pendingClaim = user
+    ? await getPendingClaim(supabase, user.id, title.id)
+    : null;
 
   const isHeld = title.holder !== null;
   const currentPrice = title.price;
@@ -80,28 +92,41 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
             </div>
           </div>
 
-          <div className="glass-panel rounded-xl p-6 flex flex-col gap-4">
-            <h2 className="text-title-md font-title-md text-on-surface">
-              {isHeld ? "¿Querés destronarlo?" : "¿Lo querés para vos?"}
-            </h2>
-            <p className="text-body-sm font-body-sm text-on-surface-variant">
-              El trono tiene precio. Poné la guita y es tuyo.
-            </p>
-            <div className="flex justify-between items-center border-t border-outline-variant/20 pt-3">
-              <span className="text-label-caps font-label-caps text-on-surface-variant">
-                PRECIO MÍNIMO
-              </span>
-              <span className="text-title-md font-title-md text-on-surface font-black">
-                {formatARS(nextPrice)}
-              </span>
+          {pendingClaim ? (
+            <PaymentInstructions claim={pendingClaim} alias={env.PAYMENT_ALIAS} />
+          ) : (
+            <div className="glass-panel rounded-xl p-6 flex flex-col gap-4">
+              <h2 className="text-title-md font-title-md text-on-surface">
+                {isHeld ? "¿Querés destronarlo?" : "¿Lo querés para vos?"}
+              </h2>
+              <p className="text-body-sm font-body-sm text-on-surface-variant">
+                El trono tiene precio. Poné la guita y es tuyo.
+              </p>
+              <div className="flex justify-between items-center border-t border-outline-variant/20 pt-3">
+                <span className="text-label-caps font-label-caps text-on-surface-variant">
+                  PRECIO MÍNIMO
+                </span>
+                <span className="text-title-md font-title-md text-on-surface font-black">
+                  {formatARS(nextPrice)}
+                </span>
+              </div>
+              {user ? (
+                <DethroneForm
+                  titleId={title.id}
+                  slug={slug}
+                  minAmount={nextPrice}
+                  isHeld={isHeld}
+                />
+              ) : (
+                <Link
+                  href="/login"
+                  className="self-stretch text-center btn-destronar text-on-surface px-8 py-3 rounded-lg text-label-caps font-label-caps font-bold tracking-widest border border-secondary-container/50"
+                >
+                  INICIAR SESIÓN PARA {isHeld ? "DESTRONAR" : "CORONARME"}
+                </Link>
+              )}
             </div>
-            <span
-              aria-disabled="true"
-              className="self-stretch text-center btn-destronar text-on-surface px-8 py-3 rounded-lg text-label-caps font-label-caps font-bold tracking-widest border border-secondary-container/50 opacity-60"
-            >
-              {isHeld ? "DESTRONAR" : "CORONARME"} · PRÓXIMAMENTE
-            </span>
-          </div>
+          )}
         </div>
       </div>
 
