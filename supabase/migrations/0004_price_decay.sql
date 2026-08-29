@@ -31,6 +31,7 @@ CREATE POLICY "Pricing config is publicly readable"
 
 -- Game rules are public; writes happen only via migrations or service_role.
 GRANT SELECT ON pricing_config TO anon, authenticated;
+REVOKE INSERT, UPDATE, DELETE ON public.pricing_config FROM anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 2. PRICING FUNCTIONS — the effective-price formula lives here and nowhere else
@@ -60,7 +61,8 @@ BEGIN
   SELECT count(*) INTO v_recent_count
   FROM public.reigns
   WHERE title_id = p_title_id
-    AND started_at > now() - interval '30 days';
+    AND ended_at IS NOT NULL
+    AND ended_at > now() - interval '30 days';
 
   RETURN GREATEST(
     1000,
@@ -118,6 +120,7 @@ GRANT  EXECUTE ON FUNCTION public.title_current_price(uuid) TO anon, authenticat
 -- ---------------------------------------------------------------------------
 -- 3. VIEW — one flat row per title: effective price + current holder
 -- ---------------------------------------------------------------------------
+-- ponytail: two SECURITY DEFINER calls per row (~6 subqueries); rewrite as a LATERAL-joined view if title count grows past a few hundred.
 CREATE OR REPLACE VIEW public.titles_priced
 WITH (security_invoker = true) AS
 SELECT
@@ -136,6 +139,7 @@ LEFT JOIN public.reigns   r ON r.title_id = t.id AND r.ended_at IS NULL
 LEFT JOIN public.profiles p ON p.id = r.user_id;
 
 GRANT SELECT ON public.titles_priced TO anon, authenticated;
+REVOKE INSERT, UPDATE, DELETE ON public.titles_priced FROM anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 4. create_claim / apply_claim — thresholds use the decayed price

@@ -67,15 +67,18 @@ BEGIN
   p := title_current_price(t_peak);
   ASSERT p = 50000, format('peak-floored price: expected 50000, got %s', p);
 
-  -- Case 4: floored by activity. 3 reigns started in last 30d -> 2000 * 3 = 6000;
-  --   peak within 90d is only 5000 so the activity term dominates.
+  -- Case 4: floored by activity. 2 ended reigns (dethrones) in last 30d -> 2000 * 2 = 4000;
+  --   peak within 90d is only 4000; active reign old so its decayed value bottoms out
+  --   well below the floor, so the activity term dominates the price too.
   INSERT INTO reigns (title_id, user_id, price_paid, started_at, ended_at) VALUES
     (t_act, u1, 3000, now() - interval '25 days', now() - interval '20 days'),
     (t_act, u1, 4000, now() - interval '18 days', now() - interval '12 days');
   INSERT INTO reigns (title_id, user_id, price_paid, started_at)
-    VALUES (t_act, u1, 5000, now() - interval '5 days');
+    VALUES (t_act, u1, 5000, now() - interval '200 days');
   f := title_price_floor(t_act);
-  ASSERT f = 6000, format('activity floor: expected 2000*3 = 6000, got %s', f);
+  ASSERT f = 4000, format('activity floor: expected 2000*2 = 4000, got %s', f);
+  ASSERT title_current_price(t_act) = 4000,
+    format('activity-floored price: expected 4000, got %s', title_current_price(t_act));
 
   RAISE NOTICE 'pricing_test: all assertions passed';
 END $$;
