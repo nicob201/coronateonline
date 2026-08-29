@@ -53,6 +53,16 @@ export type Coronation = {
   holderName: string;
 };
 
+// A pending claim shown in the admin queue.
+export type PendingClaimListItem = {
+  id: string;
+  amount: number;
+  createdAt: string;
+  claimantName: string;
+  titleName: string;
+  titleSlug: string;
+};
+
 // A ranked user in the Hall of Fame.
 export type HallOfFameEntry = {
   username: string;

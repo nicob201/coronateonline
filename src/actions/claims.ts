@@ -1,8 +1,10 @@
 "use server";
 
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { createClaim } from "@/services/claims.server";
+import { requireAdmin } from "@/services/auth.server";
+import { applyClaim, createClaim, rejectClaim } from "@/services/claims.server";
 import { dethroneSchema } from "@/features/dethrone/schemas/dethrone.schema";
 import type { ActionResult, Claim } from "@/types";
 
@@ -14,17 +16,20 @@ function translateRpcError(message: string): string {
   if (message.includes("at least") || message.includes("below the current price")) {
     return "El monto no alcanza: alguien pagó más. Refrescá la página.";
   }
-  if (message.includes("already hold this title")) {
+  if (message.includes("already hold")) {
     return "Ya sos el dueño de este título.";
   }
   if (message.includes("already have a pending claim")) {
     return "Ya tenés una solicitud pendiente para este título.";
   }
+  if (message.includes("not found or already resolved")) {
+    return "La solicitud ya no está pendiente.";
+  }
   if (message.includes("Not authenticated")) return NOT_AUTH;
   if (message.includes("multiple of 1000") || message.includes("Minimum claim")) {
     return "Monto inválido.";
   }
-  return "No se pudo crear la solicitud. Probá de nuevo.";
+  return "No se pudo procesar la solicitud. Probá de nuevo.";
 }
 
 // Creates a pending dethrone claim for the authenticated user; amount is re-validated server-side by the RPC.
@@ -68,4 +73,49 @@ export async function destronar(
   revalidatePath(`/t/${slug}`);
   revalidatePath("/");
   return { success: true, data: claim };
+}
+
+const resolveClaimSchema = z.object({
+  claimId: z.uuid(),
+  slug: z.string().optional(),
+  decision: z.enum(["apply", "reject"]),
+});
+
+// Admin-only: applies or rejects a pending claim, then revalidates the affected pages.
+export async function resolverClaim(
+  _prevState: ActionResult<null> | null,
+  formData: FormData,
+): Promise<ActionResult<null>> {
+  const { supabase } = await requireAdmin();
+
+  const parsed = resolveClaimSchema.safeParse({
+    claimId: formData.get("claimId"),
+    slug: formData.get("slug") ?? undefined,
+    decision: formData.get("decision"),
+  });
+
+  if (!parsed.success) {
+    return { success: false, error: "Solicitud inválida." };
+  }
+
+  const { claimId, slug, decision } = parsed.data;
+
+  try {
+    if (decision === "apply") {
+      await applyClaim(supabase, claimId);
+    } else {
+      await rejectClaim(supabase, claimId);
+    }
+  } catch (err: unknown) {
+    const message =
+      typeof err === "object" && err !== null && "message" in err
+        ? String((err as { message: unknown }).message)
+        : "";
+    return { success: false, error: translateRpcError(message) };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+  if (slug) revalidatePath(`/t/${slug}`);
+  return { success: true, data: null };
 }
