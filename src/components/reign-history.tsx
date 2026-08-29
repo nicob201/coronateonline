@@ -34,6 +34,11 @@ export function ReignHistory({
                 <div className="text-label-caps font-label-caps text-on-surface-variant">
                   Reinó por {formatReignDuration(r.startedAt, r.endedAt)}
                 </div>
+                {r.message && (
+                  <p className="text-body-sm font-body-sm italic text-on-surface-variant mt-1">
+                    «{r.message}»
+                  </p>
+                )}
               </div>
             </div>
             <div className="text-body-lg font-body-lg text-outline">

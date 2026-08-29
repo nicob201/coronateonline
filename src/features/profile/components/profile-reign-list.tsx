@@ -19,6 +19,11 @@ function ReignRow({ reign, ongoing }: { reign: ProfileReign; ongoing: boolean })
               ? `En curso · ${formatReignDuration(reign.startedAt)}`
               : `Reinó ${formatReignDuration(reign.startedAt, reign.endedAt)}`}
           </div>
+          {reign.message && (
+            <p className="text-body-sm font-body-sm italic text-on-surface-variant mt-1">
+              «{reign.message}»
+            </p>
+          )}
         </div>
       </div>
       <span className="text-body-lg font-body-lg text-outline">

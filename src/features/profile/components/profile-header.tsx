@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { socialUrl } from "@/lib/socials";
+import { ShareButton } from "@/components/share-button";
 import type { PublicProfile, SocialKey } from "@/types";
 
 const SOCIAL_LABELS: Record<SocialKey, string> = {
@@ -16,8 +18,8 @@ function initial(name: string): string {
 
 // Public profile identity block: avatar, name, bio, current crowns and social links.
 export function ProfileHeader({ profile }: { profile: PublicProfile }) {
-  // ponytail: social values rendered as raw href; add handle→URL normalization when the profile-edit UI defines the format.
   const socials = Object.entries(profile.socials) as [SocialKey, string][];
+  const crown = profile.currentReigns[0];
 
   return (
     <div className="glass-panel rounded-xl p-8 flex flex-col items-center text-center gap-4 legendary-glow">
@@ -71,7 +73,7 @@ export function ProfileHeader({ profile }: { profile: PublicProfile }) {
           {socials.map(([key, value]) => (
             <a
               key={key}
-              href={value}
+              href={socialUrl(key, value)}
               target="_blank"
               rel="noopener noreferrer"
               className="text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors"
@@ -81,6 +83,12 @@ export function ProfileHeader({ profile }: { profile: PublicProfile }) {
           ))}
         </div>
       )}
+
+      <ShareButton
+        path={`/@${profile.username}`}
+        title={`${profile.displayName} en CoronaTeOnline`}
+        text={crown ? `Reina en ${crown.titleName}` : undefined}
+      />
     </div>
   );
 }
