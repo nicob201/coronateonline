@@ -53,7 +53,7 @@ export function DethroneForm({ titleId, slug, minAmount, isHeld }: DethroneFormP
           rows={2}
           className="w-full px-4 py-3 rounded-lg bg-surface-container-high border border-outline-variant/30 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-colors resize-none"
         />
-        <span className="text-body-xs font-body-xs text-on-surface-variant">
+        <span className="text-label-caps font-label-caps text-on-surface-variant">
           Máx. 80 caracteres
         </span>
       </div>

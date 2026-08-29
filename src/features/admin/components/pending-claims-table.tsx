@@ -32,7 +32,7 @@ function ClaimRow({ claim }: { claim: PendingClaimListItem }) {
         )}
         {claim.message && (
           <span className="text-body-sm font-body-sm text-on-surface-variant italic">
-            &laquo;{claim.message}&raquo;
+            «{claim.message}»
           </span>
         )}
         {state?.success === false && state.error && (
