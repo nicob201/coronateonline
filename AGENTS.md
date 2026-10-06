@@ -20,7 +20,9 @@ Follow the most restrictive rule when guidelines conflict.
 npm run dev          # dev server
 npm run build        # production build
 npm run lint         # ESLint
-npx tsc --noEmit     # type-check only
+npm run typecheck    # route typegen + tsc --noEmit
+npm run test         # Vitest
+npm run verify       # lint + typecheck + test + build (same as CI)
 ```
 
 ## 2. Stack & Architecture

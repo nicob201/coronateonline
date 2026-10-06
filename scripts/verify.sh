@@ -14,7 +14,7 @@ run() {
 }
 
 run "npm run lint"
-run "npx tsc --noEmit"
+run "npm run typecheck"
 run "npm run test"
 run "npm run build"
 
