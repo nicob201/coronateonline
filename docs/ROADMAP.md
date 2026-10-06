@@ -17,8 +17,8 @@ Un visitante entra desde un link, juega en 30 segundos sin pagar nada y ve un si
 ## Semana 1 — Que exista y se pueda jugar
 
 - [x] **D1** — Este roadmap + GitHub Actions (lint, typecheck, tests, build) + badge
-- [ ] **D2** — Deploy en Vercel + Supabase prod, `loading` / `error` / `not-found`
-- [ ] **D3** — Login invitado en un click (Supabase anonymous sign-in)
+- [x] **D2** — Deploy en Vercel + Supabase prod, `loading` / `error` / `not-found`
+- [ ] **D3** — Login invitado en un click (Supabase anonymous sign-in) + navegación mobile (hoy el header oculta login y Explorar)
 - [ ] **D4** — Billetera: ledger con saldo derivado + saldo inicial; `DESIGN.md` v2
 - [ ] **D5** — RPC atómico `dethrone_with_coins` (debita, traspasa, compensa al destronado) + banner "demo"
 
