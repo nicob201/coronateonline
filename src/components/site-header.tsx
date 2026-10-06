@@ -21,7 +21,7 @@ export async function SiteHeader() {
       <div className="flex items-center gap-4">
         <Link
           href="/"
-          className="text-title-md font-title-md font-black text-primary tracking-tighter uppercase"
+          className="text-body-lg md:text-title-md font-title-md font-black text-primary tracking-tighter uppercase"
         >
           CoronaTeOnline
         </Link>
@@ -38,7 +38,15 @@ export async function SiteHeader() {
         </li>
       </ul>
 
-      <div className="flex items-center gap-4">
+      {/* Below md actions collapse to icons (aria-label keeps the name); md:hidden! because unlayered Material Symbols CSS beats Tailwind layers. */}
+      <div className="flex items-center gap-1 md:gap-4">
+        <Link
+          href="/titulos"
+          aria-label="Explorar"
+          className="md:hidden p-2 text-on-surface-variant hover:text-primary transition-colors"
+        >
+          <span aria-hidden="true" className="material-symbols-outlined">explore</span>
+        </Link>
         {username ? (
           <>
             <Link
@@ -49,25 +57,31 @@ export async function SiteHeader() {
             </Link>
             <Link
               href="/perfil"
-              className="hidden md:block px-4 py-2 text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors"
+              aria-label="Perfil"
+              className="p-2 md:px-4 text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors"
             >
-              Perfil
+              <span aria-hidden="true" className="material-symbols-outlined md:hidden!">person</span>
+              <span className="hidden md:inline">Perfil</span>
             </Link>
-            <form action={signOut}>
+            <form action={signOut} className="flex">
               <button
                 type="submit"
-                className="hidden md:block px-4 py-2 text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors"
+                aria-label="Salir"
+                className="p-2 md:px-4 text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors"
               >
-                Salir
+                <span aria-hidden="true" className="material-symbols-outlined md:hidden!">logout</span>
+                <span className="hidden md:inline">Salir</span>
               </button>
             </form>
           </>
         ) : (
           <Link
             href="/login"
-            className="hidden md:block px-4 py-2 text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors"
+            aria-label="Iniciar sesión"
+            className="p-2 md:px-4 text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors"
           >
-            Iniciar sesión
+            <span aria-hidden="true" className="material-symbols-outlined md:hidden!">login</span>
+            <span className="hidden md:inline">Iniciar sesión</span>
           </Link>
         )}
       </div>
