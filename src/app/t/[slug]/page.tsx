@@ -183,7 +183,7 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                 />
               ) : (
                 <Link
-                  href="/login"
+                  href={`/login?next=${encodeURIComponent(`/t/${slug}`)}`}
                   className="self-stretch text-center btn-destronar text-on-surface px-8 py-3 rounded-lg text-label-caps font-label-caps font-bold tracking-widest border border-secondary-container/50"
                 >
                   INICIAR SESIÓN PARA {isHeld ? "DESTRONAR" : "CORONARME"}

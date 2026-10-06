@@ -8,14 +8,16 @@ import {
 import { CoronationTicker } from "@/components/coronation-ticker";
 import { HallOfFame } from "@/components/hall-of-fame";
 import { TrendingTitle } from "@/components/trending-title";
+import { GuestLoginButton } from "@/features/auth/components/guest-login-button";
 
 // Landing: activity ticker, hero, trending titles (top by current price), Hall of Fame.
 export default async function Home() {
   const supabase = await createClient();
-  const [coronations, titles, hallOfFame] = await Promise.all([
+  const [coronations, titles, hallOfFame, { data: { user } }] = await Promise.all([
     getRecentCoronations(supabase, 6),
     getTitlesWithCurrentReign(supabase),
     getHallOfFame(supabase, 5),
+    supabase.auth.getUser(),
   ]);
 
   const trending = titles
@@ -48,12 +50,15 @@ export default async function Home() {
             Elegí tu título. Coronate. Hacete conocido. El under digital donde el
             estatus se paga y se defiende.
           </p>
-          <Link
-            href="/titulos"
-            className="btn-gradient px-8 py-4 rounded-xl text-label-caps font-label-caps text-on-primary-fixed font-bold tracking-widest"
-          >
-            👑 VER TÍTULOS
-          </Link>
+          <div className="flex flex-col items-center gap-4 w-full max-w-xs">
+            <Link
+              href="/titulos"
+              className="block w-full text-center btn-gradient px-8 py-4 rounded-xl text-label-caps font-label-caps text-on-primary-fixed font-bold tracking-widest"
+            >
+              👑 VER TÍTULOS
+            </Link>
+            {user ? null : <GuestLoginButton />}
+          </div>
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

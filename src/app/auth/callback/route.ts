@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { safeNextPath } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getPostLoginRedirectPath } from "@/services/auth.server";
 
@@ -6,17 +7,12 @@ import { getPostLoginRedirectPath } from "@/services/auth.server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=no_code`);
   }
 
-  // Only allow same-origin relative redirects — reject protocol-relative (`//`, `/\`) targets.
-  const safeNext =
-    next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\")
-      ? next
-      : "/";
+  const safeNext = safeNextPath(searchParams.get("next"));
 
   const supabase = await createClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);

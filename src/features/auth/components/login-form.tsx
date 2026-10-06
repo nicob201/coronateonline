@@ -2,10 +2,12 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
+import { GuestLoginButton } from "@/features/auth/components/guest-login-button";
 
 type FormState = "idle" | "loading" | "success" | "error";
 
-export function LoginForm() {
+// Login card: one-click guest entry on top, then magic link and Google.
+export function LoginForm({ next }: { next?: string }) {
   const [email, setEmail] = useState("");
   const [state, setState] = useState<FormState>("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -80,6 +82,24 @@ export function LoginForm() {
         </div>
       ) : (
         <>
+          <div className="flex flex-col gap-2 mb-6">
+            <GuestLoginButton next={next} />
+            <p className="text-body-sm font-body-sm text-on-surface-variant text-center">
+              Sin registro: te damos un nombre de la corte y entrás a jugar.
+            </p>
+          </div>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-outline-variant/30" />
+            </div>
+            <div className="relative flex justify-center text-body-sm">
+              <span className="bg-surface-variant px-3 text-on-surface-variant">
+                o con tu cuenta
+              </span>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-6">
             <div className="flex flex-col gap-1.5">
               <label
