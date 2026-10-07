@@ -87,10 +87,11 @@ BEGIN
   ASSERT public.coin_balance(c) = 7,
     format('challenger: expected 8 - 1 = 7, got %s', public.coin_balance(c));
 
-  -- Exact balance: paying all 7 succeeds and leaves 0.
-  r := public.dethrone_with_coins(t_fr2, 7);
+  -- Exact balance: paying all 7 succeeds and leaves 0; tabs/newlines-only message -> NULL.
+  r := public.dethrone_with_coins(t_fr2, 7, E'\t\n ');
   ASSERT public.coin_balance(c) = 0,
     format('exact balance: expected 0, got %s', public.coin_balance(c));
+  ASSERT r.message IS NULL, format('tab/newline-only message must be NULL, got %L', r.message);
 
   -- Clients still cannot write the ledger directly.
   ok := false;

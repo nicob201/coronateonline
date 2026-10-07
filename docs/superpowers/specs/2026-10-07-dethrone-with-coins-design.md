@@ -73,9 +73,12 @@ Production has 0 claims (verified at D4 rollout; re-checked before the push).
 4. Read the active reign. Caller is the holder → `'You already hold this title'`.
 5. Minimum = `title_current_price + 1` when held, `1` when unclaimed;
    `p_amount <` minimum → `'Amount must be at least %'`.
-6. Lock the challenger's `profiles` row `FOR UPDATE`, then
+6. Lock the challenger's `profiles` row `FOR NO KEY UPDATE`, then
    `coin_balance(caller) < p_amount` → `'Insufficient balance'`. Lock order is
-   always title → challenger profile, so concurrent dethrones cannot deadlock.
+   always title → challenger profile. The profile lock must be `NO KEY UPDATE`,
+   not `FOR UPDATE`: the FK checks on `dethroned_user_id` and the ledger credit take
+   `KEY SHARE` on the old holder's profile, and `FOR UPDATE` would deadlock two
+   users dethroning each other at the same moment (found in review, reproduced).
 7. End the active reign (`ended_at = now()`); insert the new reign
    `(title_id, user_id, price_paid = p_amount, message, dethroned_user_id = old holder)`.
 8. Ledger: `(caller, -p_amount, 'dethrone', new_reign.id)`; if the title was held,

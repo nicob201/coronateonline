@@ -34,7 +34,10 @@ ALTER TABLE coin_ledger
 --    Validates the live price and the balance, ends the active reign, starts
 --    the caller's, debits the caller and credits the dethroned holder with the
 --    full amount (zero-sum). On an unclaimed title the coins are burned.
---    Lock order: title row, then the caller's profile row.
+--    Lock order: title row FOR UPDATE, then the caller's profile row FOR NO KEY
+--    UPDATE (not FOR UPDATE: the FK checks on dethroned_user_id / the ledger
+--    take KEY SHARE on the old holder's profile, so FOR UPDATE would deadlock
+--    two users dethroning each other at the same moment).
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.dethrone_with_coins(
   p_title_id uuid,
@@ -59,7 +62,7 @@ BEGIN
     RAISE EXCEPTION 'Amount must be positive';
   END IF;
 
-  p_message := nullif(btrim(p_message), '');
+  p_message := nullif(btrim(p_message, E' \t\r\n'), '');
   IF p_message IS NOT NULL AND char_length(p_message) > 80 THEN
     RAISE EXCEPTION 'Message too long';
   END IF;
@@ -88,7 +91,7 @@ BEGIN
   END IF;
 
   -- Serializes this caller's spends so the balance check cannot be raced.
-  PERFORM 1 FROM public.profiles WHERE id = v_user_id FOR UPDATE;
+  PERFORM 1 FROM public.profiles WHERE id = v_user_id FOR NO KEY UPDATE;
   IF public.coin_balance(v_user_id) < p_amount THEN
     RAISE EXCEPTION 'Insufficient balance';
   END IF;
