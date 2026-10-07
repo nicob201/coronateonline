@@ -3,6 +3,11 @@ export function formatCoronas(amount: number): string {
   return `${amount.toLocaleString("es-AR")} 👑`;
 }
 
+// Formats an ISO timestamp as an Argentina calendar date ("7/10/2026"), independent of the server's time zone.
+export function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" });
+}
+
 // Formats the elapsed time between two instants as "4 días 17 horas" / "2 días" / "5 horas".
 export function formatReignDuration(startedAt: string, endedAt?: string | null): string {
   const start = new Date(startedAt).getTime();

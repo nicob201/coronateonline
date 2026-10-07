@@ -1,4 +1,4 @@
-import { formatCoronas } from "@/lib/format";
+import { formatCoronas, formatDate } from "@/lib/format";
 import type { CoinMovement } from "@/types";
 
 const REASON_LABELS: Record<string, string> = {
@@ -23,9 +23,7 @@ export function WalletCard({
         {movements.map((m) => (
           <li key={m.id} className="flex items-center gap-4 py-2 text-body-sm font-body-sm">
             <span className="flex-1 text-on-surface">{REASON_LABELS[m.reason] ?? m.reason}</span>
-            <span className="text-on-surface-variant">
-              {new Date(m.created_at).toLocaleDateString("es-AR")}
-            </span>
+            <span className="text-on-surface-variant">{formatDate(m.created_at)}</span>
             <span className={m.amount > 0 ? "text-tertiary" : "text-error"}>
               {m.amount > 0 ? "+" : ""}
               {formatCoronas(m.amount)}
