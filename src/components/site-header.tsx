@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getOwnProfile } from "@/services/profiles.server";
+import { getBalance } from "@/services/wallet.server";
+import { formatCoronas } from "@/lib/format";
 import { signOut } from "@/actions/auth";
 
 // Fetches the authenticated user's profile and renders the site header.
@@ -11,9 +13,15 @@ export async function SiteHeader() {
   } = await supabase.auth.getUser();
 
   let username: string | null = null;
+  let balance: number | null = null;
   if (user) {
-    const profile = await getOwnProfile(supabase, user.id);
+    // A failed balance read hides the chip instead of breaking every page.
+    const [profile, coins] = await Promise.all([
+      getOwnProfile(supabase, user.id),
+      getBalance(supabase, user.id).catch(() => null),
+    ]);
     username = profile?.username ?? null;
+    balance = coins;
   }
 
   return (
@@ -49,16 +57,26 @@ export async function SiteHeader() {
         </Link>
         {username ? (
           <>
+            {balance !== null && (
+              <Link
+                href="/perfil"
+                aria-label={`Saldo: ${formatCoronas(balance)}`}
+                className="px-3 py-1 rounded-full border border-tertiary/40 text-label-caps font-label-caps text-tertiary hover:bg-tertiary/10 transition-colors whitespace-nowrap"
+              >
+                {formatCoronas(balance)}
+              </Link>
+            )}
             <Link
               href={`/@${username}`}
               className="hidden md:block px-4 py-2 text-label-caps font-label-caps text-primary hover:text-primary-fixed transition-colors"
             >
               @{username}
             </Link>
+            {/* Below md the balance chip already links to /perfil; showing both overflows a 360px header. */}
             <Link
               href="/perfil"
               aria-label="Perfil"
-              className="p-2 md:px-4 text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors"
+              className={`${balance !== null ? "hidden md:block" : ""} p-2 md:px-4 text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors`}
             >
               <span aria-hidden="true" className="material-symbols-outlined md:hidden!">person</span>
               <span className="hidden md:inline">Perfil</span>
