@@ -23,68 +23,13 @@ export type Database = {
   };
   public: {
     Tables: {
-      claims: {
-        Row: {
-          amount: number;
-          created_at: string;
-          id: string;
-          message: string | null;
-          resolved_at: string | null;
-          status: string;
-          title_id: string;
-          user_id: string;
-        };
-        ComputedFields: never;
-        Insert: {
-          amount: number;
-          created_at?: string;
-          id?: string;
-          message?: string | null;
-          resolved_at?: string | null;
-          status?: string;
-          title_id: string;
-          user_id: string;
-        };
-        Update: {
-          amount?: number;
-          created_at?: string;
-          id?: string;
-          message?: string | null;
-          resolved_at?: string | null;
-          status?: string;
-          title_id?: string;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "claims_title_id_fkey";
-            columns: ["title_id"];
-            isOneToOne: false;
-            referencedRelation: "titles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "claims_title_id_fkey";
-            columns: ["title_id"];
-            isOneToOne: false;
-            referencedRelation: "titles_priced";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "claims_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       coin_ledger: {
         Row: {
           amount: number;
           created_at: string;
           id: string;
           reason: string;
+          reign_id: string | null;
           user_id: string;
         };
         ComputedFields: never;
@@ -93,6 +38,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           reason: string;
+          reign_id?: string | null;
           user_id: string;
         };
         Update: {
@@ -100,9 +46,24 @@ export type Database = {
           created_at?: string;
           id?: string;
           reason?: string;
+          reign_id?: string | null;
           user_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "coin_ledger_reign_id_fkey";
+            columns: ["reign_id"];
+            isOneToOne: false;
+            referencedRelation: "reigns";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "coin_ledger_reign_id_fkey";
+            columns: ["reign_id"];
+            isOneToOne: false;
+            referencedRelation: "titles_priced";
+            referencedColumns: ["reign_id"];
+          },
           {
             foreignKeyName: "coin_ledger_user_id_fkey";
             columns: ["user_id"];
@@ -314,28 +275,26 @@ export type Database = {
       };
     };
     Functions: {
-      apply_claim: { Args: { p_claim_id: string; p_clear_message?: boolean }; Returns: undefined };
       coin_balance: { Args: { p_user_id: string }; Returns: number };
-      create_claim: {
+      dethrone_with_coins: {
         Args: { p_amount: number; p_message?: string; p_title_id: string };
         Returns: {
-          amount: number;
-          created_at: string;
+          dethroned_user_id: string | null;
+          ended_at: string | null;
           id: string;
           message: string | null;
-          resolved_at: string | null;
-          status: string;
+          price_paid: number;
+          started_at: string;
           title_id: string;
           user_id: string;
         };
         SetofOptions: {
           from: "*";
-          to: "claims";
+          to: "reigns";
           isOneToOne: true;
           isSetofReturn: false;
         };
       };
-      reject_claim: { Args: { p_claim_id: string }; Returns: undefined };
       title_current_price: { Args: { p_title_id: string }; Returns: number };
       title_price_floor: { Args: { p_title_id: string }; Returns: number };
     };

@@ -9,7 +9,6 @@ export type ActionResult<T> =
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Title = Database["public"]["Tables"]["titles"]["Row"];
 export type Reign = Database["public"]["Tables"]["reigns"]["Row"];
-export type Claim = Database["public"]["Tables"]["claims"]["Row"];
 export type CoinLedgerRow = Database["public"]["Tables"]["coin_ledger"]["Row"];
 
 // Cosmetic rarity tier derived from a title's current price.
@@ -88,18 +87,6 @@ export type PublicProfile = {
   pastReigns: ProfileReign[];
 };
 
-// A pending claim shown in the admin queue.
-export type PendingClaimListItem = {
-  id: string;
-  amount: number;
-  createdAt: string;
-  claimantName: string;
-  titleName: string;
-  titleSlug: string;
-  currentPrice: number | null;
-  message: string | null;
-};
-
 // A ranked user in the Hall of Fame.
 export type HallOfFameEntry = {
   username: string;
@@ -128,7 +115,10 @@ export type DethroneNotice = {
   at: string;
 };
 
-// One wallet movement shown in the user's "Billetera".
-export type CoinMovement = Pick<CoinLedgerRow, "id" | "amount" | "reason" | "created_at">;
+// One wallet movement shown in the user's "Billetera", with its title and counterpart when it has a reign.
+export type CoinMovement = Pick<CoinLedgerRow, "id" | "amount" | "reason" | "created_at"> & {
+  titleName: string | null;
+  counterpartName: string | null;
+};
 
 export type { Database };

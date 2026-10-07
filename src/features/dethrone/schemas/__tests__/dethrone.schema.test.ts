@@ -3,7 +3,6 @@ import { dethroneSchema } from "../dethrone.schema";
 
 const validInput = {
   titleId: "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
-  slug: "rey-de-cordoba",
   amount: "5",
 };
 
@@ -36,11 +35,6 @@ describe("dethroneSchema", () => {
 
   it("rejects a non-uuid titleId", () => {
     const result = dethroneSchema.safeParse({ ...validInput, titleId: "nope" });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects a missing slug", () => {
-    const result = dethroneSchema.safeParse({ ...validInput, slug: "" });
     expect(result.success).toBe(false);
   });
 

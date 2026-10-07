@@ -9,7 +9,7 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "test:sql": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/pricing_test.sql -f supabase/tests/coronas_test.sql",
+    "test:sql": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/pricing_test.sql -f supabase/tests/coronas_test.sql -f supabase/tests/dethrone_test.sql",
     "verify": "bash scripts/verify.sh",
     "update-types": "npx supabase gen types typescript --local > src/types/database.types.ts && npx -y oxfmt@0.72.0 src/types/database.types.ts"
   },

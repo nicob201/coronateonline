@@ -35,21 +35,18 @@ All decay parameters live in a single-row `pricing_config` table, tunable with a
 the `title_current_price` Postgres function and exposed through the
 `titles_priced` view.
 
-### Dethrone flow (v1 — manual payment confirmation)
+### Dethrone flow (v2 — Coronas, atomic)
 
-**Transitional (until roadmap D5).** D5 replaces it with `dethrone_with_coins`, an atomic RPC that debits the challenger's Coronas, transfers the crown and compensates the dethroned holder.
+1. A logged-in user (guests included) on a title page offers **X 👑** (X ≥ current price + 1, or ≥ 1 if unclaimed; they may offer more to raise the next threshold). The page shows their balance; the button reads "TE FALTAN N 👑" when short.
+2. The server action validates with Zod and calls `dethrone_with_coins`, which in one transaction locks the title (then the challenger's profile), re-checks the live price and the balance, ends the active reign, starts the new one and writes the ledger.
+3. **Zero-sum:** the dethroned holder is credited exactly X 👑. Claiming an unclaimed title only debits — those Coronas are burned (the economy's only sink).
+4. The coronation message (≤ 80 chars) is stored on the reign and shown publicly at once; until moderation exists it is cleared with SQL if needed.
 
-1. Logged-in user on a title page taps **"Destronar por X 👑"** (X ≥ current + 1, user may offer more).
-2. Server creates a `claim` with status `pending` and shows payment instructions: a Mercado Pago payment link (created manually by the admin in the MP dashboard for now).
-3. User pays outside the platform.
-4. Admin confirms the payment in `/admin` → an atomic Postgres function applies the claim: ends the current reign, starts the new one.
-5. The dethroned user's reign is closed and recorded in history.
-
-Concurrency note: claims do not lock a title. If two users claim simultaneously, the first confirmed payment wins; the other claim gets rejected (and refunded manually). At MVP scale collisions are ~nonexistent.
+Concurrency: two challengers on one title serialize on the title lock; the second re-reads the new price and is rejected with "El monto no alcanza". Spends by one user serialize on their profile row, locked `FOR NO KEY UPDATE` — never `FOR UPDATE`, which deadlocks against the `KEY SHARE` the foreign keys take when two users dethrone each other at once.
 
 ## 3. Domain Model
 
-Five tables. One source of truth: current holder and current price are always derived from `reigns`; a user's balance is always derived from `coin_ledger`.
+Four domain tables plus the single-row `pricing_config`. One source of truth: current holder and current price are always derived from `reigns`; a user's balance is always derived from `coin_ledger`.
 
 ### `profiles` (1:1 with `auth.users`)
 - `id` (uuid, PK, FK → auth.users), `username` (unique slug, for `/@username`), `display_name`, `avatar_url`, `bio`
@@ -70,19 +67,14 @@ Five tables. One source of truth: current holder and current price are always de
   real amount paid; decay only affects the live threshold, never stored history.
 - Activity feed = recent reigns ordered by `started_at`. Season number = position in the title's reign sequence.
 
-### `claims` (dethrone attempts / payment tracking)
-- `id`, `title_id`, `user_id`, `amount` (integer 👑), `status` (`pending` | `applied` | `rejected`), `created_at`, `resolved_at`
-- Created via an RPC that validates amount server-side against the live current price.
-- Applied only by the admin through the atomic transfer function.
-
 ### `coin_ledger` (the wallet — append-only)
-- `id`, `user_id` (FK → profiles), `amount` (signed integer 👑: credit > 0, debit < 0), `reason` (`welcome` today; D5 adds `dethrone` / `dethroned`, D6 `salary`), `created_at`
+- `id`, `user_id` (FK → profiles), `amount` (signed integer 👑: credit > 0, debit < 0), `reason` (`welcome`, `dethrone` (always negative), `dethroned`; D6 adds `salary`), `reign_id` (FK → reigns, nullable, `ON DELETE SET NULL`), `created_at`
 - **Balance is derived**: `coin_balance(user_id)` = sum of the user's rows. Never stored.
 - 20 👑 `welcome` row per profile, inserted by a trigger on `profiles`; a unique partial index allows only one.
 - RLS: owners read their own rows; no client writes — only `SECURITY DEFINER` code writes the ledger.
 
 ### Database rules
-- RLS enabled on every table. Public read for `profiles`, `titles`, `reigns`. Claims readable by owner (+ admin). No client-side writes to `titles`/`reigns` — transfers happen exclusively inside a `SECURITY DEFINER` function.
+- RLS enabled on every table. Public read for `profiles`, `titles`, `reigns`. No client-side writes to `titles`/`reigns` — transfers happen exclusively inside a `SECURITY DEFINER` function.
 - Money integrity enforced by CHECK constraints (positive amounts; non-zero ledger movements).
 
 ## 4. Pages (MVP)
@@ -94,7 +86,6 @@ Five tables. One source of truth: current holder and current price are always de
 | `/t/[slug]` | Title detail: current holder, price, dethrone button, reign history ("Temporada #N") |
 | `/@[username]` | Public shareable profile: avatar, current title(s), bio, social links, reign history |
 | `/login` | Supabase Auth: email magic link + Google OAuth; username onboarding on first login |
-| `/admin` | Pending claims list with confirm/reject (DB-checked admin only) |
 
 UI copy in Spanish (es-AR). Visual direction: dark, cyberpunk + digital luxury (electric violet, magenta, gold, neon, glassmorphism) — Stitch designs exist and drive the styling pass.
 

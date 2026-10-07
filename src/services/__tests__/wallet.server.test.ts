@@ -2,12 +2,27 @@ import { describe, expect, it } from "vitest";
 import { getBalance, getRecentMovements } from "../wallet.server";
 import { createSupabaseMock } from "@/test/supabase-mock";
 
-const movement = {
+const welcomeRow = {
   id: "m1",
   amount: 20,
   reason: "welcome",
   created_at: "2026-10-07T00:00:00Z",
+  reigns: null,
 };
+
+const dethroneRow = {
+  id: "m2",
+  amount: -40,
+  reason: "dethrone",
+  created_at: "2026-10-07T01:00:00Z",
+  reigns: {
+    titles: { name: "Rey de Córdoba" },
+    holder: { username: "fran", display_name: "Fran" },
+    dethroned: { username: "nico", display_name: null },
+  },
+};
+
+const dethronedRow = { ...dethroneRow, id: "m3", amount: 40, reason: "dethroned" };
 
 describe("getBalance", () => {
   it("returns the balance computed by the coin_balance RPC", async () => {
@@ -23,12 +38,17 @@ describe("getBalance", () => {
 });
 
 describe("getRecentMovements", () => {
-  it("returns the user's newest movements first, capped at the limit", async () => {
+  it("maps joined rows to movements with title and counterpart, newest first", async () => {
     const supabase = createSupabaseMock({
-      queryByTable: { coin_ledger: { data: [movement], error: null } },
+      queryByTable: {
+        coin_ledger: { data: [dethroneRow, dethronedRow, welcomeRow], error: null },
+      },
     });
-    await expect(getRecentMovements(supabase, "u1")).resolves.toEqual([movement]);
-    // The mock's builder is shared per table; select() just exposes the typed filter methods.
+    await expect(getRecentMovements(supabase, "u1")).resolves.toEqual([
+      { id: "m2", amount: -40, reason: "dethrone", created_at: "2026-10-07T01:00:00Z", titleName: "Rey de Córdoba", counterpartName: "nico" },
+      { id: "m3", amount: 40, reason: "dethroned", created_at: "2026-10-07T01:00:00Z", titleName: "Rey de Córdoba", counterpartName: "Fran" },
+      { id: "m1", amount: 20, reason: "welcome", created_at: "2026-10-07T00:00:00Z", titleName: null, counterpartName: null },
+    ]);
     const builder = supabase.from("coin_ledger").select();
     expect(builder.eq).toHaveBeenCalledWith("user_id", "u1");
     expect(builder.order).toHaveBeenCalledWith("created_at", { ascending: false });

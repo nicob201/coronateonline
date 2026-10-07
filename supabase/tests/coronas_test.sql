@@ -1,5 +1,5 @@
 -- supabase/tests/coronas_test.sql
--- Verifies migration 0006: welcome grant, one-welcome rule, balance + RLS, unit claim increment.
+-- Verifies migration 0006: welcome grant, one-welcome rule, balance + RLS.
 -- Run: psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/coronas_test.sql
 -- Everything runs in one transaction and ROLLBACKs; safe against any environment.
 
@@ -10,13 +10,6 @@ INSERT INTO auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_d
   ('c1111111-1111-4111-8111-111111111111', 'authenticated', 'authenticated', 'coronas_u@coronate.test', '{}', '{}', now(), now()),
   ('c2222222-2222-4222-8222-222222222222', 'authenticated', 'authenticated', 'coronas_v@coronate.test', '{}', '{}', now(), now());
 
-INSERT INTO titles (id, slug, name, emoji, description)
-  VALUES ('c3333333-3333-4333-8333-333333333333', 'coronas-test', 'T', '👑', 'x');
-
--- Held by v at 10 👑, started now (inside grace) -> current price 10, next valid claim 11.
-INSERT INTO reigns (title_id, user_id, price_paid, started_at)
-  VALUES ('c3333333-3333-4333-8333-333333333333', 'c2222222-2222-4222-8222-222222222222', 10, now());
-
 DO $$
 DECLARE
   u  uuid := 'c1111111-1111-4111-8111-111111111111';
@@ -25,6 +18,12 @@ BEGIN
   ASSERT public.coin_balance(u) = 20,
     format('welcome: expected 20, got %s', public.coin_balance(u));
   ASSERT public.coin_balance(gen_random_uuid()) = 0, 'no ledger rows: balance must be 0';
+  ASSERT NOT EXISTS (
+    SELECT 1 FROM public.profiles p
+    WHERE NOT EXISTS (
+      SELECT 1 FROM public.coin_ledger l WHERE l.user_id = p.id AND l.reason = 'welcome'
+    )
+  ), 'every profile must have its welcome grant';
 
   ok := false;
   BEGIN
@@ -62,15 +61,6 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN ok := true;
   END;
   ASSERT ok, 'clients must not write the ledger';
-
-  ok := false;
-  BEGIN
-    PERFORM public.create_claim('c3333333-3333-4333-8333-333333333333', 10);
-  EXCEPTION WHEN raise_exception THEN ok := true;
-  END;
-  ASSERT ok, 'a claim at the current price (10) must be rejected';
-
-  PERFORM public.create_claim('c3333333-3333-4333-8333-333333333333', 11);
 
   RAISE NOTICE 'coronas_test: all assertions passed';
 END $$;

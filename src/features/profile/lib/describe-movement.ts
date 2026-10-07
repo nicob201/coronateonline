@@ -1,0 +1,16 @@
+import type { CoinMovement } from "@/types";
+
+// Builds the Spanish label for a wallet movement ("Destronaste a Nico · Rey de Córdoba").
+export function describeMovement(m: CoinMovement): string {
+  const where = m.titleName ? ` · ${m.titleName}` : "";
+  switch (m.reason) {
+    case "welcome":
+      return "Saldo inicial";
+    case "dethrone":
+      return m.counterpartName ? `Destronaste a ${m.counterpartName}${where}` : `Te coronaste${where}`;
+    case "dethroned":
+      return `Te destronó ${m.counterpartName ?? "alguien"}${where}`;
+    default:
+      return m.reason;
+  }
+}
