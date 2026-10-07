@@ -55,7 +55,10 @@ Production has 0 claims (verified at D4 rollout; re-checked before the push).
   the reign a `dethrone` / `dethroned` movement belongs to.
 - `reason` CHECK becomes `IN ('welcome', 'dethrone', 'dethroned')`.
 - Sign rule: `dethrone` amounts are negative, every other reason positive.
-- `dethrone` and `dethroned` rows require `reign_id`.
+- The RPC always sets `reign_id` on `dethrone` / `dethroned` rows, but the column
+  stays nullable with no "required" CHECK: deleting an account cascades to its
+  reigns, and `SET NULL` must not block that delete nor rewrite other users'
+  balances (a CHECK requiring `reign_id` would make the delete fail).
 
 ### 3.3 `dethrone_with_coins(p_title_id uuid, p_amount integer, p_message text DEFAULT NULL) RETURNS reigns`
 
