@@ -1,16 +1,16 @@
-// Domain constants and pure helpers for titles. Money is integer ARS, multiples of 1000.
+// Domain constants and pure helpers for titles. Money is integer Coronas (👑).
 
 import type { RankedReign, Rarity } from "@/types";
 import { formatReignDuration } from "@/lib/format";
 
-export const BASE_PRICE = 1000;
-export const MIN_INCREMENT = 1000;
+export const BASE_PRICE = 1;
+export const MIN_INCREMENT = 1;
 
 // Derives a cosmetic rarity tier from a title's current price (base price when unclaimed).
 export function rarity(currentPrice: number | null): Rarity {
   const price = currentPrice ?? BASE_PRICE;
-  if (price >= 50000) return "legendario";
-  if (price >= 20000) return "epico";
+  if (price >= 50) return "legendario";
+  if (price >= 20) return "epico";
   return "comun";
 }
 

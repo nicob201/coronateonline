@@ -1,4 +1,4 @@
-import { formatARS } from "@/lib/format";
+import { formatCoronas } from "@/lib/format";
 import type { RankedReign } from "@/types";
 
 interface LongestReignsProps {
@@ -39,7 +39,7 @@ export function LongestReigns({ reigns }: LongestReignsProps) {
               </div>
             </div>
             <div className="text-body-lg font-body-lg text-outline">
-              {formatARS(r.pricePaid)}
+              {formatCoronas(r.pricePaid)}
             </div>
           </div>
         ))}

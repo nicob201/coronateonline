@@ -1,4 +1,4 @@
-import { formatARS } from "@/lib/format";
+import { formatCoronas } from "@/lib/format";
 import type { Coronation } from "@/types";
 
 // Scrolling marquee of the latest coronations. Renders nothing when there is no activity yet.
@@ -13,8 +13,8 @@ export function CoronationTicker({ coronations }: { coronations: Coronation[] })
             {i > 0 && <span className="mx-8 text-outline-variant">•</span>}
             🔥{" "}
             {c.dethronedName
-              ? `${c.holderName.toUpperCase()} DESTRONÓ A ${c.dethronedName.toUpperCase()} — ${c.titleName.toUpperCase()} — ${formatARS(c.pricePaid)}`
-              : `${c.holderName.toUpperCase()} ACABA DE CORONARSE ${c.titleName.toUpperCase()} — ${formatARS(c.pricePaid)}`}
+              ? `${c.holderName.toUpperCase()} DESTRONÓ A ${c.dethronedName.toUpperCase()} — ${c.titleName.toUpperCase()} — ${formatCoronas(c.pricePaid)}`
+              : `${c.holderName.toUpperCase()} ACABA DE CORONARSE ${c.titleName.toUpperCase()} — ${formatCoronas(c.pricePaid)}`}
           </span>
         ))}
       </div>

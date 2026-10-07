@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatARS, formatReignDuration } from "@/lib/format";
+import { formatCoronas, formatReignDuration } from "@/lib/format";
 import type { ProfileReign } from "@/types";
 
 function ReignRow({ reign, ongoing }: { reign: ProfileReign; ongoing: boolean }) {
@@ -27,7 +27,7 @@ function ReignRow({ reign, ongoing }: { reign: ProfileReign; ongoing: boolean })
         </div>
       </div>
       <span className="text-body-lg font-body-lg text-outline">
-        {formatARS(reign.pricePaid)}
+        {formatCoronas(reign.pricePaid)}
       </span>
     </Link>
   );

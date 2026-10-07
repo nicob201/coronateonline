@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { createClient } from "@/lib/supabase/server";
 import { getTitleBySlug } from "@/services/titles.server";
-import { formatARS } from "@/lib/format";
+import { formatCoronas } from "@/lib/format";
 import { minClaimAmount } from "@/lib/titles";
 
 export const alt = "Título en CoronaTeOnline";
@@ -19,8 +19,8 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const line = !title
     ? ""
     : title.holder
-      ? `${title.holderName} · ${formatARS(title.price ?? 0)}`
-      : `Sin coronar · desde ${formatARS(minClaimAmount(null))}`;
+      ? `${title.holderName} · ${formatCoronas(title.price ?? 0)}`
+      : `Sin coronar · desde ${formatCoronas(minClaimAmount(null))}`;
 
   return new ImageResponse(
     (

@@ -1,4 +1,4 @@
-import { formatARS } from "@/lib/format";
+import { formatCoronas } from "@/lib/format";
 import type { Claim } from "@/types";
 
 // Shows the fixed-alias transfer instructions for a user's pending dethrone claim.
@@ -24,7 +24,7 @@ export function PaymentInstructions({
           MONTO EXACTO
         </span>
         <span className="text-title-md font-title-md text-tertiary font-black">
-          {formatARS(claim.amount)}
+          {formatCoronas(claim.amount)}
         </span>
       </div>
       <div className="flex justify-between items-center">

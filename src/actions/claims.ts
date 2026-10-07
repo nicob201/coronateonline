@@ -29,9 +29,7 @@ function translateRpcError(message: string): string {
     return "El mensaje es demasiado largo (máx. 80 caracteres).";
   }
   if (message.includes("Not authenticated")) return NOT_AUTH;
-  if (message.includes("multiple of 1000") || message.includes("Minimum claim")) {
-    return "Monto inválido.";
-  }
+  if (message.includes("must be positive")) return "Monto inválido.";
   return "No se pudo procesar la solicitud. Probá de nuevo.";
 }
 

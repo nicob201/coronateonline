@@ -71,7 +71,7 @@ function toTitleCard(row: PricedRow): TitleCard {
     holder,
     holderUserId: row.holder_user_id,
     price: row.current_price,
-    priceFloor: row.price_floor ?? 1000,
+    priceFloor: row.price_floor ?? BASE_PRICE,
     reignStartedAt: row.reign_started_at,
     rarity: rarity(row.current_price),
   };

@@ -1,4 +1,4 @@
-import { formatARS, formatReignDuration } from "@/lib/format";
+import { formatCoronas, formatReignDuration } from "@/lib/format";
 import { BASE_PRICE } from "@/lib/titles";
 import type { PastReign } from "@/types";
 
@@ -42,7 +42,7 @@ export function ReignHistory({
               </div>
             </div>
             <div className="text-body-lg font-body-lg text-outline">
-              {formatARS(r.pricePaid)}
+              {formatCoronas(r.pricePaid)}
             </div>
           </div>
         ))}
@@ -62,7 +62,7 @@ export function ReignHistory({
             </div>
           </div>
           <div className="text-body-lg font-body-lg text-outline">
-            {formatARS(BASE_PRICE)}
+            {formatCoronas(BASE_PRICE)}
           </div>
         </div>
       </div>
