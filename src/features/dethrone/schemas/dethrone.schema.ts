@@ -1,9 +1,8 @@
 import { z } from "zod";
 
-// Validates a dethrone submission: title, slug, amount, and optional coronation message.
+// Validates a dethrone submission: title, amount, and optional coronation message.
 export const dethroneSchema = z.object({
   titleId: z.uuid(),
-  slug: z.string().min(1),
   amount: z.coerce.number().int().positive(),
   message: z
     .string()

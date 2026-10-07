@@ -2,15 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { env } from "@/lib/env";
 import { getTitleBySlug } from "@/services/titles.server";
-import { getPendingClaim } from "@/services/claims.server";
+import { getBalance } from "@/services/wallet.server";
 import { ReignHistory } from "@/components/reign-history";
 import { PriceSparkline } from "@/components/price-sparkline";
 import { LongestReigns } from "@/components/longest-reigns";
 import { ShareButton } from "@/components/share-button";
 import { DethroneForm } from "@/features/dethrone/components/dethrone-form";
-import { PaymentInstructions } from "@/features/dethrone/components/payment-instructions";
 import { formatCoronas, formatReignDuration } from "@/lib/format";
 import { minClaimAmount, RARITY_LABELS } from "@/lib/titles";
 
@@ -38,9 +36,7 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const pendingClaim = user
-    ? await getPendingClaim(supabase, user.id, title.id)
-    : null;
+  const balance = user ? await getBalance(supabase, user.id) : 0;
 
   const isHeld = title.holder !== null;
   const iAmHolder = !!user && user.id === title.holderUserId;
@@ -156,15 +152,13 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                 que sepan quién manda.
               </p>
             </div>
-          ) : pendingClaim ? (
-            <PaymentInstructions claim={pendingClaim} alias={env.PAYMENT_ALIAS} />
           ) : (
             <div className="glass-panel rounded-xl p-6 flex flex-col gap-4">
               <h2 className="text-title-md font-title-md text-on-surface">
                 {isHeld ? "¿Querés destronarlo?" : "¿Lo querés para vos?"}
               </h2>
               <p className="text-body-sm font-body-sm text-on-surface-variant">
-                El trono tiene precio. Poné la guita y es tuyo.
+                El trono tiene precio. Pagalo en Coronas y es tuyo.
               </p>
               <div className="flex justify-between items-center border-t border-outline-variant/20 pt-3">
                 <span className="text-label-caps font-label-caps text-on-surface-variant">
@@ -177,8 +171,8 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
               {user ? (
                 <DethroneForm
                   titleId={title.id}
-                  slug={slug}
                   minAmount={nextPrice}
+                  balance={balance}
                   isHeld={isHeld}
                 />
               ) : (

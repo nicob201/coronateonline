@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseServerClient } from "@/lib/supabase/server";
 import { guestIdentity } from "@/lib/auth";
@@ -25,19 +25,6 @@ export async function requireOnboardedUser() {
 
   if (!profile?.display_name) {
     redirect("/onboarding");
-  }
-
-  return { supabase, user, profile };
-}
-
-// Returns the authenticated user, or redirects with a generic 404 if they are not an admin.
-export async function requireAdmin() {
-  const { supabase, user } = await requireUser();
-  const profile = await getOwnProfile(supabase, user.id);
-
-  if (!profile?.is_admin) {
-    // Fail securely: do not reveal that /admin exists.
-    notFound();
   }
 
   return { supabase, user, profile };
