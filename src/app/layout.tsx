@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Montserrat, Inter, JetBrains_Mono } from "next/font/google";
 import { Background } from "@/components/background";
+import { DemoBanner } from "@/components/demo-banner";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { env } from "@/lib/env";
@@ -51,7 +52,7 @@ export default function RootLayout({
       <body className="bg-background text-on-background font-body-sm min-h-full flex flex-col cyber-grain overflow-x-hidden">
         <Background />
         <SiteHeader />
-        <div className="mt-20 flex-1 flex flex-col min-w-0 max-w-full">{children}</div>
+        <div className="mt-20 flex-1 flex flex-col min-w-0 max-w-full"><DemoBanner />{children}</div>
         <SiteFooter />
       </body>
     </html>

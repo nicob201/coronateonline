@@ -66,7 +66,7 @@ lib/ → services/ → actions/ → features/ → app/
 ### Database (Supabase)
 
 - Schema lives in `supabase/migrations/*.sql`, versioned in git. Seed data in `supabase/seed.sql`. Never change schema outside a migration file.
-- Money is **integer Coronas (👑)** (no decimals, no floats). Prices and claim amounts are positive; `coin_ledger` movements are signed (credit > 0, debit < 0). A user's balance is derived from `coin_ledger` via `coin_balance()` — never stored.
+- Money is **integer Coronas (👑)** (no decimals, no floats). Prices and dethrone amounts are positive; `coin_ledger` movements are signed (credit > 0, debit < 0). A user's balance is derived from `coin_ledger` via `coin_balance()` — never stored.
 - The current reign of a title is the `reigns` row with `ended_at IS NULL`. Current holder and current price are DERIVED from `reigns` — never duplicated in other tables.
 - Crown transfers (end reign + start reign) happen ONLY inside an atomic `SECURITY DEFINER` Postgres function — never in application code.
 - Every table has RLS enabled with explicit policies. Client-side writes to `titles` and `reigns` are forbidden by policy.
@@ -85,7 +85,7 @@ lib/ → services/ → actions/ → features/ → app/
 - Every price/amount is re-validated server-side against the database (current price + minimum increment), never taken from the client, even if the UI already computed it.
 - Every backend operation verifies the authenticated `auth.uid()` against the resource owner. Fail securely: generic 403/404, never leak existence.
 - `lib/supabase/admin.ts` (service role, bypasses RLS) is ONLY for intentionally public/system operations — NEVER for authenticated user operations.
-- Admin-only operations (confirming claims) check the admin flag in the database server-side, never a client-provided value.
+- Dethrones happen only through the `dethrone_with_coins` RPC (price, balance and transfer validated atomically in Postgres). Admin-only operations, when they exist, check `profiles.is_admin` in the database — never a client-provided value.
 
 ### React / Next.js
 

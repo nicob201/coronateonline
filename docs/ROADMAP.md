@@ -20,7 +20,7 @@ Un visitante entra desde un link, juega en 30 segundos sin pagar nada y ve un si
 - [x] **D2** — Deploy en Vercel + Supabase prod, `loading` / `error` / `not-found`
 - [x] **D3** — Login invitado en un click (Supabase anonymous sign-in) + navegación mobile
 - [x] **D4** — Billetera: ledger con saldo derivado + saldo inicial; `DESIGN.md` v2
-- [ ] **D5** — RPC atómico `dethrone_with_coins` (debita, traspasa, compensa al destronado) + banner "demo"
+- [x] **D5** — RPC atómico `dethrone_with_coins` (debita, traspasa, compensa al destronado) + banner "demo"
 
 ## Semana 2 — Que se vea vivo
 
