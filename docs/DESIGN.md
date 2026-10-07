@@ -1,21 +1,21 @@
-# CoronaTeOnline — MVP Design Spec
+# CoronaTeOnline — Design Spec (v2)
 
-*2026-08-23 — approved design for the validation MVP.*
+*2026-08-23 — validation MVP. v2 2026-10-07 — Coronas (virtual currency) replace ARS; see `docs/ROADMAP.md`.*
 
 ## 1. Product
 
-A status-market platform: users pay real money (ARS) to hold unique, absurd/prestigious digital titles — "👑 Rey de Córdoba", "😂 CEO de los Lunes", "🍕 Rey de la Pizza". The holder gets the crown displayed on a shareable public profile. Anyone can dethrone them by paying more.
+A status-market platform: users spend **Coronas (👑)**, a virtual currency, to hold unique, absurd/prestigious digital titles — "👑 Rey de Córdoba", "😂 CEO de los Lunes", "🍕 Rey de la Pizza". The holder gets the crown displayed on a shareable public profile. Anyone can dethrone them by paying more.
 
-**Hypothesis to validate:** are people willing to pay real money for an absurd digital title to show off? Success metric: first 10–20 real payments. Everything in this MVP is scoped to answering that question — nothing more.
+**Portfolio demo:** a visitor plays in 30 seconds without paying. Every account starts with 20 👑 (guests included); buying Coronas with a sandbox checkout comes later (roadmap D28).
 
 ## 2. Core Mechanic — Direct Takeover (NOT an auction)
 
 There are no timers, no auction rounds, no bidding wars with countdowns.
 
 - Every title has a current holder and a current price (what the holder paid).
-- An unclaimed title can be claimed for the base price: **$1.000 ARS**.
-- To dethrone the current holder you must pay at least **current price + $1.000**.
-- All amounts are integer ARS, multiples of $1.000 ($1.000 = 1 unit).
+- An unclaimed title can be claimed for the base price: **1 👑**.
+- To dethrone the current holder you must pay at least **current price + 1 👑**.
+- All amounts are positive integer Coronas (1 👑 = the $1.000 ARS unit of v1).
 - Reigns do NOT expire. You hold the crown until someone pays more.
 
 ### Price decay (v1.1)
@@ -23,13 +23,13 @@ There are no timers, no auction rounds, no bidding wars with countdowns.
 A held title's **current price is not static**. It is `price_paid` of the active
 reign decayed toward a per-title floor: after a 3-day grace period the price
 loses ~0.7%/day (compounding). The floor is
-`max($1.000, 25% of the title's recent price peak, $2.000 × dethrones in the
+`max(1 👑, 25% of the title's recent price peak, 2 👑 × dethrones in the
 last 30 days)`. So an undefended crown slowly gets cheaper (~6 months at the
 default rate to reach its floor), a hot title keeps a high floor, and a title
 that cooled off becomes affordable again. That high floor only holds while the
 active reign's `price_paid` is still inside the peak window (`peak_window_days`,
 default 90 days); once it ages out the peak term collapses and a long-undefended
-crown decays toward the $1.000 base. The dethrone threshold is `current effective price + $1.000`.
+crown decays toward the 1 👑 base. The dethrone threshold is `current effective price + 1 👑`.
 All decay parameters live in a single-row `pricing_config` table, tunable with an
 `UPDATE`. The effective price is computed on read (no cron, no stored column) by
 the `title_current_price` Postgres function and exposed through the
@@ -37,19 +37,19 @@ the `title_current_price` Postgres function and exposed through the
 
 ### Dethrone flow (v1 — manual payment confirmation)
 
-1. Logged-in user on a title page taps **"Destronar por $X"** (X ≥ current + 1.000, user may offer more).
+**Transitional (until roadmap D5).** D5 replaces it with `dethrone_with_coins`, an atomic RPC that debits the challenger's Coronas, transfers the crown and compensates the dethroned holder.
+
+1. Logged-in user on a title page taps **"Destronar por X 👑"** (X ≥ current + 1, user may offer more).
 2. Server creates a `claim` with status `pending` and shows payment instructions: a Mercado Pago payment link (created manually by the admin in the MP dashboard for now).
 3. User pays outside the platform.
 4. Admin confirms the payment in `/admin` → an atomic Postgres function applies the claim: ends the current reign, starts the new one.
 5. The dethroned user's reign is closed and recorded in history.
 
-**Upgrade path (post-validation):** step 2–4 get replaced by Mercado Pago Checkout Pro (generated preference + webhook auto-confirms the claim). The `claims` table already models this — no schema change needed.
-
 Concurrency note: claims do not lock a title. If two users claim simultaneously, the first confirmed payment wins; the other claim gets rejected (and refunded manually). At MVP scale collisions are ~nonexistent.
 
 ## 3. Domain Model
 
-Four tables. One source of truth: current holder and current price are always derived from `reigns`.
+Five tables. One source of truth: current holder and current price are always derived from `reigns`; a user's balance is always derived from `coin_ledger`.
 
 ### `profiles` (1:1 with `auth.users`)
 - `id` (uuid, PK, FK → auth.users), `username` (unique slug, for `/@username`), `display_name`, `avatar_url`, `bio`
@@ -62,7 +62,7 @@ Four tables. One source of truth: current holder and current price are always de
 - No holder/price columns — derived from `reigns`.
 
 ### `reigns` (the history — feed and rankings are queries over this table)
-- `id`, `title_id` (FK), `user_id` (FK → profiles), `price_paid` (integer ARS), `started_at`, `ended_at` (nullable)
+- `id`, `title_id` (FK), `user_id` (FK → profiles), `price_paid` (integer 👑), `started_at`, `ended_at` (nullable)
 - **Active reign = `ended_at IS NULL`.** Partial unique index: at most one active reign per title.
 - The **current price is derived, then time-decayed**: `title_current_price(title_id)`
   applies `pricing_config` decay to the active reign's `price_paid` / `started_at`,
@@ -71,13 +71,19 @@ Four tables. One source of truth: current holder and current price are always de
 - Activity feed = recent reigns ordered by `started_at`. Season number = position in the title's reign sequence.
 
 ### `claims` (dethrone attempts / payment tracking)
-- `id`, `title_id`, `user_id`, `amount` (integer ARS), `status` (`pending` | `applied` | `rejected`), `created_at`, `resolved_at`
+- `id`, `title_id`, `user_id`, `amount` (integer 👑), `status` (`pending` | `applied` | `rejected`), `created_at`, `resolved_at`
 - Created via an RPC that validates amount server-side against the live current price.
 - Applied only by the admin through the atomic transfer function.
 
+### `coin_ledger` (the wallet — append-only)
+- `id`, `user_id` (FK → profiles), `amount` (signed integer 👑: credit > 0, debit < 0), `reason` (`welcome` today; D5 adds `dethrone` / `dethroned`, D6 `salary`), `created_at`
+- **Balance is derived**: `coin_balance(user_id)` = sum of the user's rows. Never stored.
+- 20 👑 `welcome` row per profile, inserted by a trigger on `profiles`; a unique partial index allows only one.
+- RLS: owners read their own rows; no client writes — only `SECURITY DEFINER` code writes the ledger.
+
 ### Database rules
 - RLS enabled on every table. Public read for `profiles`, `titles`, `reigns`. Claims readable by owner (+ admin). No client-side writes to `titles`/`reigns` — transfers happen exclusively inside a `SECURITY DEFINER` function.
-- Money integrity enforced by CHECK constraints (positive, multiple of 1000).
+- Money integrity enforced by CHECK constraints (positive amounts; non-zero ledger movements).
 
 ## 4. Pages (MVP)
 
@@ -95,7 +101,6 @@ UI copy in Spanish (es-AR). Visual direction: dark, cyberpunk + digital luxury (
 ## 5. Out of Scope (MVP)
 
 Deliberately excluded until the hypothesis validates:
-- Integrated payments (MP Checkout Pro + webhooks) — first upgrade after validation
 - Realtime updates (Supabase Realtime) — normal revalidation is enough
 - Notifications (email/push "te destronaron") — dethroned users see it on-site
 - User-created titles, rankings pages, profile boosts, sponsored titles
