@@ -38,13 +38,13 @@ UPDATE profiles SET display_name = 'Sofía' WHERE id = 'a4444444-4444-4444-8444-
 
 -- Reigns. Fixed ids so re-runs are no-ops. rey-de-cordoba has 3 seasons (2 closed + 1 active).
 INSERT INTO reigns (id, title_id, user_id, price_paid, started_at, ended_at) VALUES
-  ('b1111111-1111-4111-8111-111111111111', (SELECT id FROM titles WHERE slug = 'rey-de-cordoba'),    'a4444444-4444-4444-8444-444444444444', 10000, now() - interval '20 days', now() - interval '12 days'),
-  ('b2222222-2222-4222-8222-222222222222', (SELECT id FROM titles WHERE slug = 'rey-de-cordoba'),    'a2222222-2222-4222-8222-222222222222', 30000, now() - interval '12 days', now() - interval '5 days'),
-  ('b3333333-3333-4333-8333-333333333333', (SELECT id FROM titles WHERE slug = 'rey-de-cordoba'),    'a1111111-1111-4111-8111-111111111111', 52000, now() - interval '5 days',  NULL),
-  ('b4444444-4444-4444-8444-444444444444', (SELECT id FROM titles WHERE slug = 'mejor-programador'), 'a3333333-3333-4333-8333-333333333333', 24000, now() - interval '8 days',  NULL),
-  ('b5555555-5555-4555-8555-555555555555', (SELECT id FROM titles WHERE slug = 'mejor-gamer'),       'a3333333-3333-4333-8333-333333333333', 45000, now() - interval '10 days', NULL),
-  ('b6666666-6666-4666-8666-666666666666', (SELECT id FROM titles WHERE slug = 'rey-de-la-pizza'),   'a2222222-2222-4222-8222-222222222222',  6000, now() - interval '3 days',  NULL),
-  ('b7777777-7777-4777-8777-777777777777', (SELECT id FROM titles WHERE slug = 'ceo-de-los-lunes'),  'a1111111-1111-4111-8111-111111111111', 13000, now() - interval '1 day',   NULL)
+  ('b1111111-1111-4111-8111-111111111111', (SELECT id FROM titles WHERE slug = 'rey-de-cordoba'),    'a4444444-4444-4444-8444-444444444444', 10, now() - interval '20 days', now() - interval '12 days'),
+  ('b2222222-2222-4222-8222-222222222222', (SELECT id FROM titles WHERE slug = 'rey-de-cordoba'),    'a2222222-2222-4222-8222-222222222222', 30, now() - interval '12 days', now() - interval '5 days'),
+  ('b3333333-3333-4333-8333-333333333333', (SELECT id FROM titles WHERE slug = 'rey-de-cordoba'),    'a1111111-1111-4111-8111-111111111111', 52, now() - interval '5 days',  NULL),
+  ('b4444444-4444-4444-8444-444444444444', (SELECT id FROM titles WHERE slug = 'mejor-programador'), 'a3333333-3333-4333-8333-333333333333', 24, now() - interval '8 days',  NULL),
+  ('b5555555-5555-4555-8555-555555555555', (SELECT id FROM titles WHERE slug = 'mejor-gamer'),       'a3333333-3333-4333-8333-333333333333', 45, now() - interval '10 days', NULL),
+  ('b6666666-6666-4666-8666-666666666666', (SELECT id FROM titles WHERE slug = 'rey-de-la-pizza'),   'a2222222-2222-4222-8222-222222222222', 6, now() - interval '3 days',  NULL),
+  ('b7777777-7777-4777-8777-777777777777', (SELECT id FROM titles WHERE slug = 'ceo-de-los-lunes'),  'a1111111-1111-4111-8111-111111111111', 13, now() - interval '1 day',   NULL)
 ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
