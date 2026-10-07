@@ -115,7 +115,10 @@ export type DethroneNotice = {
   at: string;
 };
 
-// One wallet movement shown in the user's "Billetera".
-export type CoinMovement = Pick<CoinLedgerRow, "id" | "amount" | "reason" | "created_at">;
+// One wallet movement shown in the user's "Billetera", with its title and counterpart when it has a reign.
+export type CoinMovement = Pick<CoinLedgerRow, "id" | "amount" | "reason" | "created_at"> & {
+  titleName: string | null;
+  counterpartName: string | null;
+};
 
 export type { Database };
