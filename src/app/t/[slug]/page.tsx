@@ -11,7 +11,7 @@ import { LongestReigns } from "@/components/longest-reigns";
 import { ShareButton } from "@/components/share-button";
 import { DethroneForm } from "@/features/dethrone/components/dethrone-form";
 import { PaymentInstructions } from "@/features/dethrone/components/payment-instructions";
-import { formatARS, formatReignDuration } from "@/lib/format";
+import { formatCoronas, formatReignDuration } from "@/lib/format";
 import { minClaimAmount, RARITY_LABELS } from "@/lib/titles";
 
 export async function generateMetadata({
@@ -89,7 +89,7 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                 VALOR ACTUAL
               </span>
               <span className="text-title-md font-title-md text-tertiary font-black">
-                {formatARS(currentPrice ?? nextPrice)}
+                {formatCoronas(currentPrice ?? nextPrice)}
               </span>
             </div>
             {isHeld && title.holderPaid !== null && title.holderPaid !== currentPrice && (
@@ -98,7 +98,7 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                   CORONADO POR
                 </span>
                 <span className="text-body-lg font-body-lg text-on-surface-variant">
-                  {formatARS(title.holderPaid)}
+                  {formatCoronas(title.holderPaid)}
                 </span>
               </div>
             )}
@@ -108,7 +108,7 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                   PISO
                 </span>
                 <span className="text-body-lg font-body-lg text-on-surface-variant">
-                  {formatARS(title.priceFloor)}
+                  {formatCoronas(title.priceFloor)}
                 </span>
               </div>
             )}
@@ -135,7 +135,7 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                 Historia de precio
               </h2>
               <p className="text-body-sm font-body-sm text-on-surface-variant">
-                Valió hasta {formatARS(title.pricePeak)}
+                Valió hasta {formatCoronas(title.pricePeak)}
               </p>
               <PriceSparkline prices={title.priceHistory} />
               {title.price !== null && title.price <= title.pricePeak * 0.35 && (
@@ -171,7 +171,7 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                   PRECIO MÍNIMO
                 </span>
                 <span className="text-title-md font-title-md text-on-surface font-black">
-                  {formatARS(nextPrice)}
+                  {formatCoronas(nextPrice)}
                 </span>
               </div>
               {user ? (

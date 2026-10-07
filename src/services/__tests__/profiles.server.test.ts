@@ -25,19 +25,19 @@ function profileRow(overrides: Record<string, unknown> = {}) {
     website: null,
     reigns: [
       {
-        price_paid: 5000,
+        price_paid: 5,
         started_at: "2026-08-20T00:00:00Z",
         ended_at: null,
         titles: { name: "Rey de Córdoba", emoji: "👑", slug: "rey-de-cordoba" },
       },
       {
-        price_paid: 2000,
+        price_paid: 2,
         started_at: "2026-08-10T00:00:00Z",
         ended_at: "2026-08-15T00:00:00Z",
         titles: { name: "CEO de los Lunes", emoji: "😂", slug: "ceo-lunes" },
       },
       {
-        price_paid: 3000,
+        price_paid: 3,
         started_at: "2026-08-01T00:00:00Z",
         ended_at: "2026-08-05T00:00:00Z",
         titles: { name: "Rey de la Pizza", emoji: "🍕", slug: "rey-pizza" },
@@ -72,7 +72,7 @@ describe("getPublicProfile", () => {
       titleName: "Rey de Córdoba",
       titleEmoji: "👑",
       titleSlug: "rey-de-cordoba",
-      pricePaid: 5000,
+      pricePaid: 5,
       startedAt: "2026-08-20T00:00:00Z",
       endedAt: null,
     });

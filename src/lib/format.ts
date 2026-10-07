@@ -1,6 +1,11 @@
-// Formats an integer ARS amount as "$50.000" (es-AR grouping, no decimals).
-export function formatARS(amount: number): string {
-  return `$${amount.toLocaleString("es-AR")}`;
+// Formats an integer amount of Coronas as "1.250 👑" (es-AR grouping).
+export function formatCoronas(amount: number): string {
+  return `${amount.toLocaleString("es-AR")} 👑`;
+}
+
+// Formats an ISO timestamp as an Argentina calendar date ("7/10/2026"), independent of the server's time zone.
+export function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" });
 }
 
 // Formats the elapsed time between two instants as "4 días 17 horas" / "2 días" / "5 horas".

@@ -20,7 +20,7 @@ function form(overrides: Record<string, string> = {}): FormData {
   const fd = new FormData();
   fd.set("titleId", TITLE_ID);
   fd.set("slug", "rey-de-cordoba");
-  fd.set("amount", "5000");
+  fd.set("amount", "5");
   for (const [k, v] of Object.entries(overrides)) fd.set(k, v);
   return fd;
 }
@@ -29,7 +29,7 @@ const claimRow = {
   id: "c1",
   title_id: TITLE_ID,
   user_id: "u1",
-  amount: 5000,
+  amount: 5,
   status: "pending",
   created_at: "2026-08-29T00:00:00Z",
   resolved_at: null,
@@ -60,17 +60,28 @@ describe("destronar", () => {
     });
   });
 
-  it("rejects an amount that is not a multiple of 1000", async () => {
+  it("rejects a non-integer amount", async () => {
     createClientMock.mockResolvedValue(createSupabaseMock({ user: { id: "u1" } }));
-    const result = await destronar(null, form({ amount: "5500" }));
+    const result = await destronar(null, form({ amount: "5.5" }));
     expect(result.success).toBe(false);
+  });
+
+  it("maps a non-positive amount RPC error to a Spanish message", async () => {
+    createClientMock.mockResolvedValue(
+      createSupabaseMock({
+        user: { id: "u1" },
+        rpc: { data: null, error: { message: "Amount must be positive" } },
+      }),
+    );
+    const result = await destronar(null, form());
+    expect(result).toEqual({ success: false, error: "Monto inválido." });
   });
 
   it("maps an outbid RPC error to a Spanish message", async () => {
     createClientMock.mockResolvedValue(
       createSupabaseMock({
         user: { id: "u1" },
-        rpc: { data: null, error: { message: "Amount must be at least 6000" } },
+        rpc: { data: null, error: { message: "Amount must be at least 6" } },
       }),
     );
     const result = await destronar(null, form());

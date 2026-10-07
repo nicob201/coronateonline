@@ -4,18 +4,28 @@ import { dethroneSchema } from "../dethrone.schema";
 const validInput = {
   titleId: "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
   slug: "rey-de-cordoba",
-  amount: "5000",
+  amount: "5",
 };
 
 describe("dethroneSchema", () => {
   it("parses a valid input and coerces amount to a number", () => {
     const result = dethroneSchema.safeParse(validInput);
     expect(result.success).toBe(true);
-    expect(result.data?.amount).toBe(5000);
+    expect(result.data?.amount).toBe(5);
   });
 
-  it("rejects an amount that is not a multiple of 1000", () => {
+  it("accepts any positive integer amount", () => {
     const result = dethroneSchema.safeParse({ ...validInput, amount: "5500" });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a non-integer amount", () => {
+    const result = dethroneSchema.safeParse({ ...validInput, amount: "5.5" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a negative amount", () => {
+    const result = dethroneSchema.safeParse({ ...validInput, amount: "-3" });
     expect(result.success).toBe(false);
   });
 

@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { destronar } from "@/actions/claims";
-import { formatARS } from "@/lib/format";
+import { formatCoronas } from "@/lib/format";
 
 interface DethroneFormProps {
   titleId: string;
@@ -25,7 +25,7 @@ export function DethroneForm({ titleId, slug, minAmount, isHeld }: DethroneFormP
           htmlFor="amount"
           className="text-label-caps font-label-caps text-on-surface-variant"
         >
-          TU OFERTA (MÍNIMO {formatARS(minAmount)})
+          TU OFERTA (MÍNIMO {formatCoronas(minAmount)})
         </label>
         <input
           id="amount"
@@ -33,7 +33,7 @@ export function DethroneForm({ titleId, slug, minAmount, isHeld }: DethroneFormP
           type="number"
           required
           min={minAmount}
-          step={1000}
+          step={1}
           defaultValue={minAmount}
           className="w-full px-4 py-3 rounded-lg bg-surface-container-high border border-outline-variant/30 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-colors"
         />

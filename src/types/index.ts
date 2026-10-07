@@ -10,6 +10,7 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Title = Database["public"]["Tables"]["titles"]["Row"];
 export type Reign = Database["public"]["Tables"]["reigns"]["Row"];
 export type Claim = Database["public"]["Tables"]["claims"]["Row"];
+export type CoinLedgerRow = Database["public"]["Tables"]["coin_ledger"]["Row"];
 
 // Cosmetic rarity tier derived from a title's current price.
 export type Rarity = "legendario" | "epico" | "comun";
@@ -126,5 +127,8 @@ export type DethroneNotice = {
   message: string | null;
   at: string;
 };
+
+// One wallet movement shown in the user's "Billetera".
+export type CoinMovement = Pick<CoinLedgerRow, "id" | "amount" | "reason" | "created_at">;
 
 export type { Database };

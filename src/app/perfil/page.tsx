@@ -4,6 +4,8 @@ import { requireOnboardedUser } from "@/services/auth.server";
 import { getLatestDethrone } from "@/services/profiles.server";
 import { ProfileEditForm } from "@/features/profile/components/profile-edit-form";
 import { DethroneBanner } from "@/features/profile/components/dethrone-banner";
+import { WalletCard } from "@/features/profile/components/wallet-card";
+import { getBalance, getRecentMovements } from "@/services/wallet.server";
 
 export const metadata: Metadata = {
   title: "Editar perfil - CoronaTeOnline",
@@ -13,7 +15,11 @@ export const metadata: Metadata = {
 // Lets the authenticated user edit their own profile.
 export default async function EditProfilePage() {
   const { supabase, user, profile } = await requireOnboardedUser();
-  const dethroneNotice = await getLatestDethrone(supabase, user.id);
+  const [dethroneNotice, balance, movements] = await Promise.all([
+    getLatestDethrone(supabase, user.id),
+    getBalance(supabase, user.id),
+    getRecentMovements(supabase, user.id),
+  ]);
 
   return (
     <main className="relative z-10 container mx-auto px-5 md:px-16 max-w-[720px] pt-16 pb-32 flex flex-col gap-8">
@@ -30,6 +36,8 @@ export default async function EditProfilePage() {
           Ver perfil
         </Link>
       </div>
+
+      <WalletCard balance={balance} movements={movements} />
 
       <ProfileEditForm profile={profile} />
     </main>

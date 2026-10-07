@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatARS } from "@/lib/format";
+import { formatCoronas } from "@/lib/format";
 import { BASE_PRICE, RARITY_LABELS } from "@/lib/titles";
 import type { TitleCard as TitleCardData } from "@/types";
 
@@ -38,12 +38,12 @@ export function TitleCard({ title }: { title: TitleCardData }) {
         {isHeld ? (
           <>
             <span>Rey: {holderName}</span>
-            <span>Valor: {formatARS(title.price ?? 0)}</span>
+            <span>Valor: {formatCoronas(title.price ?? 0)}</span>
           </>
         ) : (
           <>
             <span className="text-primary">Disponible</span>
-            <span>{formatARS(BASE_PRICE)}</span>
+            <span>{formatCoronas(BASE_PRICE)}</span>
           </>
         )}
       </div>

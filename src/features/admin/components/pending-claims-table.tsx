@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { resolverClaim } from "@/actions/claims";
-import { formatARS, formatReignDuration } from "@/lib/format";
+import { formatCoronas, formatReignDuration } from "@/lib/format";
 import { minClaimAmount } from "@/lib/titles";
 import type { PendingClaimListItem } from "@/types";
 
@@ -26,8 +26,8 @@ function ClaimRow({ claim }: { claim: PendingClaimListItem }) {
         </span>
         {claim.currentPrice !== null && (
           <span className="text-label-caps font-label-caps text-on-surface-variant">
-            precio ahora {formatARS(claim.currentPrice)} · mínimo{" "}
-            {formatARS(minClaimAmount(claim.currentPrice))}
+            precio ahora {formatCoronas(claim.currentPrice)} · mínimo{" "}
+            {formatCoronas(minClaimAmount(claim.currentPrice))}
           </span>
         )}
         {claim.message && (
@@ -42,7 +42,7 @@ function ClaimRow({ claim }: { claim: PendingClaimListItem }) {
 
       <div className="flex items-center gap-3">
         <span className="text-title-md font-title-md text-tertiary font-black">
-          {formatARS(claim.amount)}
+          {formatCoronas(claim.amount)}
         </span>
         {claim.message && (
           <label className="flex items-center gap-1.5 text-body-sm font-body-sm text-on-surface-variant cursor-pointer">

@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # AGENTS.md — CoronaTeOnline
 
-CoronaTeOnline is a status-market web platform where users pay real money (ARS) to hold absurd/prestigious digital titles ("Rey de Córdoba", "CEO de los Lunes"). Whoever pays the current price + minimum increment dethrones the current holder. Full product/technical spec: `docs/DESIGN.md` — read it before implementing any feature.
+CoronaTeOnline is a status-market web platform where users spend Coronas (👑), a virtual currency, to hold absurd/prestigious digital titles ("Rey de Córdoba", "CEO de los Lunes"). Whoever pays the current price + minimum increment dethrones the current holder. Full product/technical spec: `docs/DESIGN.md` — read it before implementing any feature.
 
 Follow the most restrictive rule when guidelines conflict.
 
@@ -66,7 +66,7 @@ lib/ → services/ → actions/ → features/ → app/
 ### Database (Supabase)
 
 - Schema lives in `supabase/migrations/*.sql`, versioned in git. Seed data in `supabase/seed.sql`. Never change schema outside a migration file.
-- Money is **integer ARS** (no decimals, no floats), always a multiple of 1000.
+- Money is **integer Coronas (👑)** (no decimals, no floats). Prices and claim amounts are positive; `coin_ledger` movements are signed (credit > 0, debit < 0). A user's balance is derived from `coin_ledger` via `coin_balance()` — never stored.
 - The current reign of a title is the `reigns` row with `ended_at IS NULL`. Current holder and current price are DERIVED from `reigns` — never duplicated in other tables.
 - Crown transfers (end reign + start reign) happen ONLY inside an atomic `SECURITY DEFINER` Postgres function — never in application code.
 - Every table has RLS enabled with explicit policies. Client-side writes to `titles` and `reigns` are forbidden by policy.
