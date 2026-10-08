@@ -66,6 +66,7 @@ lib/ → services/ → actions/ → features/ → app/
 ### Database (Supabase)
 
 - Schema lives in `supabase/migrations/*.sql`, versioned in git. Seed data in `supabase/seed.sql`. Never change schema outside a migration file.
+- The local stack (`npx supabase start`) keeps the CLI default ports 5432x (other local projects, like docuauto, use other ranges). `dev`, `build` and `test:sql` first run `scripts/check-local-supabase.mjs`, which fails when a local `NEXT_PUBLIC_SUPABASE_URL` or `SUPABASE_DB_URL` is not published by this project's containers.
 - Money is **integer Coronas (👑)** (no decimals, no floats). Prices and dethrone amounts are positive; `coin_ledger` movements are signed (credit > 0, debit < 0). A user's balance is derived from `coin_ledger` via `coin_balance()` — never stored.
 - The current reign of a title is the `reigns` row with `ended_at IS NULL`. Current holder and current price are DERIVED from `reigns` — never duplicated in other tables.
 - Crown transfers (end reign + start reign) happen ONLY inside an atomic `SECURITY DEFINER` Postgres function — never in application code.
