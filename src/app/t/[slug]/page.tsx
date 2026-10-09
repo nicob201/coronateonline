@@ -8,6 +8,7 @@ import { ReignHistory } from "@/components/reign-history";
 import { PriceSparkline } from "@/components/price-sparkline";
 import { LongestReigns } from "@/components/longest-reigns";
 import { ShareButton } from "@/components/share-button";
+import { BotBadge } from "@/components/bot-badge";
 import { DethroneForm } from "@/features/dethrone/components/dethrone-form";
 import { formatCoronas, formatReignDuration } from "@/lib/format";
 import { minClaimAmount, RARITY_LABELS } from "@/lib/titles";
@@ -77,7 +78,14 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                 DUEÑO ACTUAL
               </span>
               <span className="text-body-lg font-body-lg font-bold text-primary">
-                {isHeld ? title.holderName : "Sin coronar"}
+                {isHeld ? (
+                  <>
+                    {title.holderName}
+                    {title.holder?.is_bot && <BotBadge />}
+                  </>
+                ) : (
+                  "Sin coronar"
+                )}
               </span>
             </div>
             <div className="flex justify-between items-center border-b border-outline-variant/20 pb-2">
@@ -98,7 +106,12 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                 </span>
               </div>
             )}
-            {isHeld && (
+            {isHeld && title.holder?.is_bot && (
+              <p className="text-body-sm font-body-sm text-on-surface-variant border-b border-outline-variant/20 pb-2">
+                🤖 Corona de bot: pierde la mitad de su valor cada 6 h
+              </p>
+            )}
+            {isHeld && !title.holder?.is_bot && (
               <div className="flex justify-between items-center border-b border-outline-variant/20 pb-2">
                 <span className="text-label-caps font-label-caps text-on-surface-variant">
                   PISO

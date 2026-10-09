@@ -14,14 +14,17 @@ const coronationsQuery = (supabase: SupabaseServerClient) =>
   supabase
     .from("reigns")
     .select(
-      "id, price_paid, started_at, titles ( name, emoji, slug ), profiles!reigns_user_id_fkey ( username, display_name ), dethroned:profiles!reigns_dethroned_user_id_fkey ( username, display_name )",
+      "id, price_paid, started_at, titles ( name, emoji, slug ), profiles!reigns_user_id_fkey ( username, display_name, is_bot ), dethroned:profiles!reigns_dethroned_user_id_fkey ( username, display_name, is_bot )",
     );
 type CoronationRow = QueryData<ReturnType<typeof coronationsQuery>>[number];
 
+// Bots play ~12 times a day; the Hall of Fame is for people (filtered in the
+// database so bot rows never use up PostgREST's row limit).
 const hallOfFameQuery = (supabase: SupabaseServerClient) =>
   supabase
     .from("reigns")
-    .select("started_at, profiles!reigns_user_id_fkey ( username, display_name, avatar_url ), titles ( name )");
+    .select("started_at, profiles!reigns_user_id_fkey!inner ( username, display_name, avatar_url ), titles ( name )")
+    .eq("profiles.is_bot", false);
 type HallOfFameRow = QueryData<ReturnType<typeof hallOfFameQuery>>[number];
 
 const pricedQuery = (supabase: SupabaseServerClient) =>
@@ -31,7 +34,7 @@ type PricedRow = QueryData<ReturnType<typeof pricedQuery>>[number];
 const pastReignsQuery = (supabase: SupabaseServerClient, titleId: string) =>
   supabase
     .from("reigns")
-    .select("id, price_paid, started_at, ended_at, message, profiles!reigns_user_id_fkey ( username, display_name )")
+    .select("id, price_paid, started_at, ended_at, message, profiles!reigns_user_id_fkey ( username, display_name, is_bot )")
     .eq("title_id", titleId)
     .not("ended_at", "is", null)
     .order("started_at", { ascending: false });
@@ -58,6 +61,7 @@ function toTitleCard(row: PricedRow): TitleCard {
         username: row.holder_username,
         display_name: row.holder_display_name,
         avatar_url: row.holder_avatar_url,
+        is_bot: row.holder_is_bot ?? false,
       }
     : null;
 
@@ -108,6 +112,7 @@ export async function getTitleBySlug(
   const pastReigns: PastReign[] = rows.map((r) => ({
     id: r.id,
     holderName: displayName(r.profiles),
+    holderIsBot: r.profiles?.is_bot ?? false,
     pricePaid: r.price_paid,
     startedAt: r.started_at,
     endedAt: r.ended_at,
@@ -117,6 +122,7 @@ export async function getTitleBySlug(
   const closed: ReignForRanking[] = pastReigns.map((r) => ({
     id: r.id,
     holderName: r.holderName,
+    holderIsBot: r.holderIsBot,
     pricePaid: r.pricePaid,
     startedAt: r.startedAt,
     endedAt: r.endedAt,
@@ -127,6 +133,7 @@ export async function getTitleBySlug(
       ? {
           id: data.reign_id,
           holderName: card.holder ? displayName(card.holder) : "Anónimo",
+          holderIsBot: card.holder?.is_bot ?? false,
           pricePaid: data.holder_paid,
           startedAt: data.reign_started_at,
           endedAt: null,
@@ -175,11 +182,13 @@ export async function getRecentCoronations(
       titleEmoji: r.titles.emoji,
       titleSlug: r.titles.slug,
       holderName: displayName(r.profiles),
+      holderIsBot: r.profiles?.is_bot ?? false,
       dethronedName: r.dethroned ? displayName(r.dethroned) : null,
+      dethronedIsBot: r.dethroned?.is_bot ?? false,
     }));
 }
 
-// Ranks users by total number of reigns held (all-time), most reigns first.
+// Ranks human users by total number of reigns held (all-time), most reigns first.
 export async function getHallOfFame(
   supabase: SupabaseServerClient,
   limit: number,

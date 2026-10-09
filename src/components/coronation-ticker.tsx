@@ -1,6 +1,10 @@
 import { formatCoronas } from "@/lib/format";
 import type { Coronation } from "@/types";
 
+function tickerName(name: string, isBot: boolean): string {
+  return `${isBot ? "🤖 " : ""}${name.toUpperCase()}`;
+}
+
 // Scrolling marquee of the latest coronations. Renders nothing when there is no activity yet.
 export function CoronationTicker({ coronations }: { coronations: Coronation[] }) {
   if (coronations.length === 0) return null;
@@ -13,8 +17,8 @@ export function CoronationTicker({ coronations }: { coronations: Coronation[] })
             {i > 0 && <span className="mx-8 text-outline-variant">•</span>}
             🔥{" "}
             {c.dethronedName
-              ? `${c.holderName.toUpperCase()} DESTRONÓ A ${c.dethronedName.toUpperCase()} — ${c.titleName.toUpperCase()} — ${formatCoronas(c.pricePaid)}`
-              : `${c.holderName.toUpperCase()} ACABA DE CORONARSE ${c.titleName.toUpperCase()} — ${formatCoronas(c.pricePaid)}`}
+              ? `${tickerName(c.holderName, c.holderIsBot)} DESTRONÓ A ${tickerName(c.dethronedName, c.dethronedIsBot)} — ${c.titleName.toUpperCase()} — ${formatCoronas(c.pricePaid)}`
+              : `${tickerName(c.holderName, c.holderIsBot)} ACABA DE CORONARSE ${c.titleName.toUpperCase()} — ${formatCoronas(c.pricePaid)}`}
           </span>
         ))}
       </div>

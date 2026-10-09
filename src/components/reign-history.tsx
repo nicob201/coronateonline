@@ -1,5 +1,6 @@
 import { formatCoronas, formatReignDuration } from "@/lib/format";
 import { BASE_PRICE } from "@/lib/titles";
+import { BotBadge } from "@/components/bot-badge";
 import type { PastReign } from "@/types";
 
 function initial(name: string): string {
@@ -30,6 +31,7 @@ export function ReignHistory({
               <div>
                 <div className="text-body-lg font-body-lg font-bold text-on-surface">
                   {r.holderName}
+                  {r.holderIsBot && <BotBadge />}
                 </div>
                 <div className="text-label-caps font-label-caps text-on-surface-variant">
                   Reinó por {formatReignDuration(r.startedAt, r.endedAt)}

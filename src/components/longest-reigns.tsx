@@ -1,4 +1,5 @@
 import { formatCoronas } from "@/lib/format";
+import { BotBadge } from "@/components/bot-badge";
 import type { RankedReign } from "@/types";
 
 interface LongestReignsProps {
@@ -27,6 +28,7 @@ export function LongestReigns({ reigns }: LongestReignsProps) {
               <div>
                 <div className="text-body-lg font-body-lg font-bold text-on-surface">
                   {r.holderName}
+                  {r.holderIsBot && <BotBadge />}
                 </div>
                 <div className="text-label-caps font-label-caps text-on-surface-variant">
                   {r.durationLabel}
