@@ -28,6 +28,7 @@ export function minClaimAmount(currentPrice: number | null): number {
 export type ReignForRanking = {
   id: string;
   holderName: string;
+  holderIsBot: boolean;
   pricePaid: number;
   startedAt: string;
   endedAt: string | null;
@@ -50,6 +51,7 @@ export function rankReignsByDuration(
     .map((r) => ({
       id: r.id,
       holderName: r.holderName,
+      holderIsBot: r.holderIsBot,
       durationLabel: formatReignDuration(r.startedAt, r.endedAt),
       pricePaid: r.pricePaid,
       isActive: r.endedAt === null,

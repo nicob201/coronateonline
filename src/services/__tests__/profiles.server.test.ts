@@ -17,6 +17,7 @@ function profileRow(overrides: Record<string, unknown> = {}) {
     display_name: "Nicolás",
     avatar_url: null,
     bio: "El verdadero rey.",
+    is_bot: false,
     instagram: "nico",
     tiktok: null,
     youtube: null,
@@ -84,6 +85,12 @@ describe("getPublicProfile", () => {
     });
     const result = await getPublicProfile(supabase, "nico");
     expect(result?.displayName).toBe("nico");
+  });
+
+  it("flags a bot profile", async () => {
+    const supabase = createSupabaseMock({ query: { data: profileRow({ is_bot: true }), error: null } });
+    const result = await getPublicProfile(supabase, "baron_bug");
+    expect(result?.isBot).toBe(true);
   });
 
   it("keeps only non-null social links", async () => {

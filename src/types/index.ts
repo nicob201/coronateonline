@@ -15,7 +15,7 @@ export type CoinLedgerRow = Database["public"]["Tables"]["coin_ledger"]["Row"];
 export type Rarity = "legendario" | "epico" | "comun";
 
 // Public subset of a profile shown as a title's holder.
-export type TitleHolder = Pick<Profile, "username" | "display_name" | "avatar_url">;
+export type TitleHolder = Pick<Profile, "username" | "display_name" | "avatar_url" | "is_bot">;
 
 // A title with its current holder, price and rarity derived from the active reign.
 export type TitleCard = Pick<
@@ -34,6 +34,7 @@ export type TitleCard = Pick<
 export type PastReign = {
   id: string;
   holderName: string;
+  holderIsBot: boolean;
   pricePaid: number;
   startedAt: string;
   endedAt: string | null;
@@ -59,7 +60,9 @@ export type Coronation = {
   titleEmoji: string;
   titleSlug: string;
   holderName: string;
+  holderIsBot: boolean;
   dethronedName: string | null;
+  dethronedIsBot: boolean;
 };
 
 // One reign (past or current) shown on a public profile.
@@ -80,6 +83,7 @@ export type SocialKey = "instagram" | "tiktok" | "youtube" | "x" | "twitch" | "w
 export type PublicProfile = {
   username: string;
   displayName: string;
+  isBot: boolean;
   avatarUrl: string | null;
   bio: string | null;
   socials: Partial<Record<SocialKey, string>>;
@@ -91,6 +95,7 @@ export type PublicProfile = {
 export type HallOfFameEntry = {
   username: string;
   name: string;
+  isBot: boolean;
   avatarUrl: string | null;
   reignCount: number;
   latestTitleName: string;
@@ -100,6 +105,7 @@ export type HallOfFameEntry = {
 export type RankedReign = {
   id: string;
   holderName: string;
+  holderIsBot: boolean;
   durationLabel: string;
   pricePaid: number;
   isActive: boolean;

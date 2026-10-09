@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getTitleBySlug, getTitlesWithCurrentReign } from "../titles.server";
+import {
+  getHallOfFame,
+  getRecentCoronations,
+  getTitleBySlug,
+  getTitlesWithCurrentReign,
+} from "../titles.server";
 import { createSupabaseMock } from "@/test/supabase-mock";
 
 const heldRow = {
@@ -18,6 +23,7 @@ const heldRow = {
   holder_username: "nico",
   holder_display_name: "Nico B",
   holder_avatar_url: null,
+  holder_is_bot: false,
 };
 
 const unclaimedRow = {
@@ -36,6 +42,7 @@ const unclaimedRow = {
   holder_username: null,
   holder_display_name: null,
   holder_avatar_url: null,
+  holder_is_bot: null,
 };
 
 describe("getTitlesWithCurrentReign", () => {
@@ -50,6 +57,7 @@ describe("getTitlesWithCurrentReign", () => {
       username: "nico",
       display_name: "Nico B",
       avatar_url: null,
+      is_bot: false,
     });
     expect(card.reignStartedAt).toBe("2026-08-19T00:00:00Z");
   });
@@ -73,7 +81,7 @@ describe("getTitleBySlug", () => {
         price_paid: 20,
         started_at: "2026-08-05T00:00:00Z",
         ended_at: "2026-08-19T00:00:00Z",
-        profiles: { username: "juan", display_name: "Juan" },
+        profiles: { username: "juan", display_name: "Juan", is_bot: false },
       },
     ];
     const supabase = createSupabaseMock({
@@ -93,6 +101,7 @@ describe("getTitleBySlug", () => {
       {
         id: "r0",
         holderName: "Juan",
+        holderIsBot: false,
         pricePaid: 20,
         startedAt: "2026-08-05T00:00:00Z",
         endedAt: "2026-08-19T00:00:00Z",
@@ -105,5 +114,53 @@ describe("getTitleBySlug", () => {
       queryByTable: { titles_priced: { data: null, error: null } },
     });
     expect(await getTitleBySlug(supabase, "ghost")).toBeNull();
+  });
+});
+
+describe("bots", () => {
+  it("flags a bot holder on the card", async () => {
+    const supabase = createSupabaseMock({
+      query: { data: [{ ...heldRow, holder_is_bot: true }], error: null },
+    });
+    const [card] = await getTitlesWithCurrentReign(supabase);
+    expect(card.holder?.is_bot).toBe(true);
+  });
+
+  it("flags bot holders and bot victims in the coronation ticker", async () => {
+    const supabase = createSupabaseMock({
+      query: {
+        data: [
+          {
+            id: "r9",
+            price_paid: 7,
+            started_at: "2026-10-09T12:00:00Z",
+            titles: { name: "Rey de Córdoba", emoji: "👑", slug: "rey-de-cordoba" },
+            profiles: { username: "baron_bug", display_name: "Barón Bug", is_bot: true },
+            dethroned: { username: "nico", display_name: "Nico B", is_bot: false },
+          },
+        ],
+        error: null,
+      },
+    });
+    const [c] = await getRecentCoronations(supabase, 6);
+    expect(c.holderIsBot).toBe(true);
+    expect(c.dethronedIsBot).toBe(false);
+  });
+
+  it("flags bots in the hall of fame", async () => {
+    const supabase = createSupabaseMock({
+      query: {
+        data: [
+          {
+            started_at: "2026-10-09T12:00:00Z",
+            profiles: { username: "baron_bug", display_name: "Barón Bug", avatar_url: null, is_bot: true },
+            titles: { name: "Rey de Internet" },
+          },
+        ],
+        error: null,
+      },
+    });
+    const [entry] = await getHallOfFame(supabase, 5);
+    expect(entry.isBot).toBe(true);
   });
 });

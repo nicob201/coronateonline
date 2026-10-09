@@ -51,7 +51,7 @@ const publicProfileQuery = (supabase: SupabaseServerClient, username: string) =>
   supabase
     .from("profiles")
     .select(
-      `username, display_name, avatar_url, bio,
+      `username, display_name, avatar_url, bio, is_bot,
        instagram, tiktok, youtube, x, twitch, website,
        reigns!reigns_user_id_fkey ( price_paid, started_at, ended_at, message, titles ( name, emoji, slug ) )`,
     )
@@ -93,6 +93,7 @@ export async function getPublicProfile(
   return {
     username: data.username,
     displayName: data.display_name?.trim() || data.username,
+    isBot: data.is_bot,
     avatarUrl: data.avatar_url,
     bio: data.bio,
     socials,

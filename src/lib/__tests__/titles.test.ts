@@ -5,6 +5,7 @@ function reign(overrides: Partial<ReignForRanking> & { startedAt: string; endedA
   return {
     id: "r1",
     holderName: "Test",
+    holderIsBot: false,
     pricePaid: 5,
     ...overrides,
   };
@@ -19,6 +20,13 @@ describe("rankReignsByDuration", () => {
     const result = rankReignsByDuration(input);
     expect(result[0].id).toBe("long");
     expect(result[1].id).toBe("short");
+  });
+
+  it("carries holderIsBot through the ranking", () => {
+    const [ranked] = rankReignsByDuration([
+      reign({ id: "bot", holderIsBot: true, startedAt: "2026-08-20T00:00:00Z", endedAt: null }),
+    ]);
+    expect(ranked.holderIsBot).toBe(true);
   });
 
   it("treats endedAt null as still running via now()", () => {
