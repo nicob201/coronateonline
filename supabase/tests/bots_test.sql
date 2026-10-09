@@ -90,4 +90,113 @@ BEGIN
   PERFORM pg_temp.hold(x, h, 15, interval '6 hours');
 END $$;
 
+-- bot_move on Y, the only title open to bots. Cases run in order on one title.
+DO $$
+DECLARE
+  h        uuid := '5b000000-0000-4000-8000-000000000001';
+  y        uuid := '5b000000-0000-4000-8000-0000000000bb';
+  r        public.reigns;
+  expected integer;
+  h_before integer;
+  bot      uuid;
+BEGIN
+  PERFORM pg_temp.set_balance(id, 50) FROM public.profiles WHERE is_bot;
+
+  -- (a) a human crown younger than 12 h is closed to bots
+  PERFORM pg_temp.hold(y, h, 5, interval '11 hours');
+  ASSERT public.bot_move() IS NULL, '(a) human crown inside the 12 h grace must be skipped';
+
+  -- (b) a human crown priced above the cap is closed to bots
+  PERFORM pg_temp.hold(y, h, 20, interval '13 hours');
+  ASSERT public.bot_move() IS NULL, '(b) min bid above 15 must be skipped';
+
+  -- (c) no bot can afford the minimum
+  PERFORM pg_temp.hold(y, h, 5, interval '13 hours');
+  expected := public.title_current_price(y) + 1;
+  PERFORM pg_temp.set_balance(id, expected - 1) FROM public.profiles WHERE is_bot;
+  ASSERT public.bot_move() IS NULL, '(c) unaffordable title must be skipped';
+
+  -- (d) an eligible human crown: a bot pays exactly price + 1, zero-sum, with a message
+  PERFORM pg_temp.set_balance(id, 50) FROM public.profiles WHERE is_bot;
+  h_before := public.coin_balance(h);
+  r := public.bot_move();
+  ASSERT r.title_id = y, '(d) the bot must take Y';
+  ASSERT (SELECT is_bot FROM public.profiles WHERE id = r.user_id), '(d) the new holder is a bot';
+  ASSERT r.price_paid = expected, format('(d) expected bid %s, got %s', expected, r.price_paid);
+  ASSERT r.dethroned_user_id = h, '(d) the human is the dethroned holder';
+  ASSERT public.coin_balance(h) = h_before + expected, '(d) the human is paid the full bid';
+  ASSERT public.coin_balance(r.user_id) = 50 - expected, '(d) the bot pays the bid';
+  ASSERT r.message IS NOT NULL AND char_length(r.message) <= 80 AND position('{victim}' IN r.message) = 0,
+    format('(d) bad message: %s', r.message);
+  bot := r.user_id;
+
+  -- (e) a bot never plays its own title, even when it is the only one that can pay
+  PERFORM pg_temp.set_balance(id, 1) FROM public.profiles WHERE is_bot AND id <> bot;
+  PERFORM pg_temp.set_balance(bot, 50);
+  ASSERT public.bot_move() IS NULL, '(e) a bot must not dethrone itself';
+
+  -- (f) an unclaimed title is claimed for 1 👑 (burned) with a victim-less line
+  UPDATE public.reigns SET ended_at = now() WHERE title_id = y AND ended_at IS NULL;
+  PERFORM pg_temp.set_balance(id, 50) FROM public.profiles WHERE is_bot;
+  r := public.bot_move();
+  ASSERT r.title_id = y AND r.price_paid = 1 AND r.dethroned_user_id IS NULL, '(f) claim Y for 1';
+  ASSERT public.coin_balance(r.user_id) = 49, '(f) the claim burns 1 👑';
+  ASSERT r.message IS NOT NULL AND position('{victim}' IN r.message) = 0, format('(f) bad message: %s', r.message);
+
+  -- (g) a very long victim name still yields a message within 80 chars
+  UPDATE public.profiles SET display_name = 'Humano con un nombre larguísimo para probar los mensajes de los bots'
+  WHERE id = h;
+  PERFORM pg_temp.hold(y, h, 5, interval '13 hours');
+  PERFORM pg_temp.set_balance(id, 50) FROM public.profiles WHERE is_bot;
+  r := public.bot_move();
+  ASSERT r.title_id = y AND r.dethroned_user_id = h, '(g) the bot must take Y';
+  ASSERT r.message IS NOT NULL AND char_length(r.message) <= 80, format('(g) bad message: %s', r.message);
+END $$;
+
+-- bot_tick: every bot ends up with today's salary (a random move may also happen).
+DO $$
+BEGIN
+  PERFORM public.bot_tick();
+  ASSERT NOT EXISTS (
+    SELECT 1 FROM public.profiles p
+    WHERE p.is_bot AND NOT EXISTS (
+      SELECT 1 FROM public.coin_ledger l
+      WHERE l.user_id = p.id AND l.reason = 'salary'
+        AND public.ar_date(l.created_at) = public.ar_date(now())
+    )
+  ), 'bot_tick must claim every bot''s salary';
+  ASSERT EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'bot-tick' AND schedule = '*/20 * * * *'),
+    'the bot-tick cron job must be scheduled';
+END $$;
+
+-- Clients cannot run the bots, mark themselves as bots, or read the lines.
+SELECT set_config('request.jwt.claims',
+  '{"sub":"5b000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE
+  ok boolean;
+BEGIN
+  ok := false;
+  BEGIN PERFORM public.bot_move(); EXCEPTION WHEN insufficient_privilege THEN ok := true; END;
+  ASSERT ok, 'clients must not run bot_move';
+
+  ok := false;
+  BEGIN PERFORM public.bot_tick(); EXCEPTION WHEN insufficient_privilege THEN ok := true; END;
+  ASSERT ok, 'clients must not run bot_tick';
+
+  ok := false;
+  BEGIN
+    UPDATE public.profiles SET is_bot = true WHERE id = '5b000000-0000-4000-8000-000000000001';
+  EXCEPTION WHEN insufficient_privilege THEN ok := true;
+  END;
+  ASSERT ok, 'clients must not set is_bot';
+
+  ok := false;
+  BEGIN PERFORM 1 FROM public.bot_lines; EXCEPTION WHEN insufficient_privilege THEN ok := true; END;
+  ASSERT ok, 'bot_lines must be private';
+
+  RAISE NOTICE 'bots_test: all assertions passed';
+END $$;
+
 ROLLBACK;

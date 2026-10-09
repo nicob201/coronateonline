@@ -23,6 +23,33 @@ export type Database = {
   };
   public: {
     Tables: {
+      bot_lines: {
+        Row: {
+          bot_id: string;
+          id: string;
+          line: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          bot_id: string;
+          id?: string;
+          line: string;
+        };
+        Update: {
+          bot_id?: string;
+          id?: string;
+          line?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "bot_lines_bot_id_fkey";
+            columns: ["bot_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       coin_ledger: {
         Row: {
           amount: number;
@@ -76,6 +103,7 @@ export type Database = {
       pricing_config: {
         Row: {
           activity_floor_unit: number;
+          bot_half_life_hours: number;
           decay_rate_daily: number;
           grace_days: number;
           id: number;
@@ -85,6 +113,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           activity_floor_unit?: number;
+          bot_half_life_hours?: number;
           decay_rate_daily?: number;
           grace_days?: number;
           id?: number;
@@ -93,6 +122,7 @@ export type Database = {
         };
         Update: {
           activity_floor_unit?: number;
+          bot_half_life_hours?: number;
           decay_rate_daily?: number;
           grace_days?: number;
           id?: number;
@@ -110,6 +140,7 @@ export type Database = {
           id: string;
           instagram: string | null;
           is_admin: boolean;
+          is_bot: boolean;
           tiktok: string | null;
           twitch: string | null;
           username: string;
@@ -126,6 +157,7 @@ export type Database = {
           id: string;
           instagram?: string | null;
           is_admin?: boolean;
+          is_bot?: boolean;
           tiktok?: string | null;
           twitch?: string | null;
           username: string;
@@ -141,6 +173,7 @@ export type Database = {
           id?: string;
           instagram?: string | null;
           is_admin?: boolean;
+          is_bot?: boolean;
           tiktok?: string | null;
           twitch?: string | null;
           username?: string;
@@ -251,6 +284,7 @@ export type Database = {
           emoji: string | null;
           holder_avatar_url: string | null;
           holder_display_name: string | null;
+          holder_is_bot: boolean | null;
           holder_message: string | null;
           holder_paid: number | null;
           holder_user_id: string | null;
@@ -276,6 +310,26 @@ export type Database = {
     };
     Functions: {
       ar_date: { Args: { p_at: string }; Returns: string };
+      bot_move: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          dethroned_user_id: string | null;
+          ended_at: string | null;
+          id: string;
+          message: string | null;
+          price_paid: number;
+          started_at: string;
+          title_id: string;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "reigns";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      bot_tick: { Args: Record<PropertyKey, never>; Returns: undefined };
       claim_salary: { Args: Record<PropertyKey, never>; Returns: number };
       coin_balance: { Args: { p_user_id: string }; Returns: number };
       dethrone_with_coins: {

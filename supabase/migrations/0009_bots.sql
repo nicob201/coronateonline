@@ -192,3 +192,102 @@ SELECT
 FROM public.titles t
 LEFT JOIN public.reigns   r ON r.title_id = t.id AND r.ended_at IS NULL
 LEFT JOIN public.profiles p ON p.id = r.user_id;
+
+-- ---------------------------------------------------------------------------
+-- 3. PLAY — a bot acts as itself for one transaction (request.jwt.claims), so
+--    it goes through the same validation, locks and ledger as a human.
+-- ---------------------------------------------------------------------------
+
+-- One bot plays once: a random affordable (bot, title) pair, bid = price + 1
+-- (max 15 👑), human crowns only after 12 h. Returns the new reign, or NULL.
+CREATE OR REPLACE FUNCTION public.bot_move()
+RETURNS public.reigns
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_pick    record;
+  v_message text;
+BEGIN
+  SELECT b.id AS bot_id, t.id AS title_id, t.min_bid, t.victim
+  INTO v_pick
+  FROM (
+    SELECT p.id, public.coin_balance(p.id) AS balance
+    FROM public.profiles p
+    WHERE p.is_bot
+  ) b
+  JOIN (
+    SELECT ti.id,
+           r.user_id AS holder_id,
+           COALESCE(public.title_current_price(ti.id) + 1, 1) AS min_bid,
+           (r.user_id IS NULL OR hp.is_bot OR r.started_at <= now() - interval '12 hours') AS open_to_bots,
+           COALESCE(NULLIF(btrim(hp.display_name), ''), hp.username) AS victim
+    FROM public.titles ti
+    LEFT JOIN public.reigns r ON r.title_id = ti.id AND r.ended_at IS NULL
+    LEFT JOIN public.profiles hp ON hp.id = r.user_id
+  ) t ON t.holder_id IS DISTINCT FROM b.id
+  WHERE t.open_to_bots
+    AND t.min_bid <= LEAST(15, b.balance)
+  ORDER BY random()
+  LIMIT 1;
+
+  IF NOT FOUND THEN
+    RETURN NULL;
+  END IF;
+
+  -- Lines naming a victim only when there is one; never over the 80-char limit.
+  SELECT replace(l.line, '{victim}', COALESCE(v_pick.victim, '')) INTO v_message
+  FROM public.bot_lines l
+  WHERE l.bot_id = v_pick.bot_id
+    AND (v_pick.victim IS NOT NULL OR position('{victim}' IN l.line) = 0)
+    AND char_length(replace(l.line, '{victim}', COALESCE(v_pick.victim, ''))) <= 80
+  ORDER BY random()
+  LIMIT 1;
+
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('sub', v_pick.bot_id, 'role', 'authenticated')::text, true);
+  RETURN public.dethrone_with_coins(v_pick.title_id, v_pick.min_bid, v_message);
+END;
+$$;
+
+-- Scheduled entry point: every bot claims today's salary, then ~1 tick in 6
+-- (one move every ~2 h on a 20-minute schedule) a bot plays.
+CREATE OR REPLACE FUNCTION public.bot_tick()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_bot uuid;
+BEGIN
+  FOR v_bot IN SELECT id FROM public.profiles WHERE is_bot LOOP
+    PERFORM set_config('request.jwt.claims',
+      json_build_object('sub', v_bot, 'role', 'authenticated')::text, true);
+    IF NOT (SELECT s.claimed_today FROM public.salary_status() s) THEN
+      PERFORM public.claim_salary();
+    END IF;
+  END LOOP;
+
+  IF random() >= 1.0 / 6 THEN
+    RETURN;
+  END IF;
+
+  BEGIN
+    PERFORM public.bot_move();
+  EXCEPTION WHEN OTHERS THEN
+    -- A human moved first (price or holder changed): skip the move, keep the salaries.
+    RAISE WARNING 'bot_move skipped: %', SQLERRM;
+  END;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.bot_move() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.bot_tick() FROM PUBLIC, anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 4. SCHEDULE — cron.schedule is idempotent by job name.
+-- ---------------------------------------------------------------------------
+CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog;
+SELECT cron.schedule('bot-tick', '*/20 * * * *', 'SELECT public.bot_tick()');
