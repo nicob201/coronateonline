@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatCoronas } from "@/lib/format";
+import { BotBadge } from "@/components/bot-badge";
 import { BASE_PRICE, RARITY_LABELS } from "@/lib/titles";
 import type { TitleCard as TitleCardData } from "@/types";
 
@@ -37,7 +38,7 @@ export function TitleCard({ title }: { title: TitleCardData }) {
       <div className="flex flex-wrap gap-4 text-body-sm font-body-sm text-on-surface-variant">
         {isHeld ? (
           <>
-            <span>Rey: {holderName}</span>
+            <span>Rey: {holderName}{title.holder?.is_bot && <BotBadge />}</span>
             <span>Valor: {formatCoronas(title.price ?? 0)}</span>
           </>
         ) : (

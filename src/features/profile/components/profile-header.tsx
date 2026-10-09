@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { socialUrl } from "@/lib/socials";
 import { ShareButton } from "@/components/share-button";
+import { BotBadge } from "@/components/bot-badge";
 import type { PublicProfile, SocialKey } from "@/types";
 
 const SOCIAL_LABELS: Record<SocialKey, string> = {
@@ -39,6 +40,7 @@ export function ProfileHeader({ profile }: { profile: PublicProfile }) {
       <div className="flex flex-col gap-1">
         <h1 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-on-surface uppercase tracking-tight">
           {profile.displayName}
+          {profile.isBot && <BotBadge />}
         </h1>
         <p className="text-label-caps font-label-caps text-primary/80">
           @{profile.username}
