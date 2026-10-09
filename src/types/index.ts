@@ -95,7 +95,6 @@ export type PublicProfile = {
 export type HallOfFameEntry = {
   username: string;
   name: string;
-  isBot: boolean;
   avatarUrl: string | null;
   reignCount: number;
   latestTitleName: string;

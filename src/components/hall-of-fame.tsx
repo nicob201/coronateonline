@@ -1,5 +1,4 @@
 import type { HallOfFameEntry } from "@/types";
-import { BotBadge } from "@/components/bot-badge";
 
 const RANK_COLOR = [
   "text-tertiary",
@@ -33,7 +32,6 @@ export function HallOfFame({ entries }: { entries: HallOfFameEntry[] }) {
               <div>
                 <p className="text-body-lg font-body-lg text-on-surface font-bold">
                   {entry.name}
-                  {entry.isBot && <BotBadge />}
                 </p>
                 <p className={`text-label-caps font-label-caps ${color}`}>
                   {entry.reignCount}{" "}

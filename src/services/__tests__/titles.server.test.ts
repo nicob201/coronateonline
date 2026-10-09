@@ -147,7 +147,7 @@ describe("bots", () => {
     expect(c.dethronedIsBot).toBe(false);
   });
 
-  it("flags bots in the hall of fame", async () => {
+  it("leaves bots out of the hall of fame", async () => {
     const supabase = createSupabaseMock({
       query: {
         data: [
@@ -156,11 +156,16 @@ describe("bots", () => {
             profiles: { username: "baron_bug", display_name: "Barón Bug", avatar_url: null, is_bot: true },
             titles: { name: "Rey de Internet" },
           },
+          {
+            started_at: "2026-10-08T12:00:00Z",
+            profiles: { username: "nico", display_name: "Nico B", avatar_url: null, is_bot: false },
+            titles: { name: "Rey de Córdoba" },
+          },
         ],
         error: null,
       },
     });
-    const [entry] = await getHallOfFame(supabase, 5);
-    expect(entry.isBot).toBe(true);
+    const entries = await getHallOfFame(supabase, 5);
+    expect(entries.map((e) => e.username)).toEqual(["nico"]);
   });
 });

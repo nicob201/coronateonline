@@ -185,7 +185,7 @@ export async function getRecentCoronations(
     }));
 }
 
-// Ranks users by total number of reigns held (all-time), most reigns first.
+// Ranks human users by total number of reigns held (all-time), most reigns first.
 export async function getHallOfFame(
   supabase: SupabaseServerClient,
   limit: number,
@@ -201,7 +201,8 @@ export async function getHallOfFame(
   // ponytail: in-JS aggregation over all reigns; move to a view/RPC if reign volume grows.
   const byUser = new Map<string, HallOfFameEntry>();
   for (const row of rows) {
-    if (!row.profiles) continue;
+    // Bots play ~12 times a day; the Hall of Fame is for people.
+    if (!row.profiles || row.profiles.is_bot) continue;
     const key = row.profiles.username;
     const existing = byUser.get(key);
     if (existing) {
@@ -210,7 +211,6 @@ export async function getHallOfFame(
       byUser.set(key, {
         username: row.profiles.username,
         name: displayName(row.profiles),
-        isBot: row.profiles.is_bot,
         avatarUrl: row.profiles.avatar_url,
         reignCount: 1,
         latestTitleName: row.titles?.name ?? "",
