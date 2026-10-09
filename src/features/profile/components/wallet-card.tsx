@@ -1,13 +1,16 @@
 import { formatCoronas, formatDate } from "@/lib/format";
-import type { CoinMovement } from "@/types";
+import type { CoinMovement, SalaryStatus } from "@/types";
 import { describeMovement } from "@/features/profile/lib/describe-movement";
+import { SalaryButton } from "@/features/profile/components/salary-button";
 
-// Shows the user's Coronas balance and their latest wallet movements.
+// Shows the user's Coronas balance, the daily salary with its streak, and the latest wallet movements.
 export function WalletCard({
   balance,
+  salary,
   movements,
 }: {
   balance: number;
+  salary: SalaryStatus;
   movements: CoinMovement[];
 }) {
   return (
@@ -15,6 +18,21 @@ export function WalletCard({
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="text-label-caps font-label-caps text-on-surface-variant">BILLETERA</h2>
         <span className="text-title-md font-title-md text-tertiary">{formatCoronas(balance)}</span>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {salary.claimed_today ? (
+          <p className="text-body-sm font-body-sm text-on-surface-variant">
+            Sueldo cobrado. Volvé mañana por{" "}
+            <span className="text-tertiary">{formatCoronas(salary.next_amount)}</span>
+          </p>
+        ) : (
+          <SalaryButton amount={salary.next_amount} />
+        )}
+        {salary.streak > 0 && (
+          <span className="text-body-sm font-body-sm text-on-surface">
+            🔥 Racha: {salary.streak} {salary.streak === 1 ? "día" : "días"}
+          </span>
+        )}
       </div>
       <ul className="flex flex-col divide-y divide-outline-variant/20">
         {movements.map((m) => (

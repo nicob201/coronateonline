@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getBalance, getRecentMovements } from "../wallet.server";
+import { claimSalary, getBalance, getRecentMovements, getSalaryStatus } from "../wallet.server";
 import { createSupabaseMock } from "@/test/supabase-mock";
 
 const welcomeRow = {
@@ -34,6 +34,33 @@ describe("getBalance", () => {
   it("throws when the RPC fails", async () => {
     const supabase = createSupabaseMock({ rpc: { data: null, error: { message: "boom" } } });
     await expect(getBalance(supabase, "u1")).rejects.toMatchObject({ message: "boom" });
+  });
+});
+
+describe("getSalaryStatus", () => {
+  it("returns the single row computed by the salary_status RPC", async () => {
+    const status = { claimed_today: false, streak: 2, next_amount: 7 };
+    const supabase = createSupabaseMock({ rpc: { data: status, error: null } });
+    await expect(getSalaryStatus(supabase)).resolves.toEqual(status);
+    expect(supabase.rpc).toHaveBeenCalledWith("salary_status");
+  });
+
+  it("throws when the RPC fails", async () => {
+    const supabase = createSupabaseMock({ rpc: { data: null, error: { message: "boom" } } });
+    await expect(getSalaryStatus(supabase)).rejects.toMatchObject({ message: "boom" });
+  });
+});
+
+describe("claimSalary", () => {
+  it("returns the amount credited by the claim_salary RPC", async () => {
+    const supabase = createSupabaseMock({ rpc: { data: 5, error: null } });
+    await expect(claimSalary(supabase)).resolves.toBe(5);
+    expect(supabase.rpc).toHaveBeenCalledWith("claim_salary");
+  });
+
+  it("throws when the RPC fails", async () => {
+    const supabase = createSupabaseMock({ rpc: { data: null, error: { message: "boom" } } });
+    await expect(claimSalary(supabase)).rejects.toMatchObject({ message: "boom" });
   });
 });
 

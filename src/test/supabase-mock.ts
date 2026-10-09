@@ -52,7 +52,7 @@ export function createSupabaseMock(options: SupabaseMockOptions = {}) {
       builders.set(table, created);
       return created;
     }),
-    rpc: vi.fn(async () => rpcResult),
+    rpc: vi.fn(() => makeBuilder(rpcResult)),
     storage: { from: vi.fn(() => storageBucket) },
     auth: {
       getUser: vi.fn(async () => ({

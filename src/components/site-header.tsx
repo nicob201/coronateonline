@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getOwnProfile } from "@/services/profiles.server";
-import { getBalance } from "@/services/wallet.server";
+import { getBalance, getSalaryStatus } from "@/services/wallet.server";
 import { formatCoronas } from "@/lib/format";
 import { signOut } from "@/actions/auth";
 
@@ -14,14 +14,17 @@ export async function SiteHeader() {
 
   let username: string | null = null;
   let balance: number | null = null;
+  let salaryReady = false;
   if (user) {
-    // A failed balance read hides the chip instead of breaking every page.
-    const [profile, coins] = await Promise.all([
+    // A failed balance or salary read hides the chip or its dot instead of breaking every page.
+    const [profile, coins, salary] = await Promise.all([
       getOwnProfile(supabase, user.id),
       getBalance(supabase, user.id).catch(() => null),
+      getSalaryStatus(supabase).catch(() => null),
     ]);
     username = profile?.username ?? null;
     balance = coins;
+    salaryReady = salary !== null && !salary.claimed_today;
   }
 
   return (
@@ -60,10 +63,16 @@ export async function SiteHeader() {
             {balance !== null && (
               <Link
                 href="/perfil"
-                aria-label={`Saldo: ${formatCoronas(balance)}`}
-                className="px-3 py-1 rounded-full border border-tertiary/40 text-label-caps font-label-caps text-tertiary hover:bg-tertiary/10 transition-colors whitespace-nowrap"
+                aria-label={`Saldo: ${formatCoronas(balance)}${salaryReady ? ". Sueldo disponible" : ""}`}
+                className="relative px-3 py-1 rounded-full border border-tertiary/40 text-label-caps font-label-caps text-tertiary hover:bg-tertiary/10 transition-colors whitespace-nowrap"
               >
                 {formatCoronas(balance)}
+                {salaryReady && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-tertiary motion-safe:animate-pulse"
+                  />
+                )}
               </Link>
             )}
             <Link

@@ -6,6 +6,8 @@ export function describeMovement(m: CoinMovement): string {
   switch (m.reason) {
     case "welcome":
       return "Saldo inicial";
+    case "salary":
+      return "Sueldo diario";
     case "dethrone":
       return m.counterpartName ? `Destronaste a ${m.counterpartName}${where}` : `Te coronaste${where}`;
     case "dethroned":

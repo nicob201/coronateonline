@@ -121,4 +121,7 @@ export type CoinMovement = Pick<CoinLedgerRow, "id" | "amount" | "reason" | "cre
   counterpartName: string | null;
 };
 
+// The signed-in user's daily salary: claimed today, live streak and what the next claim pays.
+export type SalaryStatus = Database["public"]["Functions"]["salary_status"]["Returns"][number];
+
 export type { Database };

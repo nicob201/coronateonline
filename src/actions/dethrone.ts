@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { errorMessage } from "@/lib/errors";
 import { dethrone } from "@/services/dethrone.server";
 import { dethroneSchema } from "@/features/dethrone/schemas/dethrone.schema";
 import type { ActionResult, Reign } from "@/types";
@@ -55,11 +56,7 @@ export async function destronar(
   try {
     reign = await dethrone(supabase, titleId, amount, message);
   } catch (err: unknown) {
-    const message =
-      typeof err === "object" && err !== null && "message" in err
-        ? String((err as { message: unknown }).message)
-        : "";
-    return { success: false, error: translateRpcError(message) };
+    return { success: false, error: translateRpcError(errorMessage(err)) };
   }
 
   // Holders and balances change site-wide: header chip, cards, ticker, both wallets.

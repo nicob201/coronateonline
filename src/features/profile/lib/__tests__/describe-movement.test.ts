@@ -19,6 +19,10 @@ describe("describeMovement", () => {
     expect(describeMovement(movement({}))).toBe("Saldo inicial");
   });
 
+  it("labels the daily salary", () => {
+    expect(describeMovement(movement({ reason: "salary", amount: 7 }))).toBe("Sueldo diario");
+  });
+
   it("names who you dethroned and where", () => {
     expect(
       describeMovement(
