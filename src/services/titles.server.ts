@@ -18,10 +18,13 @@ const coronationsQuery = (supabase: SupabaseServerClient) =>
     );
 type CoronationRow = QueryData<ReturnType<typeof coronationsQuery>>[number];
 
+// Bots play ~12 times a day; the Hall of Fame is for people (filtered in the
+// database so bot rows never use up PostgREST's row limit).
 const hallOfFameQuery = (supabase: SupabaseServerClient) =>
   supabase
     .from("reigns")
-    .select("started_at, profiles!reigns_user_id_fkey ( username, display_name, avatar_url, is_bot ), titles ( name )");
+    .select("started_at, profiles!reigns_user_id_fkey!inner ( username, display_name, avatar_url ), titles ( name )")
+    .eq("profiles.is_bot", false);
 type HallOfFameRow = QueryData<ReturnType<typeof hallOfFameQuery>>[number];
 
 const pricedQuery = (supabase: SupabaseServerClient) =>
@@ -201,8 +204,7 @@ export async function getHallOfFame(
   // ponytail: in-JS aggregation over all reigns; move to a view/RPC if reign volume grows.
   const byUser = new Map<string, HallOfFameEntry>();
   for (const row of rows) {
-    // Bots play ~12 times a day; the Hall of Fame is for people.
-    if (!row.profiles || row.profiles.is_bot) continue;
+    if (!row.profiles) continue;
     const key = row.profiles.username;
     const existing = byUser.get(key);
     if (existing) {

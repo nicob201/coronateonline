@@ -147,25 +147,12 @@ describe("bots", () => {
     expect(c.dethronedIsBot).toBe(false);
   });
 
-  it("leaves bots out of the hall of fame", async () => {
-    const supabase = createSupabaseMock({
-      query: {
-        data: [
-          {
-            started_at: "2026-10-09T12:00:00Z",
-            profiles: { username: "baron_bug", display_name: "Barón Bug", avatar_url: null, is_bot: true },
-            titles: { name: "Rey de Internet" },
-          },
-          {
-            started_at: "2026-10-08T12:00:00Z",
-            profiles: { username: "nico", display_name: "Nico B", avatar_url: null, is_bot: false },
-            titles: { name: "Rey de Córdoba" },
-          },
-        ],
-        error: null,
-      },
-    });
-    const entries = await getHallOfFame(supabase, 5);
-    expect(entries.map((e) => e.username)).toEqual(["nico"]);
+  it("asks the database to leave bots out of the hall of fame", async () => {
+    const supabase = createSupabaseMock({ query: { data: [], error: null } });
+    await getHallOfFame(supabase, 5);
+    expect(supabase.from("reigns").select).toHaveBeenCalledWith(
+      expect.stringContaining("profiles!reigns_user_id_fkey!inner"),
+    );
+    expect(supabase.from("reigns").select().eq).toHaveBeenCalledWith("profiles.is_bot", false);
   });
 });
