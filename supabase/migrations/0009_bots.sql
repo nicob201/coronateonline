@@ -75,3 +75,120 @@ INSERT INTO bot_lines (bot_id, line) VALUES
   ('b0700000-0000-4000-8000-000000000005', 'Mi algoritmo dice que esta corona me queda mejor.'),
   ('b0700000-0000-4000-8000-000000000005', 'Complejidad de mi reinado: O(1). Eterno.'),
   ('b0700000-0000-4000-8000-000000000005', 'Entrenado con todos los reyes de la historia. Era obvio.');
+
+-- ---------------------------------------------------------------------------
+-- 2. PRICING — "weak kings": a bot's crown halves every bot_half_life_hours,
+--    with no grace and no title floor, so a newcomer can always take it. Bot
+--    reigns never feed the activity floor.
+-- ---------------------------------------------------------------------------
+ALTER TABLE pricing_config
+  ADD COLUMN bot_half_life_hours numeric NOT NULL DEFAULT 6
+    CONSTRAINT pricing_config_bot_half_life_hours_check CHECK (bot_half_life_hours > 0);
+
+-- Lowest the effective price of a human-held title can fall to: base, a
+-- fraction of the recent price peak, and a per-recent-human-dethrone amount.
+CREATE OR REPLACE FUNCTION public.title_price_floor(p_title_id uuid)
+RETURNS integer
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_cfg          public.pricing_config;
+  v_recent_peak  integer;
+  v_recent_count integer;
+BEGIN
+  SELECT * INTO v_cfg FROM public.pricing_config WHERE id = 1;
+
+  SELECT COALESCE(max(price_paid), 0) INTO v_recent_peak
+  FROM public.reigns
+  WHERE title_id = p_title_id
+    AND started_at > now() - make_interval(days => v_cfg.peak_window_days);
+
+  SELECT count(*) INTO v_recent_count
+  FROM public.reigns r
+  JOIN public.profiles p ON p.id = r.user_id
+  WHERE r.title_id = p_title_id
+    AND r.ended_at IS NOT NULL
+    AND r.ended_at > now() - interval '30 days'
+    AND NOT p.is_bot;
+
+  RETURN GREATEST(
+    1,
+    round(v_recent_peak * v_cfg.peak_floor_fraction)::integer,
+    v_cfg.activity_floor_unit * v_recent_count
+  );
+END;
+$$;
+
+-- Effective price of a title's active reign. Bot holder: price_paid halved
+-- every bot_half_life_hours, never below 1. Human holder: price_paid decayed by
+-- decay_rate_daily per day after grace_days, never below title_price_floor.
+-- NULL when the title has no active reign.
+CREATE OR REPLACE FUNCTION public.title_current_price(p_title_id uuid)
+RETURNS integer
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_cfg        public.pricing_config;
+  v_reign      RECORD;
+  v_hours_held double precision;
+  v_decay_days double precision;
+  v_decayed    double precision;
+BEGIN
+  SELECT r.started_at, r.price_paid, p.is_bot INTO v_reign
+  FROM public.reigns r
+  JOIN public.profiles p ON p.id = r.user_id
+  WHERE r.title_id = p_title_id AND r.ended_at IS NULL;
+
+  IF NOT FOUND THEN
+    RETURN NULL;
+  END IF;
+
+  SELECT * INTO v_cfg FROM public.pricing_config WHERE id = 1;
+  v_hours_held := extract(epoch FROM now() - v_reign.started_at) / 3600.0;
+
+  IF v_reign.is_bot THEN
+    RETURN GREATEST(
+      1,
+      round((v_reign.price_paid
+             * power(0.5::double precision,
+                     v_hours_held / v_cfg.bot_half_life_hours::double precision))::numeric)::integer
+    );
+  END IF;
+
+  v_decay_days := GREATEST(0, v_hours_held / 24.0 - v_cfg.grace_days);
+  v_decayed    := v_reign.price_paid
+                  * power((1 - v_cfg.decay_rate_daily)::double precision,
+                          v_decay_days);
+
+  RETURN GREATEST(
+    public.title_price_floor(p_title_id),
+    round(v_decayed::numeric)::integer
+  );
+END;
+$$;
+
+-- Read path for effective price + current holder; now says whether the holder is a bot.
+CREATE OR REPLACE VIEW public.titles_priced
+WITH (security_invoker = true) AS
+SELECT
+  t.id, t.slug, t.name, t.emoji, t.description, t.created_at,
+  public.title_current_price(t.id) AS current_price,
+  public.title_price_floor(t.id)   AS price_floor,
+  r.id          AS reign_id,
+  r.user_id     AS holder_user_id,
+  r.price_paid  AS holder_paid,
+  r.started_at  AS reign_started_at,
+  p.username     AS holder_username,
+  p.display_name AS holder_display_name,
+  p.avatar_url   AS holder_avatar_url,
+  r.message      AS holder_message,
+  p.is_bot       AS holder_is_bot
+FROM public.titles t
+LEFT JOIN public.reigns   r ON r.title_id = t.id AND r.ended_at IS NULL
+LEFT JOIN public.profiles p ON p.id = r.user_id;

@@ -53,4 +53,41 @@ BEGIN
     'new users are not bots';
 END $$;
 
+-- Close every title to bots: a fresh human reign everywhere (inside the 12 h grace).
+SELECT pg_temp.hold(id, '5b000000-0000-4000-8000-000000000001', 1, interval '0') FROM public.titles;
+
+-- Pricing on X: bot crowns halve every 6 h with no grace or floor; human crowns keep
+-- the old formula; the floor's activity term ignores bot reigns.
+DO $$
+DECLARE
+  h  uuid := '5b000000-0000-4000-8000-000000000001';
+  b1 uuid := 'b0700000-0000-4000-8000-000000000001';
+  b2 uuid := 'b0700000-0000-4000-8000-000000000002';
+  x  uuid := '5b000000-0000-4000-8000-0000000000aa';
+BEGIN
+  PERFORM pg_temp.hold(x, b1, 15, interval '6 hours');
+  ASSERT public.title_current_price(x) = 8, format('bot crown at 6 h: expected 8, got %s', public.title_current_price(x));
+  PERFORM pg_temp.hold(x, b1, 15, interval '12 hours');
+  ASSERT public.title_current_price(x) = 4, format('bot crown at 12 h: expected 4, got %s', public.title_current_price(x));
+  PERFORM pg_temp.hold(x, b1, 15, interval '24 hours');
+  ASSERT public.title_current_price(x) = 1, format('bot crown at 24 h: expected 1, got %s', public.title_current_price(x));
+
+  PERFORM pg_temp.hold(x, h, 15, interval '6 hours');
+  ASSERT public.title_current_price(x) = 15, 'a human crown inside its grace keeps its price';
+
+  -- Floor = max(1, 25% of the 15 peak = 4, 2 × 1 ended human reign = 2) = 4.
+  ASSERT public.title_price_floor(x) = 4, format('floor: expected 4, got %s', public.title_price_floor(x));
+  INSERT INTO public.reigns (title_id, user_id, price_paid, started_at, ended_at)
+  SELECT x, b2, 1, now() - interval '3 hours', now() - interval '2 hours' FROM generate_series(1, 5);
+  ASSERT public.title_price_floor(x) = 4, 'ended bot reigns must not raise the floor';
+  INSERT INTO public.reigns (title_id, user_id, price_paid, started_at, ended_at)
+  SELECT x, h, 1, now() - interval '3 hours', now() - interval '2 hours' FROM generate_series(1, 5);
+  ASSERT public.title_price_floor(x) = 12, format('6 ended human reigns: expected 12, got %s', public.title_price_floor(x));
+
+  ASSERT (SELECT holder_is_bot FROM public.titles_priced WHERE id = x) = false, 'view: human holder';
+  PERFORM pg_temp.hold(x, b1, 1, interval '0');
+  ASSERT (SELECT holder_is_bot FROM public.titles_priced WHERE id = x) = true, 'view: bot holder';
+  PERFORM pg_temp.hold(x, h, 15, interval '6 hours');
+END $$;
+
 ROLLBACK;
