@@ -44,6 +44,13 @@ the `title_current_price` Postgres function and exposed through the
 
 Concurrency: two challengers on one title serialize on the title lock; the second re-reads the new price and is rejected with "El monto no alcanza". Spends by one user serialize on their profile row, locked `FOR NO KEY UPDATE` — never `FOR UPDATE`, which deadlocks against the `KEY SHARE` the foreign keys take when two users dethrone each other at once.
 
+### Daily salary with streak (v2.1)
+
+1. Once per Argentine calendar day (it turns over at 00:00 ART) a logged-in user presses "Cobrar sueldo" in their wallet; `claim_salary()` writes a `salary` ledger row.
+2. **Amount:** 5 👑 on streak day 1, +1 per consecutive day, capped at 11 👑 from day 7. Skipping a day resets the next claim to 5 👑.
+3. **The streak is derived**, like the balance: `salary_status()` counts the consecutive days with a `salary` row ending today or yesterday, and returns `claimed_today`, `streak` and `next_amount`.
+4. One claim per day is enforced by a unique index on `(user_id, ar_date(created_at))` for `salary` rows, so double clicks and concurrent requests cannot pay twice. The header's balance chip shows a dot while today's salary is unclaimed.
+
 ## 3. Domain Model
 
 Four domain tables plus the single-row `pricing_config`. One source of truth: current holder and current price are always derived from `reigns`; a user's balance is always derived from `coin_ledger`.
@@ -68,9 +75,10 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
 - Activity feed = recent reigns ordered by `started_at`. Season number = position in the title's reign sequence.
 
 ### `coin_ledger` (the wallet — append-only)
-- `id`, `user_id` (FK → profiles), `amount` (signed integer 👑: credit > 0, debit < 0), `reason` (`welcome`, `dethrone` (always negative), `dethroned`; D6 adds `salary`), `reign_id` (FK → reigns, nullable, `ON DELETE SET NULL`), `created_at`
+- `id`, `user_id` (FK → profiles), `amount` (signed integer 👑: credit > 0, debit < 0), `reason` (`welcome`, `dethrone` (always negative), `dethroned`, `salary`), `reign_id` (FK → reigns, nullable, `ON DELETE SET NULL`), `created_at`
 - **Balance is derived**: `coin_balance(user_id)` = sum of the user's rows. Never stored.
 - 20 👑 `welcome` row per profile, inserted by a trigger on `profiles`; a unique partial index allows only one.
+- One `salary` row per user per Argentine day (unique partial index); see "Daily salary with streak".
 - RLS: owners read their own rows; no client writes — only `SECURITY DEFINER` code writes the ledger.
 
 ### Database rules

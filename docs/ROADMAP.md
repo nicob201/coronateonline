@@ -24,7 +24,7 @@ Un visitante entra desde un link, juega en 30 segundos sin pagar nada y ve un si
 
 ## Semana 2 — Que se vea vivo
 
-- [ ] **D6** — Sueldo diario con racha
+- [x] **D6** — Sueldo diario con racha
 - [ ] **D7** — Bots con `pg_cron` que destronan y tiran trash talk (además evita la pausa de Supabase free)
 - [ ] **D8** — Supabase Realtime: ticker y precio en vivo
 - [ ] **D9** — Notificaciones in-app (trigger en `reigns`) + campanita + toast "¡Te destronaron!"

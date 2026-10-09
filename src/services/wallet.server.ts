@@ -1,6 +1,6 @@
 import { type QueryData } from "@supabase/supabase-js";
 import type { SupabaseServerClient } from "@/lib/supabase/server";
-import type { CoinMovement } from "@/types";
+import type { CoinMovement, SalaryStatus } from "@/types";
 
 // Returns the user's Coronas balance, derived in Postgres from their ledger.
 export async function getBalance(
@@ -8,6 +8,20 @@ export async function getBalance(
   userId: string,
 ): Promise<number> {
   const { data, error } = await supabase.rpc("coin_balance", { p_user_id: userId });
+  if (error) throw error;
+  return data;
+}
+
+// Returns the signed-in user's daily salary state, derived in Postgres from their ledger.
+export async function getSalaryStatus(supabase: SupabaseServerClient): Promise<SalaryStatus> {
+  const { data, error } = await supabase.rpc("salary_status").single();
+  if (error) throw error;
+  return data;
+}
+
+// Credits the signed-in user's salary for today; returns the amount credited.
+export async function claimSalary(supabase: SupabaseServerClient): Promise<number> {
+  const { data, error } = await supabase.rpc("claim_salary");
   if (error) throw error;
   return data;
 }
