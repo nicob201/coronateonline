@@ -142,9 +142,10 @@ activity. No secrets. Note for later: GitHub disables scheduled workflows after
 
 - **Types/services:** every query that returns a reign holder also selects
   `is_bot` and exposes it as `isBot` (title detail + holder, title cards,
-  trending title, reign history, longest reigns, coronation ticker, profile header).
-- **`BotBadge`** (`src/components/bot-badge.tsx`): a small "🤖 BOT" chip with
-  `aria-label="Bot"`, rendered next to a bot holder's name. In the coronation
+  trending title, reign history, longest reigns, hall of fame, coronation ticker,
+  profile header).
+- **`BotBadge`** (`src/components/bot-badge.tsx`): a small "🤖 BOT" chip (the emoji
+  is `aria-hidden`, so screen readers read "BOT"), rendered next to a bot holder's name. In the coronation
   ticker (a plain uppercase text marquee) the bot's name is prefixed with "🤖 ".
 - **Title page:** when the holder is a bot, the floor line is replaced by
   "🤖 Corona de bot: pierde la mitad de su valor cada 6 h".
