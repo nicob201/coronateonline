@@ -142,8 +142,9 @@ activity. No secrets. Note for later: GitHub disables scheduled workflows after
 
 - **Types/services:** every query that returns a reign holder also selects
   `is_bot` and exposes it as `isBot` (title detail + holder, title cards,
-  trending title, reign history, longest reigns, hall of fame, coronation ticker,
-  profile header).
+  trending title, reign history, longest reigns, coronation ticker, profile header).
+  Bots are left out of the Hall of Fame (decided during implementation: at ~12
+  moves a day they would permanently bury the human players).
 - **`BotBadge`** (`src/components/bot-badge.tsx`): a small "🤖 BOT" chip (the emoji
   is `aria-hidden`, so screen readers read "BOT"), rendered next to a bot holder's name. In the coronation
   ticker (a plain uppercase text marquee) the bot's name is prefixed with "🤖 ".

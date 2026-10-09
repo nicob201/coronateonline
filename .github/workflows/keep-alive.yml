@@ -1,0 +1,14 @@
+name: keep-alive
+
+# Supabase pauses free projects after 7 days without user/API activity; pg_cron
+# jobs do not count. /titulos renders per request and queries Supabase.
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS https://coronateonline.vercel.app/titulos -o /dev/null

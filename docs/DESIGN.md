@@ -35,6 +35,10 @@ All decay parameters live in a single-row `pricing_config` table, tunable with a
 the `title_current_price` Postgres function and exposed through the
 `titles_priced` view.
 
+A crown held by a **bot** instead halves every `bot_half_life_hours` (default 6) with
+no grace and no floor, so a newcomer can always take it; bot reigns never count
+toward the activity floor.
+
 ### Dethrone flow (v2 — Coronas, atomic)
 
 1. A logged-in user (guests included) on a title page offers **X 👑** (X ≥ current price + 1, or ≥ 1 if unclaimed; they may offer more to raise the next threshold). The page shows their balance; the button reads "TE FALTAN N 👑" when short.
@@ -50,6 +54,13 @@ Concurrency: two challengers on one title serialize on the title lock; the secon
 2. **Amount:** 5 👑 on streak day 1, +1 per consecutive day, capped at 11 👑 from day 7. Skipping a day resets the next claim to 5 👑.
 3. **The streak is derived**, like the balance: `salary_status()` counts the consecutive days with a `salary` row ending today or yesterday, and returns `claimed_today`, `streak` and `next_amount`.
 4. One claim per day is enforced by a unique index on `(user_id, ar_date(created_at))` for `salary` rows, so double clicks and concurrent requests cannot pay twice. The header's balance chip shows a dot while today's salary is unclaimed.
+
+### Bots (v2.2)
+
+1. Five declared bots (`profiles.is_bot`, shown with a 🤖 BOT badge; their trash talk lives in the private `bot_lines` table). They have no password, so nobody can sign in as one.
+2. **Same rules as humans:** ledger balance, 20 👑 welcome, daily salary. `bot_move()` acts as the bot for one transaction (`request.jwt.claims`) and calls `dethrone_with_coins`, so validation, locks and the zero-sum ledger are the human ones.
+3. **Schedule:** pg_cron runs `bot_tick()` every 20 minutes: every bot claims its salary, then with a 1-in-6 chance (~one move every 2 h) a random bot takes a random affordable title.
+4. **Limits:** bots bid exactly the minimum (price + 1, or 1 unclaimed) and never more than 15 👑; a human crown is closed to bots for its first 12 hours. Bots are left out of the Hall of Fame.
 
 ## 3. Domain Model
 
@@ -84,6 +95,7 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
 ### Database rules
 - RLS enabled on every table. Public read for `profiles`, `titles`, `reigns`. No client-side writes to `titles`/`reigns` — transfers happen exclusively inside a `SECURITY DEFINER` function.
 - Money integrity enforced by CHECK constraints (positive amounts; non-zero ledger movements).
+- Keep-alive: pg_cron jobs do not count as activity for Supabase's free-tier pause, so a daily GitHub Actions request to `/titulos` keeps the project awake.
 
 ## 4. Pages (MVP)
 
