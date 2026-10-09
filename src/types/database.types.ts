@@ -275,6 +275,8 @@ export type Database = {
       };
     };
     Functions: {
+      ar_date: { Args: { p_at: string }; Returns: string };
+      claim_salary: { Args: Record<PropertyKey, never>; Returns: number };
       coin_balance: { Args: { p_user_id: string }; Returns: number };
       dethrone_with_coins: {
         Args: { p_amount: number; p_message?: string; p_title_id: string };
@@ -294,6 +296,14 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      salary_status: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          claimed_today: boolean;
+          next_amount: number;
+          streak: number;
+        }[];
       };
       title_current_price: { Args: { p_title_id: string }; Returns: number };
       title_price_floor: { Args: { p_title_id: string }; Returns: number };
