@@ -153,11 +153,13 @@ BEGIN
   v_hours_held := extract(epoch FROM now() - v_reign.started_at) / 3600.0;
 
   IF v_reign.is_bot THEN
+    -- The exponent is capped: 0.5^64 already rounds any price to 1, and past
+    -- ~1074 power() raises an underflow error.
     RETURN GREATEST(
       1,
       round((v_reign.price_paid
              * power(0.5::double precision,
-                     v_hours_held / v_cfg.bot_half_life_hours::double precision))::numeric)::integer
+                     LEAST(v_hours_held / v_cfg.bot_half_life_hours::double precision, 64)))::numeric)::integer
     );
   END IF;
 
@@ -276,8 +278,9 @@ BEGIN
 
   BEGIN
     PERFORM public.bot_move();
-  EXCEPTION WHEN OTHERS THEN
-    -- A human moved first (price or holder changed): skip the move, keep the salaries.
+  EXCEPTION WHEN raise_exception THEN
+    -- A human moved first (price or holder changed): skip the move, keep the
+    -- salaries. Any other error fails the run, visible in cron.job_run_details.
     RAISE WARNING 'bot_move skipped: %', SQLERRM;
   END;
 END;

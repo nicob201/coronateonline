@@ -71,6 +71,8 @@ BEGIN
   ASSERT public.title_current_price(x) = 4, format('bot crown at 12 h: expected 4, got %s', public.title_current_price(x));
   PERFORM pg_temp.hold(x, b1, 15, interval '24 hours');
   ASSERT public.title_current_price(x) = 1, format('bot crown at 24 h: expected 1, got %s', public.title_current_price(x));
+  PERFORM pg_temp.hold(x, b1, 15, interval '400 days');
+  ASSERT public.title_current_price(x) = 1, 'a long-held bot crown bottoms at 1 (no power() underflow)';
 
   PERFORM pg_temp.hold(x, h, 15, interval '6 hours');
   ASSERT public.title_current_price(x) = 15, 'a human crown inside its grace keeps its price';
@@ -167,6 +169,39 @@ BEGIN
   ), 'bot_tick must claim every bot''s salary';
   ASSERT EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'bot-tick' AND schedule = '*/20 * * * *'),
     'the bot-tick cron job must be scheduled';
+END $$;
+
+-- bot_tick swallows only lost races (raise_exception); any other error must fail the run.
+CREATE TEMP SEQUENCE bot_move_calls;
+DO $$
+DECLARE
+  ok boolean := false;
+BEGIN
+  PERFORM setseed(0.15);
+  CREATE OR REPLACE FUNCTION public.bot_move() RETURNS public.reigns LANGUAGE plpgsql AS $f$
+  BEGIN
+    PERFORM nextval('pg_temp.bot_move_calls');
+    RAISE EXCEPTION 'Amount must be at least 99';
+  END $f$;
+  FOR i IN 1..30 LOOP
+    PERFORM public.bot_tick();
+  END LOOP;
+  ASSERT (SELECT is_called FROM pg_temp.bot_move_calls), 'the lost-race stub must have run at least once';
+
+  CREATE OR REPLACE FUNCTION public.bot_move() RETURNS public.reigns LANGUAGE plpgsql AS $f$
+  BEGIN
+    PERFORM 1 / 0;
+    RETURN NULL;
+  END $f$;
+  FOR i IN 1..30 LOOP
+    BEGIN
+      PERFORM public.bot_tick();
+    EXCEPTION WHEN division_by_zero THEN
+      ok := true;
+    END;
+    EXIT WHEN ok;
+  END LOOP;
+  ASSERT ok, 'bot_tick must not hide a broken bot_move';
 END $$;
 
 -- Clients cannot run the bots, mark themselves as bots, or read the lines.
