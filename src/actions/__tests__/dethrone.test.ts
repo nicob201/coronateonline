@@ -59,7 +59,7 @@ describe("destronar", () => {
   });
 
   it.each([
-    ["Amount must be at least 6", "El monto no alcanza: alguien pagó más. Refrescá la página."],
+    ["Amount must be at least 6", "El monto no alcanza: alguien pagó más. Mirá el nuevo mínimo."],
     ["Insufficient balance", "No te alcanzan las Coronas."],
     ["You already hold this title", "Ya sos el dueño de este título."],
     ["Message too long", "El mensaje es demasiado largo (máx. 80 caracteres)."],

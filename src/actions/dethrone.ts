@@ -13,7 +13,7 @@ const NOT_AUTH = "Tenés que iniciar sesión para destronar.";
 // ponytail: substring match on English RPC messages; upgrade to SQLSTATE codes in a migration if these strings drift.
 function translateRpcError(message: string): string {
   if (message.includes("at least")) {
-    return "El monto no alcanza: alguien pagó más. Refrescá la página.";
+    return "El monto no alcanza: alguien pagó más. Mirá el nuevo mínimo.";
   }
   if (message.includes("Insufficient balance")) return "No te alcanzan las Coronas.";
   if (message.includes("already hold")) return "Ya sos el dueño de este título.";
