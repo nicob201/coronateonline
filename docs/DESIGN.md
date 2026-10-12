@@ -112,7 +112,7 @@ UI copy in Spanish (es-AR). Visual direction: dark, cyberpunk + digital luxury (
 ## 5. Out of Scope (MVP)
 
 Deliberately excluded until the hypothesis validates:
-- Realtime updates (Supabase Realtime) — normal revalidation is enough
+- Realtime beyond the live ticker/prices (shipped in D8) — e.g. map pulses (D15), notifications (D9)
 - Notifications (email/push "te destronaron") — dethroned users see it on-site
 - User-created titles, rankings pages, profile boosts, sponsored titles
 - Reign expiry (does not exist in the takeover model)

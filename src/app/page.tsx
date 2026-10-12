@@ -7,6 +7,7 @@ import {
 } from "@/services/titles.server";
 import { CoronationTicker } from "@/components/coronation-ticker";
 import { LiveRefresh } from "@/components/live-refresh";
+import { LiveFlash } from "@/components/live-flash";
 import { HallOfFame } from "@/components/hall-of-fame";
 import { TrendingTitle } from "@/components/trending-title";
 import { GuestLoginButton } from "@/features/auth/components/guest-login-button";
@@ -29,7 +30,9 @@ export default async function Home() {
   return (
     <>
       <LiveRefresh />
-      <CoronationTicker coronations={coronations} />
+      <LiveFlash value={coronations[0]?.id ?? null} className="block">
+        <CoronationTicker coronations={coronations} />
+      </LiveFlash>
 
       <main className="relative z-10 container mx-auto px-5 md:px-16 max-w-[1280px] pt-16 pb-32">
         <section className="flex flex-col items-center justify-center text-center py-16 md:py-20 relative">

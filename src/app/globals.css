@@ -166,6 +166,25 @@ body {
   }
 }
 
+/* ── Live flash (a value just changed via Realtime) ── */
+.live-flash {
+  border-radius: 0.25rem;
+}
+
+/* The ticker bar paints its own background over the wrapper, so it flashes itself. */
+.live-flash,
+.live-flash > .ticker-wrap {
+  animation: live-flash 1.2s ease-out;
+}
+
+/* Only a start frame: each element fades back to its own background. */
+@keyframes live-flash {
+  from {
+    background-color: rgba(249, 189, 34, 0.3);
+    text-shadow: 0 0 12px rgba(249, 189, 34, 0.9);
+  }
+}
+
 /* ── Shimmer effect ── */
 .shimmer {
   position: relative;
@@ -304,7 +323,9 @@ body {
   .shimmer::before,
   .btn-destronar,
   .bg-animated,
-  .crown-float {
+  .crown-float,
+  .live-flash,
+  .live-flash > .ticker-wrap {
     animation: none;
   }
 }

@@ -10,6 +10,7 @@ import { LongestReigns } from "@/components/longest-reigns";
 import { ShareButton } from "@/components/share-button";
 import { BotBadge } from "@/components/bot-badge";
 import { LiveRefresh } from "@/components/live-refresh";
+import { LiveFlash } from "@/components/live-flash";
 import { DethroneForm } from "@/features/dethrone/components/dethrone-form";
 import { formatCoronas, formatReignDuration } from "@/lib/format";
 import { minClaimAmount, RARITY_LABELS } from "@/lib/titles";
@@ -80,14 +81,16 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                 DUEÑO ACTUAL
               </span>
               <span className="text-body-lg font-body-lg font-bold text-primary">
-                {isHeld ? (
-                  <>
-                    {title.holderName}
-                    {title.holder?.is_bot && <BotBadge />}
-                  </>
-                ) : (
-                  "Sin coronar"
-                )}
+                <LiveFlash value={title.holderUserId}>
+                  {isHeld ? (
+                    <>
+                      {title.holderName}
+                      {title.holder?.is_bot && <BotBadge />}
+                    </>
+                  ) : (
+                    "Sin coronar"
+                  )}
+                </LiveFlash>
               </span>
             </div>
             <div className="flex justify-between items-center border-b border-outline-variant/20 pb-2">
@@ -95,7 +98,9 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                 VALOR ACTUAL
               </span>
               <span className="text-title-md font-title-md text-tertiary font-black">
-                {formatCoronas(currentPrice ?? nextPrice)}
+                <LiveFlash value={currentPrice ?? nextPrice}>
+                  {formatCoronas(currentPrice ?? nextPrice)}
+                </LiveFlash>
               </span>
             </div>
             {isHeld && title.holderPaid !== null && title.holderPaid !== currentPrice && (
@@ -180,7 +185,7 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                   PRECIO MÍNIMO
                 </span>
                 <span className="text-title-md font-title-md text-on-surface font-black">
-                  {formatCoronas(nextPrice)}
+                  <LiveFlash value={nextPrice}>{formatCoronas(nextPrice)}</LiveFlash>
                 </span>
               </div>
               {user ? (

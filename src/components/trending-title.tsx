@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatCoronas } from "@/lib/format";
 import { BotBadge } from "@/components/bot-badge";
+import { LiveFlash } from "@/components/live-flash";
 import { BASE_PRICE, RARITY_LABELS } from "@/lib/titles";
 import type { TitleCard as TitleCardData } from "@/types";
 
@@ -44,10 +45,10 @@ export function TrendingTitle({ title }: { title: TitleCardData }) {
 
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-body-sm font-body-sm text-on-surface-variant">
         {isHeld ? (
-          <>
+          <LiveFlash value={`${title.holderUserId}:${title.price}`} className="flex flex-wrap gap-x-4 gap-y-1">
             <span>Rey: {holderName}{title.holder?.is_bot && <BotBadge />}</span>
             <span>Valor: {formatCoronas(title.price ?? 0)}</span>
-          </>
+          </LiveFlash>
         ) : (
           <>
             <span className="text-primary">Disponible</span>
