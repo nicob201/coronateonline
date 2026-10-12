@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { REALTIME_SUBSCRIBE_STATES } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
+// Channel topics only need to be unique within the page's singleton client.
+let channelSeq = 0;
+
 // Re-renders the current route whenever a reign starts (only for one title when titleId is set).
 export function LiveRefresh({ titleId }: { titleId?: string }) {
   const router = useRouter();
@@ -15,7 +18,7 @@ export function LiveRefresh({ titleId }: { titleId?: string }) {
 
     // Unique topic per run: StrictMode re-runs this effect before the previous channel finishes leaving.
     const channel = supabase
-      .channel(`reigns:${titleId ?? "all"}:${crypto.randomUUID()}`)
+      .channel(`reigns:${titleId ?? "all"}:${++channelSeq}`)
       .on(
         "postgres_changes",
         {
