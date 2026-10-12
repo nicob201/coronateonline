@@ -36,19 +36,22 @@ export function TitleCard({ title }: { title: TitleCardData }) {
         {title.emoji} {title.name.toUpperCase()}
       </h3>
 
-      <div className="flex flex-wrap gap-4 text-body-sm font-body-sm text-on-surface-variant">
+      <LiveFlash
+        value={`${title.holderUserId}:${title.price}`}
+        className="flex flex-wrap gap-4 text-body-sm font-body-sm text-on-surface-variant"
+      >
         {isHeld ? (
-          <LiveFlash value={`${title.holderUserId}:${title.price}`} className="flex flex-wrap gap-4">
+          <>
             <span>Rey: {holderName}{title.holder?.is_bot && <BotBadge />}</span>
             <span>Valor: {formatCoronas(title.price ?? 0)}</span>
-          </LiveFlash>
+          </>
         ) : (
           <>
             <span className="text-primary">Disponible</span>
             <span>{formatCoronas(BASE_PRICE)}</span>
           </>
         )}
-      </div>
+      </LiveFlash>
 
       <span
         className={`self-start px-8 py-3 rounded-lg text-label-caps font-label-caps font-bold tracking-widest opacity-60 ${
