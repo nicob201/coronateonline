@@ -6,6 +6,7 @@ import {
   getTitlesWithCurrentReign,
 } from "@/services/titles.server";
 import { CoronationTicker } from "@/components/coronation-ticker";
+import { LiveRefresh } from "@/components/live-refresh";
 import { HallOfFame } from "@/components/hall-of-fame";
 import { TrendingTitle } from "@/components/trending-title";
 import { GuestLoginButton } from "@/features/auth/components/guest-login-button";
@@ -27,6 +28,7 @@ export default async function Home() {
 
   return (
     <>
+      <LiveRefresh />
       <CoronationTicker coronations={coronations} />
 
       <main className="relative z-10 container mx-auto px-5 md:px-16 max-w-[1280px] pt-16 pb-32">

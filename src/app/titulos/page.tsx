@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { getTitlesWithCurrentReign } from "@/services/titles.server";
 import { TitleCard } from "@/components/title-card";
+import { LiveRefresh } from "@/components/live-refresh";
 
 export const metadata: Metadata = {
   title: "Explorar títulos - CoronaTeOnline",
@@ -15,6 +16,7 @@ export default async function TitlesPage() {
 
   return (
     <main className="relative z-10 container mx-auto px-5 md:px-16 max-w-[1280px] pt-16 pb-32">
+      <LiveRefresh />
       <h1 className="text-headline-lg-mobile md:text-display-xl font-display-xl text-on-surface mb-10 uppercase tracking-tighter">
         Encontrá tu <span className="text-gradient-primary">corona</span>
       </h1>
