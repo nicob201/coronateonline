@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatCoronas } from "@/lib/format";
 import { BotBadge } from "@/components/bot-badge";
+import { LiveFlash } from "@/components/live-flash";
 import { BASE_PRICE, RARITY_LABELS } from "@/lib/titles";
 import type { TitleCard as TitleCardData } from "@/types";
 
@@ -35,7 +36,10 @@ export function TitleCard({ title }: { title: TitleCardData }) {
         {title.emoji} {title.name.toUpperCase()}
       </h3>
 
-      <div className="flex flex-wrap gap-4 text-body-sm font-body-sm text-on-surface-variant">
+      <LiveFlash
+        value={`${title.holderUserId}:${title.price}`}
+        className="flex flex-wrap gap-4 text-body-sm font-body-sm text-on-surface-variant"
+      >
         {isHeld ? (
           <>
             <span>Rey: {holderName}{title.holder?.is_bot && <BotBadge />}</span>
@@ -47,7 +51,7 @@ export function TitleCard({ title }: { title: TitleCardData }) {
             <span>{formatCoronas(BASE_PRICE)}</span>
           </>
         )}
-      </div>
+      </LiveFlash>
 
       <span
         className={`self-start px-8 py-3 rounded-lg text-label-caps font-label-caps font-bold tracking-widest opacity-60 ${
