@@ -114,8 +114,9 @@ input, so no Zod. Errors map to a Spanish message like `cobrarSueldo`.
 
 ## 6. UI
 
-**`NotificationBell`** (`"use client"`, `src/features/notifications/components/`; used only
-by the header, so it lives with its feature) — props `userId`, `initialData: Notifications`.
+**`NotificationBell`** (`"use client"`, `src/components/notification-bell.tsx`, next to the
+other header pieces; `SiteHeader` already lives there and imports actions/services) — prop
+`initialData: Notifications`.
 - Header: rendered by `SiteHeader` for signed-in users only, next to the balance chip.
   Server-fetched with the other header reads; a failed read hides the bell
   (`.catch(() => null)`), like the balance chip, instead of breaking every page.
@@ -128,14 +129,17 @@ by the header, so it lives with its feature) — props `userId`, `initialData: N
 - Opening (`onToggle`, open + unread > 0): runs `marcarNotificacionesLeidas` in a
   transition; the layout revalidation brings back `unread = 0`. Failure: silently stays
   unread (it will retry on next open); no error UI.
-- Realtime effect: same shape as `LiveRefresh` (unique topic via module counter, first
-  `SUBSCRIBED` ignored, later one = reconnect → `router.refresh()`), filter
-  `dethroned_user_id=eq.${userId}`, cleanup `removeChannel`.
+- Realtime: no second copy of the channel code. `LiveRefresh` (D8) is generalized from a
+  `titleId` prop to a `filter` string (`title_id=eq.<id>` on `/t/[slug]`, none elsewhere),
+  and `SiteHeader` mounts one `<LiveRefresh filter="dethroned_user_id=eq.<viewer>" />` for
+  signed-in users. Unique topics, reconnect catch-up and cleanup come for free.
 - Toast: "adjust state while rendering" — keep the previous `items[0]?.id` in state; when
   it changes to a different non-null id and `unread > 0`, set the toast to that item
   (first render only records the baseline, so no toast on load). A single toast at a time
   (a new one replaces the old one), `role="status"`, ~6 s auto-dismiss via an effect +
-  timer, dismiss button, link to `/t/<slug>`. Fixed bottom-right (bottom-centre below
+  timer, dismiss button, link to `/t/<slug>`. Rendered through a portal to `document.body`:
+  the header's `backdrop-blur` would otherwise become the containing block of its
+  `position: fixed` descendants. Fixed bottom-right (bottom-centre below
   `md`), respects `prefers-reduced-motion` (no slide-in), copy: "¡Te destronaron!" +
   "{byName} te sacó {emoji} {title} y te pagó {N} 👑".
 
