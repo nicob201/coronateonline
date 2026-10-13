@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getNotifications } from "../notifications.server";
+import { getNotifications, markNotificationsSeen } from "../notifications.server";
 import { createSupabaseMock } from "@/test/supabase-mock";
 
 const T1 = "2026-10-13T10:00:00+00:00";
@@ -114,5 +114,18 @@ describe("getNotifications", () => {
       },
     });
     await expect(getNotifications(supabase, "u1")).rejects.toMatchObject({ message: "seen boom" });
+  });
+});
+
+describe("markNotificationsSeen", () => {
+  it("calls the mark_notifications_seen RPC", async () => {
+    const supabase = createSupabaseMock({ rpc: { data: null, error: null } });
+    await expect(markNotificationsSeen(supabase)).resolves.toBeUndefined();
+    expect(supabase.rpc).toHaveBeenCalledWith("mark_notifications_seen");
+  });
+
+  it("throws when the RPC fails", async () => {
+    const supabase = createSupabaseMock({ rpc: { data: null, error: { message: "boom" } } });
+    await expect(markNotificationsSeen(supabase)).rejects.toMatchObject({ message: "boom" });
   });
 });

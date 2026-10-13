@@ -56,3 +56,9 @@ export async function getNotifications(
     seenAt === null ? items.length : items.filter((item) => Date.parse(item.at) > seenAt).length;
   return { items, unread };
 }
+
+// Records that the signed-in user has opened their bell (server time, set by the RPC).
+export async function markNotificationsSeen(supabase: SupabaseServerClient): Promise<void> {
+  const { error } = await supabase.rpc("mark_notifications_seen");
+  if (error) throw error;
+}
