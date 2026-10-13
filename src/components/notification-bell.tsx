@@ -54,8 +54,9 @@ export function NotificationBell({ initialData }: { initialData: Notifications }
         popover="auto"
         onToggle={(event) => {
           if (event.newState !== "open" || unread === 0) return;
+          // A failed call (offline, or a tab left open across a deploy) must not throw into the root layout; it just stays unread.
           startTransition(async () => {
-            await marcarNotificacionesLeidas();
+            await marcarNotificacionesLeidas().catch(() => null);
           });
         }}
         className="fixed inset-auto top-[5.25rem] right-4 md:right-16 m-0 p-0 w-[min(22rem,calc(100vw-2rem))] max-h-[70vh] overflow-y-auto rounded-xl border border-outline-variant/40 bg-surface-container text-on-surface shadow-xl"
@@ -74,6 +75,7 @@ export function NotificationBell({ initialData }: { initialData: Notifications }
                 <li key={item.id} className="border-b border-outline-variant/20 last:border-b-0">
                   <Link
                     href={`/t/${item.titleSlug}`}
+                    onClick={(event) => event.currentTarget.closest<HTMLElement>("[popover]")?.hidePopover()}
                     className="flex flex-col gap-1 px-4 py-3 hover:bg-surface-container-high transition-colors"
                   >
                     <span className="text-body-sm font-body-sm text-on-surface">
