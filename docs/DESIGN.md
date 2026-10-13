@@ -112,8 +112,8 @@ UI copy in Spanish (es-AR). Visual direction: dark, cyberpunk + digital luxury (
 ## 5. Out of Scope (MVP)
 
 Deliberately excluded until the hypothesis validates:
-- Realtime beyond the live ticker/prices (shipped in D8) — e.g. map pulses (D15), notifications (D9)
-- Notifications (email/push "te destronaron") — dethroned users see it on-site
+- Realtime beyond the live ticker/prices and the dethrone toast (shipped in D8/D9) — e.g. map pulses (D15)
+- Email / push notifications ("te destronaron") — dethroned users see it in-app (bell + live toast, D9)
 - User-created titles, rankings pages, profile boosts, sponsored titles
 - Reign expiry (does not exist in the takeover model)
 
