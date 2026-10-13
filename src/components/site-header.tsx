@@ -4,6 +4,7 @@ import { getOwnProfile } from "@/services/profiles.server";
 import { getBalance, getSalaryStatus } from "@/services/wallet.server";
 import { getNotifications } from "@/services/notifications.server";
 import { NotificationBell } from "@/components/notification-bell";
+import { LiveRefresh } from "@/components/live-refresh";
 import { formatCoronas } from "@/lib/format";
 import { signOut } from "@/actions/auth";
 import type { Notifications } from "@/types";
@@ -81,6 +82,7 @@ export async function SiteHeader() {
                 )}
               </Link>
             )}
+            {user && <LiveRefresh filter={`dethroned_user_id=eq.${user.id}`} />}
             {notifications !== null && <NotificationBell initialData={notifications} />}
             <Link
               href={`/@${username}`}
