@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireOnboardedUser } from "@/services/auth.server";
-import { getLatestDethrone } from "@/services/profiles.server";
+import { getNotifications } from "@/services/notifications.server";
 import { ProfileEditForm } from "@/features/profile/components/profile-edit-form";
 import { DethroneBanner } from "@/features/profile/components/dethrone-banner";
 import { WalletCard } from "@/features/profile/components/wallet-card";
@@ -15,12 +15,13 @@ export const metadata: Metadata = {
 // Lets the authenticated user edit their own profile.
 export default async function EditProfilePage() {
   const { supabase, user, profile } = await requireOnboardedUser();
-  const [dethroneNotice, balance, salary, movements] = await Promise.all([
-    getLatestDethrone(supabase, user.id),
+  const [notifications, balance, salary, movements] = await Promise.all([
+    getNotifications(supabase, user.id),
     getBalance(supabase, user.id),
     getSalaryStatus(supabase),
     getRecentMovements(supabase, user.id),
   ]);
+  const dethroneNotice = notifications.items[0] ?? null;
 
   return (
     <main className="relative z-10 container mx-auto px-5 md:px-16 max-w-[720px] pt-16 pb-32 flex flex-col gap-8">
