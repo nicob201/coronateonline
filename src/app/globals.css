@@ -185,6 +185,18 @@ body {
   }
 }
 
+/* ── Toast (a notification arrives) ── */
+.toast-in {
+  animation: toast-in 0.25s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
 /* ── Shimmer effect ── */
 .shimmer {
   position: relative;
@@ -325,7 +337,8 @@ body {
   .bg-animated,
   .crown-float,
   .live-flash,
-  .live-flash > .ticker-wrap {
+  .live-flash > .ticker-wrap,
+  .toast-in {
     animation: none;
   }
 }

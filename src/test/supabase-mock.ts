@@ -16,7 +16,7 @@ export interface SupabaseMockOptions {
 
 const BUILDER_METHODS = [
   "select", "insert", "update", "delete",
-  "eq", "in", "is", "not", "order", "limit",
+  "eq", "in", "is", "not", "gt", "order", "limit",
 ];
 
 function makeBuilder(result: Result) {

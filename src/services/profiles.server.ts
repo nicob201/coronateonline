@@ -1,6 +1,6 @@
 import { type QueryData } from "@supabase/supabase-js";
 import type { SupabaseServerClient } from "@/lib/supabase/server";
-import type { DethroneNotice, Profile, ProfileReign, PublicProfile, SocialKey } from "@/types";
+import type { Profile, ProfileReign, PublicProfile, SocialKey } from "@/types";
 
 const SOCIAL_KEYS: SocialKey[] = ["instagram", "tiktok", "youtube", "x", "twitch", "website"];
 
@@ -150,35 +150,4 @@ export async function removeAvatarByUrl(
 
   const path = url.slice(index + marker.length);
   await supabase.storage.from(AVATAR_BUCKET).remove([path]);
-}
-
-// Returns the latest dethrone notice for a user (last 14 days), or null if none.
-export async function getLatestDethrone(
-  supabase: SupabaseServerClient,
-  userId: string,
-): Promise<DethroneNotice | null> {
-  const fourteenDaysAgo = new Date(Date.now() - 14 * 864e5).toISOString();
-  const { data, error } = await supabase
-    .from("reigns")
-    .select(
-      "started_at, message, profiles!reigns_user_id_fkey ( username, display_name ), titles ( name, emoji, slug )",
-    )
-    .eq("dethroned_user_id", userId)
-    .gt("started_at", fourteenDaysAgo)
-    .order("started_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) throw error;
-  if (!data || !data.titles) return null;
-
-  const byName = data.profiles?.display_name?.trim() || data.profiles?.username || "Anónimo";
-  return {
-    titleName: data.titles.name,
-    titleEmoji: data.titles.emoji,
-    titleSlug: data.titles.slug,
-    byName,
-    message: data.message,
-    at: data.started_at,
-  };
 }

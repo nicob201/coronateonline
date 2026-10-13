@@ -110,15 +110,20 @@ export type RankedReign = {
   isActive: boolean;
 };
 
-// A notice shown when a user was dethroned in the last 14 days.
+// One time the user was dethroned: a bell item, a toast and the /perfil banner.
 export type DethroneNotice = {
+  id: string;
   titleName: string;
   titleEmoji: string;
   titleSlug: string;
   byName: string;
+  pricePaid: number;
   message: string | null;
   at: string;
 };
+
+// The user's recent dethrones (newest first) and how many are newer than their last bell opening.
+export type Notifications = { items: DethroneNotice[]; unread: number };
 
 // One wallet movement shown in the user's "Billetera", with its title and counterpart when it has a reign.
 export type CoinMovement = Pick<CoinLedgerRow, "id" | "amount" | "reason" | "created_at"> & {

@@ -48,7 +48,7 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
 
   return (
     <main className="relative z-10 container mx-auto px-5 md:px-16 max-w-[1280px] pt-12 pb-32 flex flex-col gap-12">
-      <LiveRefresh titleId={title.id} />
+      <LiveRefresh filter={`title_id=eq.${title.id}`} />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         <div className="lg:col-span-7 glass-panel rounded-xl p-8 legendary-glow relative flex flex-col items-center justify-center min-h-[320px] text-center">
           <span className="absolute top-4 left-4 text-label-caps font-label-caps text-tertiary border border-tertiary px-2 py-1 rounded">

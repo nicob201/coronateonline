@@ -8,8 +8,8 @@ import { createClient } from "@/lib/supabase/client";
 // Channel topics only need to be unique within the page's singleton client.
 let channelSeq = 0;
 
-// Re-renders the current route whenever a reign starts (only for one title when titleId is set).
-export function LiveRefresh({ titleId }: { titleId?: string }) {
+// Re-renders the current route whenever a reign starts (only those matching `filter`, e.g. "title_id=eq.<id>", when set).
+export function LiveRefresh({ filter }: { filter?: string }) {
   const router = useRouter();
 
   useEffect(() => {
@@ -18,14 +18,14 @@ export function LiveRefresh({ titleId }: { titleId?: string }) {
 
     // Unique topic per run: StrictMode re-runs this effect before the previous channel finishes leaving.
     const channel = supabase
-      .channel(`reigns:${titleId ?? "all"}:${++channelSeq}`)
+      .channel(`reigns:${filter ?? "all"}:${++channelSeq}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "reigns",
-          ...(titleId ? { filter: `title_id=eq.${titleId}` } : {}),
+          ...(filter ? { filter } : {}),
         },
         () => router.refresh(),
       )
@@ -39,7 +39,7 @@ export function LiveRefresh({ titleId }: { titleId?: string }) {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [router, titleId]);
+  }, [router, filter]);
 
   return null;
 }

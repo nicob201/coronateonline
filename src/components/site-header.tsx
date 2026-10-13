@@ -2,8 +2,12 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getOwnProfile } from "@/services/profiles.server";
 import { getBalance, getSalaryStatus } from "@/services/wallet.server";
+import { getNotifications } from "@/services/notifications.server";
+import { NotificationBell } from "@/components/notification-bell";
+import { LiveRefresh } from "@/components/live-refresh";
 import { formatCoronas } from "@/lib/format";
 import { signOut } from "@/actions/auth";
+import type { Notifications } from "@/types";
 
 // Fetches the authenticated user's profile and renders the site header.
 export async function SiteHeader() {
@@ -15,16 +19,19 @@ export async function SiteHeader() {
   let username: string | null = null;
   let balance: number | null = null;
   let salaryReady = false;
+  let notifications: Notifications | null = null;
   if (user) {
-    // A failed balance or salary read hides the chip or its dot instead of breaking every page.
-    const [profile, coins, salary] = await Promise.all([
+    // A failed balance, salary or notifications read hides the chip, its dot or the bell instead of breaking every page.
+    const [profile, coins, salary, inbox] = await Promise.all([
       getOwnProfile(supabase, user.id),
       getBalance(supabase, user.id).catch(() => null),
       getSalaryStatus(supabase).catch(() => null),
+      getNotifications(supabase, user.id).catch(() => null),
     ]);
     username = profile?.username ?? null;
     balance = coins;
     salaryReady = salary !== null && !salary.claimed_today;
+    notifications = inbox;
   }
 
   return (
@@ -54,7 +61,7 @@ export async function SiteHeader() {
         <Link
           href="/titulos"
           aria-label="Explorar"
-          className="md:hidden p-2 text-on-surface-variant hover:text-primary transition-colors"
+          className={`${username ? "hidden" : "md:hidden"} p-2 text-on-surface-variant hover:text-primary transition-colors`}
         >
           <span aria-hidden="true" className="material-symbols-outlined">explore</span>
         </Link>
@@ -75,6 +82,8 @@ export async function SiteHeader() {
                 )}
               </Link>
             )}
+            {user && <LiveRefresh filter={`dethroned_user_id=eq.${user.id}`} />}
+            {notifications !== null && <NotificationBell initialData={notifications} />}
             <Link
               href={`/@${username}`}
               className="hidden md:block px-4 py-2 text-label-caps font-label-caps text-primary hover:text-primary-fixed transition-colors"
