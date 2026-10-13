@@ -100,6 +100,30 @@ export type Database = {
           },
         ];
       };
+      notification_seen: {
+        Row: {
+          seen_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          seen_at: string;
+          user_id: string;
+        };
+        Update: {
+          seen_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notification_seen_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       pricing_config: {
         Row: {
           activity_floor_unit: number;
@@ -351,6 +375,7 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      mark_notifications_seen: { Args: Record<PropertyKey, never>; Returns: undefined };
       salary_status: {
         Args: Record<PropertyKey, never>;
         Returns: {
