@@ -13,6 +13,7 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { LiveFlash } from "@/components/live-flash";
 import { TitleMorph } from "@/components/title-morph";
 import { DethroneForm } from "@/features/dethrone/components/dethrone-form";
+import { CoronationCelebration } from "@/features/dethrone/components/coronation-celebration";
 import { formatCoronas, formatReignDuration } from "@/lib/format";
 import { minClaimAmount, RARITY_LABELS } from "@/lib/titles";
 
@@ -50,6 +51,14 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
   return (
     <main className="relative z-10 container mx-auto px-5 md:px-16 max-w-[1280px] pt-12 pb-32 flex flex-col gap-12">
       <LiveRefresh filter={`title_id=eq.${title.id}`} />
+      <CoronationCelebration
+        holderUserId={title.holderUserId}
+        viewerId={user?.id ?? null}
+        slug={slug}
+        emoji={title.emoji}
+        name={title.name}
+        paid={title.holderPaid}
+      />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         <TitleMorph titleId={title.id} part="panel">
           <div className="lg:col-span-7 glass-panel rounded-xl p-8 legendary-glow relative flex flex-col items-center justify-center min-h-[320px] text-center">
