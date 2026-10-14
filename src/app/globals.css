@@ -246,6 +246,26 @@ body {
   }
 }
 
+/* ── View transitions (a title card morphs into its detail page and back) ── */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-group(.morph) {
+  animation-duration: 400ms;
+}
+
+/* A short blur hides the scaling artifacts mid-flight. */
+::view-transition-image-pair(.morph) {
+  animation-name: via-blur;
+}
+
+@keyframes via-blur {
+  30% {
+    filter: blur(3px);
+  }
+}
+
 /* ── Shimmer effect ── */
 .shimmer {
   position: relative;
@@ -391,5 +411,12 @@ body {
   .coronation::before,
   .toast-in {
     animation: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 }

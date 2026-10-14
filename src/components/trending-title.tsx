@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatCoronas } from "@/lib/format";
 import { BotBadge } from "@/components/bot-badge";
 import { LiveFlash } from "@/components/live-flash";
+import { TitleMorph } from "@/components/title-morph";
 import { BASE_PRICE, RARITY_LABELS } from "@/lib/titles";
 import type { TitleCard as TitleCardData } from "@/types";
 
@@ -25,47 +26,53 @@ export function TrendingTitle({ title }: { title: TitleCardData }) {
       : "text-title-md font-title-md text-on-surface";
 
   return (
-    <Link
-      href={`/t/${title.slug}`}
-      className={`glass-panel rounded-2xl p-6 relative flex flex-col gap-3 transition-transform duration-300 hover:translate-x-1 ${
-        isLegendary ? "shimmer legendary-glow border border-tertiary/30" : ""
-      }`}
-    >
-      {title.rarity !== "comun" && (
-        <span
-          className={`self-start px-3 py-1 rounded-full text-label-caps font-label-caps border ${RARITY_BADGE[title.rarity]}`}
-        >
-          {RARITY_LABELS[title.rarity]}
-        </span>
-      )}
-
-      <h3 className={`${headingClass} min-w-0 break-words`}>
-        {title.emoji} {title.name.toUpperCase()}
-      </h3>
-
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-body-sm font-body-sm text-on-surface-variant">
-        {isHeld ? (
-          <LiveFlash value={`${title.holderUserId}:${title.price}`} className="flex flex-wrap gap-x-4 gap-y-1">
-            <span>Rey: {holderName}{title.holder?.is_bot && <BotBadge />}</span>
-            <span>Valor: {formatCoronas(title.price ?? 0)}</span>
-          </LiveFlash>
-        ) : (
-          <>
-            <span className="text-primary">Disponible</span>
-            <span>Desde {formatCoronas(BASE_PRICE)}</span>
-          </>
-        )}
-      </div>
-
-      <span
-        className={`self-start px-8 py-3 rounded-lg text-label-caps font-label-caps font-bold tracking-widest ${
-          isHeld
-            ? "btn-destronar text-on-surface border border-secondary-container/50"
-            : "btn-gradient text-on-primary-fixed"
+    <TitleMorph titleId={title.id} part="panel">
+      <Link
+        href={`/t/${title.slug}`}
+        prefetch
+        className={`glass-panel rounded-2xl p-6 relative flex flex-col gap-3 transition-transform duration-300 hover:translate-x-1 ${
+          isLegendary ? "shimmer legendary-glow border border-tertiary/30" : ""
         }`}
       >
-        {isHeld ? "DESTRONAR" : "CORONARME"}
-      </span>
-    </Link>
+        {title.rarity !== "comun" && (
+          <span
+            className={`self-start px-3 py-1 rounded-full text-label-caps font-label-caps border ${RARITY_BADGE[title.rarity]}`}
+          >
+            {RARITY_LABELS[title.rarity]}
+          </span>
+        )}
+
+        <h3 className={`${headingClass} min-w-0 break-words`}>
+          <TitleMorph titleId={title.id} part="emoji">
+            <span className="inline-block">{title.emoji}</span>
+          </TitleMorph>{" "}
+          {title.name.toUpperCase()}
+        </h3>
+
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-body-sm font-body-sm text-on-surface-variant">
+          {isHeld ? (
+            <LiveFlash value={`${title.holderUserId}:${title.price}`} className="flex flex-wrap gap-x-4 gap-y-1">
+              <span>Rey: {holderName}{title.holder?.is_bot && <BotBadge />}</span>
+              <span>Valor: {formatCoronas(title.price ?? 0)}</span>
+            </LiveFlash>
+          ) : (
+            <>
+              <span className="text-primary">Disponible</span>
+              <span>Desde {formatCoronas(BASE_PRICE)}</span>
+            </>
+          )}
+        </div>
+
+        <span
+          className={`self-start px-8 py-3 rounded-lg text-label-caps font-label-caps font-bold tracking-widest ${
+            isHeld
+              ? "btn-destronar text-on-surface border border-secondary-container/50"
+              : "btn-gradient text-on-primary-fixed"
+          }`}
+        >
+          {isHeld ? "DESTRONAR" : "CORONARME"}
+        </span>
+      </Link>
+    </TitleMorph>
   );
 }

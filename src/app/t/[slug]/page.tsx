@@ -11,6 +11,7 @@ import { ShareButton } from "@/components/share-button";
 import { BotBadge } from "@/components/bot-badge";
 import { LiveRefresh } from "@/components/live-refresh";
 import { LiveFlash } from "@/components/live-flash";
+import { TitleMorph } from "@/components/title-morph";
 import { DethroneForm } from "@/features/dethrone/components/dethrone-form";
 import { formatCoronas, formatReignDuration } from "@/lib/format";
 import { minClaimAmount, RARITY_LABELS } from "@/lib/titles";
@@ -50,32 +51,36 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
     <main className="relative z-10 container mx-auto px-5 md:px-16 max-w-[1280px] pt-12 pb-32 flex flex-col gap-12">
       <LiveRefresh filter={`title_id=eq.${title.id}`} />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-        <div className="lg:col-span-7 glass-panel rounded-xl p-8 legendary-glow relative flex flex-col items-center justify-center min-h-[320px] text-center">
-          <span className="absolute top-4 left-4 text-label-caps font-label-caps text-tertiary border border-tertiary px-2 py-1 rounded">
-            {RARITY_LABELS[title.rarity]}
-          </span>
-          <LiveFlash
-            value={title.holderUserId}
-            flashClass="coronation"
-            className="relative text-8xl mb-6"
-          >
-            {title.emoji}
-          </LiveFlash>
-          <h1 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-gradient-primary uppercase tracking-tighter">
-            {title.name}
-          </h1>
-          <p className="text-body-sm font-body-sm text-on-surface-variant mt-4 max-w-md">
-            {title.description}
-          </p>
-          <div className="mt-4">
-            <ShareButton
-              path={`/t/${slug}`}
-              title={`${title.name} — CoronaTeOnline`}
-              text={isHeld ? `Rey/Reina: ${title.holderName}` : "Trono vacante"}
-              label="Compartí este título"
-            />
+        <TitleMorph titleId={title.id} part="panel">
+          <div className="lg:col-span-7 glass-panel rounded-xl p-8 legendary-glow relative flex flex-col items-center justify-center min-h-[320px] text-center">
+            <span className="absolute top-4 left-4 text-label-caps font-label-caps text-tertiary border border-tertiary px-2 py-1 rounded">
+              {RARITY_LABELS[title.rarity]}
+            </span>
+            <TitleMorph titleId={title.id} part="emoji">
+              <LiveFlash
+                value={title.holderUserId}
+                flashClass="coronation"
+                className="relative text-8xl mb-6"
+              >
+                {title.emoji}
+              </LiveFlash>
+            </TitleMorph>
+            <h1 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-gradient-primary uppercase tracking-tighter">
+              {title.name}
+            </h1>
+            <p className="text-body-sm font-body-sm text-on-surface-variant mt-4 max-w-md">
+              {title.description}
+            </p>
+            <div className="mt-4">
+              <ShareButton
+                path={`/t/${slug}`}
+                title={`${title.name} — CoronaTeOnline`}
+                text={isHeld ? `Rey/Reina: ${title.holderName}` : "Trono vacante"}
+                label="Compartí este título"
+              />
+            </div>
           </div>
-        </div>
+        </TitleMorph>
 
         <div className="lg:col-span-5 flex flex-col gap-8">
           <div className="glass-panel rounded-xl p-6 flex flex-col gap-4 border-l-4 border-l-primary">
