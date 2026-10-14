@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatCoronas } from "@/lib/format";
 import { BotBadge } from "@/components/bot-badge";
 import { LiveFlash } from "@/components/live-flash";
+import { TitleMorph } from "@/components/title-morph";
 import { BASE_PRICE, RARITY_LABELS } from "@/lib/titles";
 import type { TitleCard as TitleCardData } from "@/types";
 
@@ -18,50 +19,56 @@ export function TitleCard({ title }: { title: TitleCardData }) {
     title.holder?.display_name?.trim() || title.holder?.username || null;
 
   return (
-    <Link
-      href={`/t/${title.slug}`}
-      className={`glass-panel rounded-2xl p-6 relative flex flex-col gap-4 transition-transform duration-300 hover:translate-x-1 ${
-        title.rarity === "legendario" ? "legendary-glow border-tertiary/30" : ""
-      }`}
-    >
-      {title.rarity !== "comun" && (
-        <span
-          className={`absolute top-4 right-4 px-3 py-1 rounded-full text-label-caps font-label-caps border ${RARITY_BADGE[title.rarity]}`}
-        >
-          {RARITY_LABELS[title.rarity]}
-        </span>
-      )}
-
-      <h3 className="text-title-md font-title-md text-on-surface pr-24">
-        {title.emoji} {title.name.toUpperCase()}
-      </h3>
-
-      <LiveFlash
-        value={`${title.holderUserId}:${title.price}`}
-        className="flex flex-wrap gap-4 text-body-sm font-body-sm text-on-surface-variant"
-      >
-        {isHeld ? (
-          <>
-            <span>Rey: {holderName}{title.holder?.is_bot && <BotBadge />}</span>
-            <span>Valor: {formatCoronas(title.price ?? 0)}</span>
-          </>
-        ) : (
-          <>
-            <span className="text-primary">Disponible</span>
-            <span>{formatCoronas(BASE_PRICE)}</span>
-          </>
-        )}
-      </LiveFlash>
-
-      <span
-        className={`self-start px-8 py-3 rounded-lg text-label-caps font-label-caps font-bold tracking-widest opacity-60 ${
-          isHeld
-            ? "btn-destronar text-on-surface border border-secondary-container/50"
-            : "btn-gradient text-on-primary-fixed"
+    <TitleMorph titleId={title.id} part="panel">
+      <Link
+        href={`/t/${title.slug}`}
+        prefetch
+        className={`glass-panel rounded-2xl p-6 relative flex flex-col gap-4 transition-transform duration-300 hover:translate-x-1 ${
+          title.rarity === "legendario" ? "legendary-glow border-tertiary/30" : ""
         }`}
       >
-        {isHeld ? "DESTRONAR" : "CORONARME"}
-      </span>
-    </Link>
+        {title.rarity !== "comun" && (
+          <span
+            className={`absolute top-4 right-4 px-3 py-1 rounded-full text-label-caps font-label-caps border ${RARITY_BADGE[title.rarity]}`}
+          >
+            {RARITY_LABELS[title.rarity]}
+          </span>
+        )}
+
+        <h3 className="text-title-md font-title-md text-on-surface pr-24">
+          <TitleMorph titleId={title.id} part="emoji">
+            <span className="inline-block">{title.emoji}</span>
+          </TitleMorph>{" "}
+          {title.name.toUpperCase()}
+        </h3>
+
+        <LiveFlash
+          value={`${title.holderUserId}:${title.price}`}
+          className="flex flex-wrap gap-4 text-body-sm font-body-sm text-on-surface-variant"
+        >
+          {isHeld ? (
+            <>
+              <span>Rey: {holderName}{title.holder?.is_bot && <BotBadge />}</span>
+              <span>Valor: {formatCoronas(title.price ?? 0)}</span>
+            </>
+          ) : (
+            <>
+              <span className="text-primary">Disponible</span>
+              <span>{formatCoronas(BASE_PRICE)}</span>
+            </>
+          )}
+        </LiveFlash>
+
+        <span
+          className={`self-start px-8 py-3 rounded-lg text-label-caps font-label-caps font-bold tracking-widest opacity-60 ${
+            isHeld
+              ? "btn-destronar text-on-surface border border-secondary-container/50"
+              : "btn-gradient text-on-primary-fixed"
+          }`}
+        >
+          {isHeld ? "DESTRONAR" : "CORONARME"}
+        </span>
+      </Link>
+    </TitleMorph>
   );
 }
