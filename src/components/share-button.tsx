@@ -7,10 +7,17 @@ interface ShareButtonProps {
   title: string;
   text?: string;
   label?: string;
+  className?: string;
 }
 
 // Client-only share button: uses Web Share API when available, falls back to clipboard copy.
-export function ShareButton({ path, title, text, label = "Compartí tu corona" }: ShareButtonProps) {
+export function ShareButton({
+  path,
+  title,
+  text,
+  label = "Compartí tu corona",
+  className = "text-label-caps font-label-caps border border-outline-variant/30 rounded-lg px-4 py-2 hover:bg-surface-container-high transition-colors",
+}: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -36,7 +43,7 @@ export function ShareButton({ path, title, text, label = "Compartí tu corona" }
     <button
       type="button"
       onClick={handleClick}
-      className="text-label-caps font-label-caps border border-outline-variant/30 rounded-lg px-4 py-2 hover:bg-surface-container-high transition-colors"
+      className={className}
     >
       {copied ? "¡Copiado!" : label}
     </button>
