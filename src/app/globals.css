@@ -197,6 +197,55 @@ body {
   }
 }
 
+/* ── Coronation (a title's crown just changed hands) ── */
+.coronation {
+  animation: coronation-pop 0.7s ease-out 0.45s;
+}
+
+/* A crown drops onto the title's emoji, bounces, rests and fades out. */
+.coronation::before {
+  content: "👑";
+  content: "👑" / "";
+  position: absolute;
+  left: 50%;
+  bottom: 75%;
+  translate: -50% 0;
+  font-size: 0.55em;
+  opacity: 0;
+  pointer-events: none;
+  animation: crown-drop 2s ease-out;
+}
+
+@keyframes crown-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-150%) rotate(-15deg);
+  }
+  22% {
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+  }
+  30% {
+    transform: translateY(-15%);
+  }
+  38%,
+  80% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The emoji swells with a gold glow as the crown lands. */
+@keyframes coronation-pop {
+  40% {
+    scale: 1.15;
+    filter: drop-shadow(0 0 28px rgba(249, 189, 34, 0.9));
+  }
+}
+
 /* ── Shimmer effect ── */
 .shimmer {
   position: relative;
@@ -338,6 +387,8 @@ body {
   .crown-float,
   .live-flash,
   .live-flash > .ticker-wrap,
+  .coronation,
+  .coronation::before,
   .toast-in {
     animation: none;
   }

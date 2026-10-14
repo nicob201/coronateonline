@@ -54,7 +54,13 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
           <span className="absolute top-4 left-4 text-label-caps font-label-caps text-tertiary border border-tertiary px-2 py-1 rounded">
             {RARITY_LABELS[title.rarity]}
           </span>
-          <div className="text-8xl mb-6">{title.emoji}</div>
+          <LiveFlash
+            value={title.holderUserId}
+            flashClass="coronation"
+            className="relative text-8xl mb-6"
+          >
+            {title.emoji}
+          </LiveFlash>
           <h1 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-gradient-primary uppercase tracking-tighter">
             {title.name}
           </h1>
