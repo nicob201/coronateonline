@@ -29,6 +29,7 @@ Un visitante entra desde un link, juega en 30 segundos sin pagar nada y ve un si
 - [x] **D8** — Supabase Realtime: ticker y precio en vivo
 - [x] **D9** — Notificaciones in-app (derivadas de `reigns` + `notification_seen`) + campanita + toast "¡Te destronaron!"
 - [x] **D10** — Animación de coronación + View Transitions lista → detalle
+- [ ] **D10b** — Pasada de movimiento: animaciones baratas (solo compositor) + momentos de juego (saldo que cuenta, campanita, botones, popover, cards al scrollear)
 
 ## Semana 3 — Mapa del Reino 🗺️
 
