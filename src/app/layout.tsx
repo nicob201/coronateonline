@@ -49,7 +49,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="bg-background text-on-background font-body-sm min-h-full flex flex-col cyber-grain overflow-x-hidden">
+      <body className="bg-background text-on-background font-body-sm min-h-full flex flex-col cyber-grain overflow-x-clip">
         <Background />
         <SiteHeader />
         <div className="mt-20 flex-1 flex flex-col min-w-0 max-w-full"><DemoBanner />{children}</div>

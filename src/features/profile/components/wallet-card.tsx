@@ -2,6 +2,7 @@ import { formatCoronas, formatDate } from "@/lib/format";
 import type { CoinMovement, SalaryStatus } from "@/types";
 import { describeMovement } from "@/features/profile/lib/describe-movement";
 import { SalaryButton } from "@/features/profile/components/salary-button";
+import { AnimatedCoronas } from "@/components/animated-coronas";
 
 // Shows the user's Coronas balance, the daily salary with its streak, and the latest wallet movements.
 export function WalletCard({
@@ -17,7 +18,9 @@ export function WalletCard({
     <section className="glass-panel rounded-xl p-6 flex flex-col gap-4">
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="text-label-caps font-label-caps text-on-surface-variant">BILLETERA</h2>
-        <span className="text-title-md font-title-md text-tertiary">{formatCoronas(balance)}</span>
+        <span className="text-title-md font-title-md text-tertiary">
+          <AnimatedCoronas value={balance} />
+        </span>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         {salary.claimed_today ? (

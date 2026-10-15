@@ -23,7 +23,7 @@ export function TitleCard({ title }: { title: TitleCardData }) {
       <Link
         href={`/t/${title.slug}`}
         prefetch
-        className={`glass-panel rounded-2xl p-6 relative flex flex-col gap-4 transition-transform duration-300 hover:translate-x-1 ${
+        className={`reveal glass-panel rounded-2xl p-6 relative flex flex-col gap-4 transition-transform duration-300 hover:translate-x-1 ${
           title.rarity === "legendario" ? "legendary-glow border-tertiary/30" : ""
         }`}
       >

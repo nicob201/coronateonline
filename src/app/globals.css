@@ -495,6 +495,102 @@ html:has(.coronation-dialog[open]) {
   }
 }
 
+/* ── Game feedback ── */
+/* A balance change floats its difference (a small pill) from just below the amount up toward it. */
+.coin-float {
+  position: absolute;
+  top: calc(100% + 0.375rem);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: coin-float 1.4s ease-out both;
+}
+
+@keyframes coin-float {
+  0% {
+    opacity: 0;
+    translate: 0 0.75rem;
+  }
+  15%,
+  60% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 -0.75rem;
+  }
+}
+
+.bell-ring {
+  transform-origin: 50% 10%;
+  animation: bell-ring 0.9s ease-in-out;
+}
+
+@keyframes bell-ring {
+  15% {
+    rotate: 18deg;
+  }
+  30% {
+    rotate: -16deg;
+  }
+  45% {
+    rotate: 10deg;
+  }
+  60% {
+    rotate: -6deg;
+  }
+  75% {
+    rotate: 3deg;
+  }
+}
+
+/* Pressed buttons sink a little; in the base layer so a scale utility still wins. */
+@layer base {
+  :is(button, .btn-destronar, .btn-gradient):not(:disabled):active {
+    scale: 0.97;
+  }
+}
+
+/* Popovers fade and slide in and out instead of popping. */
+[popover] {
+  transition:
+    opacity 150ms ease-out,
+    translate 150ms ease-out,
+    overlay 150ms allow-discrete,
+    display 150ms allow-discrete;
+}
+
+[popover]:not(:popover-open) {
+  opacity: 0;
+  translate: 0 -0.5rem;
+}
+
+@starting-style {
+  [popover]:popover-open {
+    opacity: 0;
+    translate: 0 -0.5rem;
+  }
+}
+
+/* Cards fade and grow in as they scroll into view (only opacity/scale: hover owns translate).
+   Needs body overflow-x: clip — hidden would make body the scroller and view() would never move. */
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: reveal linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 90%;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
 /* ── Respect reduced-motion: drop decorative animation ── */
 @media (prefers-reduced-motion: reduce) {
   .ticker,
@@ -508,8 +604,22 @@ html:has(.coronation-dialog[open]) {
   .celebrate-in,
   .celebrate-in-late,
   .coronation-dialog::backdrop,
-  .toast-in {
+  .toast-in,
+  .bell-ring,
+  .reveal {
     animation: none;
+  }
+
+  .coin-float {
+    display: none;
+  }
+
+  [popover] {
+    transition: none;
+  }
+
+  :is(button, .btn-destronar, .btn-gradient):active {
+    scale: none;
   }
 
   .crown-stays::before {
