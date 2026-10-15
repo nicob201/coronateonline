@@ -5,6 +5,7 @@ import { getBalance, getSalaryStatus } from "@/services/wallet.server";
 import { getNotifications } from "@/services/notifications.server";
 import { NotificationBell } from "@/components/notification-bell";
 import { LiveRefresh } from "@/components/live-refresh";
+import { AnimatedCoronas } from "@/components/animated-coronas";
 import { formatCoronas } from "@/lib/format";
 import { signOut } from "@/actions/auth";
 import type { Notifications } from "@/types";
@@ -73,7 +74,7 @@ export async function SiteHeader() {
                 aria-label={`Saldo: ${formatCoronas(balance)}${salaryReady ? ". Sueldo disponible" : ""}`}
                 className="relative px-3 py-1 rounded-full border border-tertiary/40 text-label-caps font-label-caps text-tertiary hover:bg-tertiary/10 transition-colors whitespace-nowrap"
               >
-                {formatCoronas(balance)}
+                <AnimatedCoronas value={balance} />
                 {salaryReady && (
                   <span
                     aria-hidden="true"

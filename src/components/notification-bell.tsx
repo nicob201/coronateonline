@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { marcarNotificacionesLeidas } from "@/actions/notifications";
+import { LiveFlash } from "@/components/live-flash";
 import { formatCoronas, formatDate } from "@/lib/format";
 import type { DethroneNotice, Notifications } from "@/types";
 
@@ -37,7 +38,9 @@ export function NotificationBell({ initialData }: { initialData: Notifications }
         aria-label={unread > 0 ? `Avisos: ${unread} sin leer` : "Avisos"}
         className="relative p-2 text-on-surface-variant hover:text-primary transition-colors"
       >
-        <span aria-hidden="true" className="material-symbols-outlined">notifications</span>
+        <LiveFlash value={top?.id ?? null} className="block" flashClass="bell-ring">
+          <span aria-hidden="true" className="material-symbols-outlined">notifications</span>
+        </LiveFlash>
         {unread > 0 && (
           <span
             aria-hidden="true"

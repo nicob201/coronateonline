@@ -371,7 +371,7 @@ html:has(.coronation-dialog[open]) {
   content: "";
   position: absolute;
   top: 0;
-  left: -100%;
+  left: 0;
   width: 50%;
   height: 100%;
   background: linear-gradient(
@@ -380,26 +380,27 @@ html:has(.coronation-dialog[open]) {
     rgba(255, 255, 255, 0.1),
     transparent
   );
-  transform: skewX(-20deg);
+  transform: translateX(-200%) skewX(-20deg);
   animation: shimmer-anim 5s infinite;
 }
 
+/* Percentages are of the streak's own width (half the card): -200% / 400% = the old left -100% / 200%. */
 @keyframes shimmer-anim {
   0% {
-    left: -100%;
+    transform: translateX(-200%) skewX(-20deg);
   }
-  20% {
-    left: 200%;
-  }
+  20%,
   100% {
-    left: 200%;
+    transform: translateX(400%) skewX(-20deg);
   }
 }
 
 /* ── Gradient button ── */
 .btn-gradient {
   background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-  transition: all 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .btn-gradient:hover {
@@ -414,22 +415,36 @@ html:has(.coronation-dialog[open]) {
     var(--color-secondary-container),
     #050505
   );
-  animation: pulse-border 2s infinite;
+  position: relative;
 }
 
-@keyframes pulse-border {
+.btn-destronar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 6px rgba(170, 2, 102, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  animation: pulse-ring 2s infinite;
+}
+
+@keyframes pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 rgba(170, 2, 102, 0.4);
+    opacity: 0;
+    scale: 0.96;
   }
-  70% {
-    box-shadow: 0 0 0 10px rgba(170, 2, 102, 0);
+  25% {
+    opacity: 0.5;
   }
+  70%,
   100% {
-    box-shadow: 0 0 0 0 rgba(170, 2, 102, 0);
+    opacity: 0;
+    scale: 1.04;
   }
 }
 
-/* ── Background animation (CSS-only, replaces WebGL shader) ── */
+/* ── Background gradient (static: animating it would re-blur every glass panel each frame) ── */
 .bg-animated {
   position: fixed;
   inset: 0;
@@ -454,19 +469,6 @@ html:has(.coronation-dialog[open]) {
       transparent 50%
     ),
     #02000a;
-  animation: bg-shift 30s ease-in-out infinite alternate;
-}
-
-@keyframes bg-shift {
-  0% {
-    filter: hue-rotate(0deg) brightness(1);
-  }
-  50% {
-    filter: hue-rotate(10deg) brightness(1.05);
-  }
-  100% {
-    filter: hue-rotate(-5deg) brightness(0.95);
-  }
 }
 
 /* ── Gradient text utility ── */
@@ -493,12 +495,107 @@ html:has(.coronation-dialog[open]) {
   }
 }
 
+/* ── Game feedback ── */
+/* A balance change floats its difference (a small pill) from just below the amount up toward it. */
+.coin-float {
+  position: absolute;
+  top: calc(100% + 0.375rem);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: coin-float 1.4s ease-out both;
+}
+
+@keyframes coin-float {
+  0% {
+    opacity: 0;
+    translate: 0 0.75rem;
+  }
+  15%,
+  60% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 -0.75rem;
+  }
+}
+
+.bell-ring {
+  transform-origin: 50% 10%;
+  animation: bell-ring 0.9s ease-in-out;
+}
+
+@keyframes bell-ring {
+  15% {
+    rotate: 18deg;
+  }
+  30% {
+    rotate: -16deg;
+  }
+  45% {
+    rotate: 10deg;
+  }
+  60% {
+    rotate: -6deg;
+  }
+  75% {
+    rotate: 3deg;
+  }
+}
+
+/* Pressed buttons sink a little; in the base layer so a scale utility still wins. */
+@layer base {
+  :is(button, .btn-destronar, .btn-gradient):not(:disabled):active {
+    scale: 0.97;
+  }
+}
+
+/* Popovers fade and slide in and out instead of popping. */
+[popover] {
+  transition:
+    opacity 150ms ease-out,
+    translate 150ms ease-out,
+    overlay 150ms allow-discrete,
+    display 150ms allow-discrete;
+}
+
+[popover]:not(:popover-open) {
+  opacity: 0;
+  translate: 0 -0.5rem;
+}
+
+@starting-style {
+  [popover]:popover-open {
+    opacity: 0;
+    translate: 0 -0.5rem;
+  }
+}
+
+/* Cards fade and grow in as they scroll into view (only opacity/scale: hover owns translate).
+   Needs body overflow-x: clip — hidden would make body the scroller and view() would never move. */
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: reveal linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 90%;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
 /* ── Respect reduced-motion: drop decorative animation ── */
 @media (prefers-reduced-motion: reduce) {
   .ticker,
   .shimmer::before,
-  .btn-destronar,
-  .bg-animated,
+  .btn-destronar::after,
   .crown-float,
   .live-flash,
   .live-flash > .ticker-wrap,
@@ -507,8 +604,22 @@ html:has(.coronation-dialog[open]) {
   .celebrate-in,
   .celebrate-in-late,
   .coronation-dialog::backdrop,
-  .toast-in {
+  .toast-in,
+  .bell-ring,
+  .reveal {
     animation: none;
+  }
+
+  .coin-float {
+    display: none;
+  }
+
+  [popover] {
+    transition: none;
+  }
+
+  :is(button, .btn-destronar, .btn-gradient):active {
+    scale: none;
   }
 
   .crown-stays::before {

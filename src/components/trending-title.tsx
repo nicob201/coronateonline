@@ -30,7 +30,7 @@ export function TrendingTitle({ title }: { title: TitleCardData }) {
       <Link
         href={`/t/${title.slug}`}
         prefetch
-        className={`glass-panel rounded-2xl p-6 relative flex flex-col gap-3 transition-transform duration-300 hover:translate-x-1 ${
+        className={`reveal glass-panel rounded-2xl p-6 relative flex flex-col gap-3 transition-transform duration-300 hover:translate-x-1 ${
           isLegendary ? "shimmer legendary-glow border border-tertiary/30" : ""
         }`}
       >
