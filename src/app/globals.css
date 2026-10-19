@@ -546,6 +546,11 @@ html:has(.coronation-dialog[open]) {
   }
 }
 
+/* MapLibre's light attribution pill, inverted to sit on the dark map. */
+.maplibregl-ctrl-attrib {
+  filter: invert(0.9);
+}
+
 /* Pressed buttons sink a little; in the base layer so a scale utility still wins. */
 @layer base {
   :is(button, .btn-destronar, .btn-gradient):not(:disabled):active {

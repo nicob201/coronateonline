@@ -35,7 +35,7 @@ Un visitante entra desde un link, juega en 30 segundos sin pagar nada y ve un si
 
 Mapa oscuro de Argentina (bordes IGN, con Malvinas y Antártida) donde las coronas ocupadas se cargan según la zona visible y el zoom.
 
-- [ ] **D11** — `/mapa`: MapLibre GL + polígonos IGN de país y provincias en neón, pan / zoom, sin proveedor de tiles
+- [x] **D11** — `/mapa`: MapLibre GL + polígonos IGN de país y provincias en neón, pan / zoom, sin proveedor de tiles
 - [ ] **D12** — Títulos geográficos: ubicación PostGIS + nivel (provincia / ciudad / barrio) + seed de las 24 provincias
 - [ ] **D13** — Carga por viewport: RPC por bounding box con índice GIST, nivel de detalle según zoom, seed de ciudades y barrios
 - [ ] **D14** — Click en corona → tarjeta con rey, precio y "Destronar"; provincias que brillan según el valor de sus coronas
