@@ -55,6 +55,14 @@ export async function SiteHeader() {
             Explorar
           </Link>
         </li>
+        <li>
+          <Link
+            href="/mapa"
+            className="text-on-surface-variant font-bold pb-1 hover:text-primary transition-colors"
+          >
+            Mapa
+          </Link>
+        </li>
       </ul>
 
       {/* Below md actions collapse to icons (aria-label keeps the name); md:hidden! because unlayered Material Symbols CSS beats Tailwind layers. */}
