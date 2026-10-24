@@ -41,7 +41,7 @@ const pastReignsQuery = (supabase: SupabaseServerClient, titleId: string) =>
 type PastReignRow = QueryData<ReturnType<typeof pastReignsQuery>>[number];
 
 // Resolves a holder's best display name, or a fallback.
-function displayName(
+export function displayName(
   profile: Pick<TitleHolder, "username" | "display_name"> | null,
 ): string {
   return profile?.display_name?.trim() || profile?.username || "Anónimo";
@@ -91,6 +91,21 @@ export async function getTitlesWithCurrentReign(
 
   if (error) throw error;
   return data.map(toTitleCard);
+}
+
+// Fetches the 24 province crowns as cards, keyed by province code.
+export async function getProvinceCrowns(
+  supabase: SupabaseServerClient,
+): Promise<Map<string, TitleCard>> {
+  const { data, error } = await pricedQuery(supabase).eq("level", "provincia");
+
+  if (error) throw error;
+
+  const crowns = new Map<string, TitleCard>();
+  for (const row of data) {
+    if (row.province_code !== null) crowns.set(row.province_code, toTitleCard(row));
+  }
+  return crowns;
 }
 
 // Fetches one title by slug with its effective price and full past-reign history.

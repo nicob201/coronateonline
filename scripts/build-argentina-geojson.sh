@@ -11,6 +11,6 @@ curl -sSf -o "$tmp/provincia.json" \
 npx -y mapshaper@0.6.121 -i "$tmp/provincia.json" \
   -filter-islands min-area=30km2 remove-empty \
   -simplify 0.1% keep-shapes \
-  -each 'name=nam, kind="province"' -filter-fields name,kind \
+  -each 'code=in1, kind="province"' -filter-fields code,kind \
   -dissolve + name=country -each 'kind="country"' target=country \
   -o 'target=*' combine-layers format=geojson precision=0.001 public/geo/argentina.json

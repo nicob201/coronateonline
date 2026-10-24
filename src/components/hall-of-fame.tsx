@@ -1,6 +1,6 @@
 import type { HallOfFameEntry } from "@/types";
 
-const RANK_COLOR = [
+export const RANK_COLOR = [
   "text-tertiary",
   "text-outline",
   "text-secondary-fixed-dim",

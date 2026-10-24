@@ -12,7 +12,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "pretest:sql": "node scripts/check-local-supabase.mjs",
-    "test:sql": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/pricing_test.sql -f supabase/tests/coronas_test.sql -f supabase/tests/dethrone_test.sql -f supabase/tests/salary_test.sql -f supabase/tests/bots_test.sql -f supabase/tests/notifications_test.sql",
+    "test:sql": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/pricing_test.sql -f supabase/tests/coronas_test.sql -f supabase/tests/dethrone_test.sql -f supabase/tests/salary_test.sql -f supabase/tests/bots_test.sql -f supabase/tests/notifications_test.sql -f supabase/tests/geo_titles_test.sql",
     "verify": "bash scripts/verify.sh",
     "update-types": "npx supabase gen types typescript --local > src/types/database.types.ts && npx -y oxfmt@0.72.0 src/types/database.types.ts"
   },
