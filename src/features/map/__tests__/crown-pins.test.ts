@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { crownPins } from "../crown-pins";
+import { crownPins, crownTier } from "../crown-pins";
 import type { ProvinceSummary, TitleCard } from "@/types";
 
 function card(overrides: Partial<TitleCard>): TitleCard {
@@ -38,6 +38,16 @@ describe("crownPins", () => {
 
     expect(pins.features).toHaveLength(1);
     expect(pins.features[0].geometry.coordinates).toEqual([-63.562, -32.104]);
-    expect(pins.features[0].properties).toEqual({ code: "14" });
+    expect(pins.features[0].properties).toEqual({ code: "14", tier: 1 });
+  });
+});
+
+describe("crownTier", () => {
+  it("is 0 for an empty throne and grows with the crown's rarity", () => {
+    expect(crownTier(province("50", { holder: null, rarity: "legendario" }))).toBe(0);
+    expect(crownTier(province("02", null))).toBe(0);
+    expect(crownTier(province("14", { holder: HOLDER, rarity: "comun" }))).toBe(1);
+    expect(crownTier(province("14", { holder: HOLDER, rarity: "epico" }))).toBe(2);
+    expect(crownTier(province("14", { holder: HOLDER, rarity: "legendario" }))).toBe(3);
   });
 });
