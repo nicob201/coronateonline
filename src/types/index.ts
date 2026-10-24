@@ -28,6 +28,8 @@ export type TitleCard = Pick<
   priceFloor: number;
   reignStartedAt: string | null;
   rarity: Rarity;
+  // [lon, lat] of a geographic title, null for plain ones.
+  point: [number, number] | null;
 };
 
 // One ranked reign in a province leaderboard; durationLabel is computed on the server.

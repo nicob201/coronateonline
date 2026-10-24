@@ -7,6 +7,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { formatCoronas } from "@/lib/format";
 import { BASE_PRICE } from "@/lib/titles";
 import type { ProvinceSummary } from "@/types";
+import { crownPins } from "../crown-pins";
 import { ProvincePanel } from "./province-panel";
 import { ProvinceReignList } from "./province-reign-list";
 
@@ -89,6 +90,8 @@ export function KingdomMap({ initialData }: { initialData: ProvinceSummary[] }) 
                 tolerance: 1,
                 attribution: "Límites: Instituto Geográfico Nacional",
               },
+              // Held province crowns; the province layers below still answer hover and click.
+              crowns: { type: "geojson", data: crownPins(latest.current.initialData) },
             },
             layers: [
               { id: "space", type: "background", paint: { "background-color": "#0e0e0e" } },
@@ -117,6 +120,23 @@ export function KingdomMap({ initialData }: { initialData: ProvinceSummary[] }) 
                 layout: { "line-join": "round" },
                 filter: isProvince,
                 paint: { "line-color": "#ddb7ff", "line-width": 1 },
+              },
+              {
+                id: "crown-halo",
+                type: "circle",
+                source: "crowns",
+                paint: { "circle-radius": 14, "circle-color": "#f9bd22", "circle-opacity": 0.25, "circle-blur": 0.8 },
+              },
+              {
+                id: "crown-pin",
+                type: "circle",
+                source: "crowns",
+                paint: {
+                  "circle-radius": 5,
+                  "circle-color": "#f9bd22",
+                  "circle-stroke-color": "#ffdf9f",
+                  "circle-stroke-width": 1.5,
+                },
               },
               {
                 id: "country-glow",

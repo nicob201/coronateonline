@@ -350,7 +350,9 @@ export type Database = {
           holder_user_id: string | null;
           holder_username: string | null;
           id: string;
+          lat: number | null;
           level: string | null;
+          lon: number | null;
           name: string;
           price_floor: number | null;
           province_code: string | null;
