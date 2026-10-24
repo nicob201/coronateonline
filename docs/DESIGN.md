@@ -75,6 +75,10 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
 ### `titles` (admin-seeded only in MVP)
 - `id`, `slug` (unique), `name`, `emoji`, `description`, `created_at`
 - No holder/price columns — derived from `reigns`.
+- Geographic titles (v2.3): nullable `level` (`provincia` / `ciudad` / `barrio`), `province_code` (FK to `provinces`) and `location` (PostGIS `geography(Point, 4326)`). Either all three are set or none (CHECK), and a province has exactly one `provincia` crown (partial unique index). 24 province crowns ship in migration `0012`; `rey-de-argentina` and `reina-de-las-malvinas` stay non-geographic.
+
+### `provinces` (reference data, public read-only)
+- `code` (2-digit INDEC code, PK), `slug` (unique), `name`. 24 rows. `province_leaderboard(p_limit)` ranks every reign (active and ended) of every title in a province by duration.
 
 ### `reigns` (the history — feed and rankings are queries over this table)
 - `id`, `title_id` (FK), `user_id` (FK → profiles), `price_paid` (integer 👑), `started_at`, `ended_at` (nullable)
@@ -106,7 +110,7 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
 | `/t/[slug]` | Title detail: current holder, price, dethrone button, reign history ("Temporada #N") |
 | `/@[username]` | Public shareable profile: avatar, current title(s), bio, social links, reign history |
 | `/login` | Supabase Auth: email magic link + Google OAuth; username onboarding on first login |
-| `/mapa` | Mapa del Reino: MapLibre globe with IGN country + province borders in neon (static GeoJSON in `public/geo/`, rebuilt by `scripts/build-argentina-geojson.sh`; no tile provider); hover/tap names a province. Crowns per territory arrive in D12–D15 |
+| `/mapa` | Mapa del Reino: MapLibre globe with IGN country + province borders in neon (static GeoJSON in `public/geo/`, rebuilt by `scripts/build-argentina-geojson.sh`; no tile provider); hover shows a province's top 3 longest reigns (pointer devices only), click/tap opens a panel (bottom sheet on mobile) with the province crown and the top 10; selection lives in `?provincia=<slug>`. Crown markers, value glow and realtime pulses arrive in D13–D15 |
 
 UI copy in Spanish (es-AR). Visual direction: dark, cyberpunk + digital luxury (electric violet, magenta, gold, neon, glassmorphism) — Stitch designs exist and drive the styling pass.
 
