@@ -110,7 +110,7 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
 | `/t/[slug]` | Title detail: current holder, price, dethrone button, reign history ("Temporada #N") |
 | `/@[username]` | Public shareable profile: avatar, current title(s), bio, social links, reign history |
 | `/login` | Supabase Auth: email magic link + Google OAuth; username onboarding on first login |
-| `/mapa` | Mapa del Reino: MapLibre globe with IGN country + province borders in neon (static GeoJSON in `public/geo/`, rebuilt by `scripts/build-argentina-geojson.sh`; no tile provider); hover shows a province's top 3 longest reigns (pointer devices only), click/tap opens a panel (bottom sheet on mobile) with the province crown and the top 10; selection lives in `?provincia=<slug>`. Held province crowns get a gold pin at their location (`titles_priced.lon/lat`). Value glow and realtime pulses arrive in D14–D15 |
+| `/mapa` | Mapa del Reino: MapLibre globe with IGN country + province borders in neon (static GeoJSON in `public/geo/`, rebuilt by `scripts/build-argentina-geojson.sh`; no tile provider); hover shows a province's top 3 longest reigns (pointer devices only), click/tap opens a panel (bottom sheet on mobile) with the province crown and the top 10; selection lives in `?provincia=<slug>`. Held province crowns get a gold pin at their location (`titles_priced.lon/lat`). Held provinces glow by crown rarity (tier 1–3: border width/opacity, fill and pin size). Realtime pulses arrive in D15 |
 
 UI copy in Spanish (es-AR). Visual direction: dark, cyberpunk + digital luxury (electric violet, magenta, gold, neon, glassmorphism) — Stitch designs exist and drive the styling pass.
 

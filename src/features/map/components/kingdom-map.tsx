@@ -7,7 +7,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { formatCoronas } from "@/lib/format";
 import { BASE_PRICE } from "@/lib/titles";
 import type { ProvinceSummary } from "@/types";
-import { crownPins } from "../crown-pins";
+import { crownPins, crownTier } from "../crown-pins";
 import { ProvincePanel } from "./province-panel";
 import { ProvinceReignList } from "./province-reign-list";
 
@@ -15,6 +15,8 @@ const isProvince: ExpressionSpecification = ["==", ["get", "kind"], "province"];
 const isCountry: ExpressionSpecification = ["==", ["get", "kind"], "country"];
 const hovered: ExpressionSpecification = ["boolean", ["feature-state", "hover"], false];
 const selected: ExpressionSpecification = ["boolean", ["feature-state", "selected"], false];
+// Set per province on load from its crown's rarity: 0 empty throne, 1-3 held.
+const tier: ExpressionSpecification = ["coalesce", ["feature-state", "tier"], 0];
 
 const CARD_OFFSET = 16;
 
@@ -102,7 +104,7 @@ export function KingdomMap({ initialData }: { initialData: ProvinceSummary[] }) 
                 filter: isProvince,
                 paint: {
                   "fill-color": ["case", selected, "#f9bd22", "#b76dff"],
-                  "fill-opacity": ["case", selected, 0.3, hovered, 0.35, 0.08],
+                  "fill-opacity": ["case", selected, 0.3, hovered, 0.35, ["+", 0.08, ["*", 0.05, tier]]],
                 },
               },
               {
@@ -111,7 +113,12 @@ export function KingdomMap({ initialData }: { initialData: ProvinceSummary[] }) 
                 source: "argentina",
                 layout: { "line-join": "round" },
                 filter: isProvince,
-                paint: { "line-color": "#b76dff", "line-width": 6, "line-blur": 2, "line-opacity": 0.45 },
+                paint: {
+                  "line-color": ["case", [">", tier, 0], "#f9bd22", "#b76dff"],
+                  "line-width": ["+", 6, ["*", 2, tier]],
+                  "line-blur": 2,
+                  "line-opacity": ["+", 0.45, ["*", 0.15, tier]],
+                },
               },
               {
                 id: "province-borders",
@@ -125,14 +132,19 @@ export function KingdomMap({ initialData }: { initialData: ProvinceSummary[] }) 
                 id: "crown-halo",
                 type: "circle",
                 source: "crowns",
-                paint: { "circle-radius": 14, "circle-color": "#f9bd22", "circle-opacity": 0.25, "circle-blur": 0.8 },
+                paint: {
+                  "circle-radius": ["+", 10, ["*", 4, ["get", "tier"]]],
+                  "circle-color": "#f9bd22",
+                  "circle-opacity": 0.25,
+                  "circle-blur": 0.8,
+                },
               },
               {
                 id: "crown-pin",
                 type: "circle",
                 source: "crowns",
                 paint: {
-                  "circle-radius": 5,
+                  "circle-radius": ["+", 4, ["get", "tier"]],
                   "circle-color": "#f9bd22",
                   "circle-stroke-color": "#ffdf9f",
                   "circle-stroke-width": 1.5,
@@ -167,7 +179,12 @@ export function KingdomMap({ initialData }: { initialData: ProvinceSummary[] }) 
         mapRef.current = m;
         m.touchZoomRotate.disableRotation();
         m.keyboard.disableRotation();
-        m.on("load", () => setLoaded(true));
+        m.on("load", () => {
+          for (const p of latest.current.initialData) {
+            if (crownTier(p) > 0) m.setFeatureState({ source: "argentina", id: p.code }, { tier: crownTier(p) });
+          }
+          setLoaded(true);
+        });
 
         // Taps fire compatibility mouse events, so hover only runs on devices that can really hover.
         const canHover = () => window.matchMedia("(hover: hover)").matches;
