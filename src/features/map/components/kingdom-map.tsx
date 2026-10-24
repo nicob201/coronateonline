@@ -1,21 +1,73 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { ExpressionSpecification, MapGeoJSONFeature, MapLibreMap } from "maplibre-gl";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { ExpressionSpecification, MapLibreMap } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { formatCoronas } from "@/lib/format";
+import { BASE_PRICE } from "@/lib/titles";
+import type { ProvinceSummary } from "@/types";
+import { ProvincePanel } from "./province-panel";
+import { ProvinceReignList } from "./province-reign-list";
 
 const isProvince: ExpressionSpecification = ["==", ["get", "kind"], "province"];
 const isCountry: ExpressionSpecification = ["==", ["get", "kind"], "country"];
 const hovered: ExpressionSpecification = ["boolean", ["feature-state", "hover"], false];
+const selected: ExpressionSpecification = ["boolean", ["feature-state", "selected"], false];
 
-// Neon globe of Argentina's provinces (IGN borders, no tile provider); hover or tap names a province.
-export function KingdomMap() {
+const CARD_OFFSET = 16;
+
+// Neon globe of Argentina's provinces: hover shows the top 3 reigns, a click opens the province panel.
+export function KingdomMap({ initialData }: { initialData: ProvinceSummary[] }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const container = useRef<HTMLDivElement>(null);
-  const [province, setProvince] = useState<string | null>(null);
+  const card = useRef<HTMLDivElement>(null);
+  const pointer = useRef({ x: 0, y: 0 });
+  const mapRef = useRef<MapLibreMap | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [hoverCode, setHoverCode] = useState<string | null>(null);
+
+  // Handlers live in the one-time map effect, so they read the latest data through a ref.
+  const latest = useRef({ initialData, router });
+  useEffect(() => {
+    latest.current = { initialData, router };
+  });
+
+  // The URL is the source of truth for the selection; an unknown or repeated slug selects nothing.
+  const slug = searchParams.get("provincia");
+  const province = slug ? (initialData.find((p) => p.slug === slug) ?? null) : null;
+  const hoverProvince = hoverCode ? (initialData.find((p) => p.code === hoverCode) ?? null) : null;
+
+  // Keeps the hover card next to the pointer, flipping it away from the container edges.
+  const placeCard = () => {
+    const el = card.current;
+    const box = container.current;
+    if (!el || !box) return;
+    const { x, y } = pointer.current;
+    const left = x + CARD_OFFSET + el.offsetWidth > box.clientWidth ? x - CARD_OFFSET - el.offsetWidth : x + CARD_OFFSET;
+    const top = y + CARD_OFFSET + el.offsetHeight > box.clientHeight ? y - CARD_OFFSET - el.offsetHeight : y + CARD_OFFSET;
+    el.style.transform = `translate(${Math.max(0, left)}px, ${Math.max(0, top)}px)`;
+  };
+  const placeCardRef = useRef(placeCard);
+  useEffect(() => {
+    placeCardRef.current = placeCard;
+  });
+  useLayoutEffect(() => placeCard(), [hoverCode]);
+
+  // Mirrors the selected province into feature-state (gold fill).
+  const selectedCode = province?.code;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m || !loaded || !selectedCode) return;
+    m.setFeatureState({ source: "argentina", id: selectedCode }, { selected: true });
+    return () => {
+      mapRef.current?.setFeatureState({ source: "argentina", id: selectedCode }, { selected: false });
+    };
+  }, [loaded, selectedCode]);
 
   useEffect(() => {
-    let map: MapLibreMap | undefined;
     let cancelled = false;
 
     // MapLibre touches window and WebGL, so it loads after hydration and only in the browser.
@@ -32,7 +84,7 @@ export function KingdomMap() {
               argentina: {
                 type: "geojson",
                 data: "/geo/argentina.json",
-                generateId: true,
+                promoteId: "code",
                 // Extra simplification per zoom keeps the blurred glow from turning jagged coasts into spikes.
                 tolerance: 1,
                 attribution: "Límites: Instituto Geográfico Nacional",
@@ -45,7 +97,10 @@ export function KingdomMap() {
                 type: "fill",
                 source: "argentina",
                 filter: isProvince,
-                paint: { "fill-color": "#b76dff", "fill-opacity": ["case", hovered, 0.35, 0.08] },
+                paint: {
+                  "fill-color": ["case", selected, "#f9bd22", "#b76dff"],
+                  "fill-opacity": ["case", selected, 0.3, hovered, 0.35, 0.08],
+                },
               },
               {
                 id: "province-glow",
@@ -89,29 +144,43 @@ export function KingdomMap() {
           touchPitch: false,
           locale: { "Map.Title": "Mapa de Argentina por provincias" },
         });
-        map = m;
+        mapRef.current = m;
         m.touchZoomRotate.disableRotation();
         m.keyboard.disableRotation();
+        m.on("load", () => setLoaded(true));
 
-        let hoverId: string | number | undefined;
-        const highlight = (feature: MapGeoJSONFeature | undefined) => {
-          if (feature?.id === hoverId) return;
+        // Taps fire compatibility mouse events, so hover only runs on devices that can really hover.
+        const canHover = () => window.matchMedia("(hover: hover)").matches;
+        let hoverId: string | undefined;
+        const highlight = (code: string | undefined) => {
+          if (code === hoverId) return;
           if (hoverId !== undefined) m.setFeatureState({ source: "argentina", id: hoverId }, { hover: false });
-          hoverId = feature?.id;
+          hoverId = code;
           if (hoverId !== undefined) m.setFeatureState({ source: "argentina", id: hoverId }, { hover: true });
-          setProvince(feature ? String(feature.properties.name) : null);
+          setHoverCode(code ?? null);
         };
-        m.on("mousemove", "provinces", (e) => highlight(e.features?.[0]));
+        m.on("mousemove", "provinces", (e) => {
+          if (!canHover()) return;
+          pointer.current = { x: e.point.x, y: e.point.y };
+          highlight(String(e.features?.[0]?.properties.code));
+          placeCardRef.current();
+        });
         m.on("mouseleave", "provinces", () => highlight(undefined));
-        // Taps have no hover, so a click selects the province under it (or clears on the sea).
-        m.on("click", (e) => highlight(m.queryRenderedFeatures(e.point, { layers: ["provinces"] })[0]));
+        // A click selects the province under it (or clears on the sea) by rewriting the URL.
+        m.on("click", (e) => {
+          const code = m.queryRenderedFeatures(e.point, { layers: ["provinces"] })[0]?.properties.code;
+          const { initialData: data, router: r } = latest.current;
+          const picked = data.find((p) => p.code === code);
+          r.replace(picked ? `/mapa?provincia=${picked.slug}` : "/mapa", { scroll: false });
+        });
       })
       // No WebGL2 (GPUInitializationError) or a failed chunk load both leave the fallback text.
       .catch(() => setFailed(true));
 
     return () => {
       cancelled = true;
-      map?.remove();
+      mapRef.current?.remove();
+      mapRef.current = null;
     };
   }, []);
 
@@ -124,10 +193,30 @@ export function KingdomMap() {
           Tu navegador no puede dibujar el mapa (necesita WebGL2).
         </p>
       )}
+      {hoverProvince && (
+        <div
+          ref={card}
+          className="glass-panel pointer-events-none absolute top-0 left-0 z-10 flex w-72 flex-col gap-2 rounded-xl p-3"
+        >
+          <p className="text-title-md font-title-md text-on-surface">{hoverProvince.name}</p>
+          {hoverProvince.reigns.length > 0 ? (
+            <>
+              <p className="text-label-caps font-label-caps text-tertiary">TOP 3 REINADOS</p>
+              <ProvinceReignList reigns={hoverProvince.reigns.slice(0, 3)} />
+              <p className="text-label-caps font-label-caps text-on-surface-variant">Click para ver todo</p>
+            </>
+          ) : (
+            <p className="text-body-sm font-body-sm text-on-surface-variant">
+              Trono vacío · Coronate desde {formatCoronas(BASE_PRICE)}
+            </p>
+          )}
+        </div>
+      )}
       {province && (
-        <p className="glass-panel pointer-events-none absolute bottom-10 left-1/2 -translate-x-1/2 max-w-[calc(100%-2rem)] rounded-xl px-5 py-3 text-center text-title-md font-title-md text-on-surface">
-          {province}
-        </p>
+        <ProvincePanel
+          province={province}
+          onClose={() => router.replace("/mapa", { scroll: false })}
+        />
       )}
     </div>
   );
