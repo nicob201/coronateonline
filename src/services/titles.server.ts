@@ -78,6 +78,7 @@ function toTitleCard(row: PricedRow): TitleCard {
     priceFloor: row.price_floor ?? BASE_PRICE,
     reignStartedAt: row.reign_started_at,
     rarity: rarity(row.current_price),
+    point: row.lon !== null && row.lat !== null ? [row.lon, row.lat] : null,
   };
 }
 

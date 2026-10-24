@@ -27,6 +27,8 @@ function crownRow(provinceCode: string, overrides: Record<string, unknown> = {})
     holder_is_bot: null,
     level: "provincia",
     province_code: provinceCode,
+    lon: null,
+    lat: null,
     ...overrides,
   };
 }
@@ -105,6 +107,18 @@ describe("getProvinceSummaries", () => {
 
     expect(mendoza.crown?.price).toBe(7);
     expect(mendoza.crown?.holder?.username).toBe("juli");
+  });
+
+  it("exposes the crown location as a [lon, lat] point, or null without one", async () => {
+    const supabase = mockWith({
+      provinces: [province("50", "mendoza", "Mendoza"), province("14", "cordoba", "Córdoba")],
+      crowns: [crownRow("50", { lon: -68.343, lat: -34.499 }), crownRow("14")],
+    });
+
+    const result = await getProvinceSummaries(supabase);
+
+    expect(result.find((p) => p.code === "50")?.crown?.point).toEqual([-68.343, -34.499]);
+    expect(result.find((p) => p.code === "14")?.crown?.point).toBeNull();
   });
 
   it("returns empty reigns and the unclaimed crown for a province without reigns", async () => {

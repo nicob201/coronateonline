@@ -57,6 +57,9 @@ BEGIN
   -- Titles view exposes the new columns.
   ASSERT (SELECT province_code FROM public.titles_priced WHERE slug = 'rey-de-cordoba') = '14', 'titles_priced exposes province_code';
   ASSERT (SELECT level FROM public.titles_priced WHERE slug = 'rey-de-cordoba') = 'provincia', 'titles_priced exposes level';
+  ASSERT (SELECT round(lon::numeric, 3) FROM public.titles_priced WHERE slug = 'rey-de-cordoba') = -63.562, 'titles_priced exposes lon';
+  ASSERT (SELECT round(lat::numeric, 3) FROM public.titles_priced WHERE slug = 'rey-de-cordoba') = -32.104, 'titles_priced exposes lat';
+  ASSERT (SELECT lon FROM public.titles_priced WHERE slug = 'rey-de-la-pizza') IS NULL, 'plain titles have no lon';
 
   -- Geo CHECK: level without a location is rejected.
   ok := false;
