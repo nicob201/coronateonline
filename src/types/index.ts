@@ -30,6 +30,27 @@ export type TitleCard = Pick<
   rarity: Rarity;
 };
 
+// One ranked reign in a province leaderboard; durationLabel is computed on the server.
+export type ProvinceReign = {
+  id: string;
+  holderName: string;
+  holderIsBot: boolean;
+  titleName: string;
+  titleEmoji: string;
+  titleSlug: string;
+  durationLabel: string;
+  isActive: boolean;
+};
+
+// A province with its crown and its longest reigns (rank order, at most 10).
+export type ProvinceSummary = {
+  code: string;
+  slug: string;
+  name: string;
+  crown: TitleCard | null;
+  reigns: ProvinceReign[];
+};
+
 // A past reign shown in a title's throne history.
 export type PastReign = {
   id: string;
