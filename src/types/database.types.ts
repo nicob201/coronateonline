@@ -207,6 +207,25 @@ export type Database = {
         };
         Relationships: [];
       };
+      provinces: {
+        Row: {
+          code: string;
+          name: string;
+          slug: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          code: string;
+          name: string;
+          slug: string;
+        };
+        Update: {
+          code?: string;
+          name?: string;
+          slug?: string;
+        };
+        Relationships: [];
+      };
       reigns: {
         Row: {
           dethroned_user_id: string | null;
@@ -276,7 +295,10 @@ export type Database = {
           description: string;
           emoji: string;
           id: string;
+          level: string | null;
+          location: unknown;
           name: string;
+          province_code: string | null;
           slug: string;
         };
         ComputedFields: never;
@@ -285,7 +307,10 @@ export type Database = {
           description: string;
           emoji: string;
           id?: string;
+          level?: string | null;
+          location?: unknown;
           name: string;
+          province_code?: string | null;
           slug: string;
         };
         Update: {
@@ -293,19 +318,30 @@ export type Database = {
           description?: string;
           emoji?: string;
           id?: string;
+          level?: string | null;
+          location?: unknown;
           name?: string;
+          province_code?: string | null;
           slug?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "titles_province_code_fkey";
+            columns: ["province_code"];
+            isOneToOne: false;
+            referencedRelation: "provinces";
+            referencedColumns: ["code"];
+          },
+        ];
       };
     };
     Views: {
       titles_priced: {
         Row: {
-          created_at: string | null;
+          created_at: string;
           current_price: number | null;
-          description: string | null;
-          emoji: string | null;
+          description: string;
+          emoji: string;
           holder_avatar_url: string | null;
           holder_display_name: string | null;
           holder_is_bot: boolean | null;
@@ -313,12 +349,14 @@ export type Database = {
           holder_paid: number | null;
           holder_user_id: string | null;
           holder_username: string | null;
-          id: string | null;
-          name: string | null;
+          id: string;
+          level: string | null;
+          name: string;
           price_floor: number | null;
+          province_code: string | null;
           reign_id: string | null;
           reign_started_at: string | null;
-          slug: string | null;
+          slug: string;
         };
         ComputedFields: never;
         Relationships: [
@@ -328,6 +366,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "titles_province_code_fkey";
+            columns: ["province_code"];
+            isOneToOne: false;
+            referencedRelation: "provinces";
+            referencedColumns: ["code"];
           },
         ];
       };
@@ -376,6 +421,23 @@ export type Database = {
         };
       };
       mark_notifications_seen: { Args: Record<PropertyKey, never>; Returns: undefined };
+      province_leaderboard: {
+        Args: { p_limit?: number };
+        Returns: {
+          ended_at: string;
+          holder_display_name: string;
+          holder_is_bot: boolean;
+          holder_username: string;
+          price_paid: number;
+          province_code: string;
+          rank: number;
+          reign_id: string;
+          started_at: string;
+          title_emoji: string;
+          title_name: string;
+          title_slug: string;
+        }[];
+      };
       salary_status: {
         Args: Record<PropertyKey, never>;
         Returns: {
