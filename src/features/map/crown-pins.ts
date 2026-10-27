@@ -22,3 +22,11 @@ export function crownPins(provinces: ProvinceSummary[]): GeoJSON.FeatureCollecti
     ),
   };
 }
+
+// Locations of the held crowns whose reign started since the `before` snapshot.
+export function newCrowns(before: ProvinceSummary[], after: ProvinceSummary[]): [number, number][] {
+  const started = new Map(before.map((p) => [p.code, p.crown?.reignStartedAt]));
+  return after.flatMap((p) =>
+    p.crown?.holder && p.crown.point && p.crown.reignStartedAt !== started.get(p.code) ? [p.crown.point] : [],
+  );
+}

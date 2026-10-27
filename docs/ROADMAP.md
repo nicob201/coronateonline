@@ -39,7 +39,7 @@ Mapa oscuro de Argentina (bordes IGN, con Malvinas y Antártida) donde las coron
 - [x] **D12** — Títulos geográficos: ubicación PostGIS + nivel (provincia / ciudad / barrio) + seed de las 24 provincias
 - [x] **D13** — Pins de coronas ocupadas en `/mapa` (solo provincias, `lon`/`lat` en `titles_priced`). Diferido hasta que haga falta: ciudades y barrios, RPC por bounding box con índice GIST y nivel de detalle por zoom
 - [x] **D14** — Click en corona → tarjeta con rey, precio y "Destronar" (el panel de D12; el botón lleva a `/t/[slug]`); provincias que brillan según la rareza de su corona (borde dorado, relleno y pin por tier)
-- [ ] **D15** — Realtime en el mapa: la corona late cuando alguien la roba
+- [x] **D15** — Realtime en el mapa: la corona late cuando alguien la roba (cae una corona con anillos dorados sobre el pin; pines, brillo y panel abierto se actualizan solos)
 
 ## Semana 4 — Juego y comunidad
 

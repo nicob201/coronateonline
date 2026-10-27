@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { crownPins, crownTier } from "../crown-pins";
+import { crownPins, crownTier, newCrowns } from "../crown-pins";
 import type { ProvinceSummary, TitleCard } from "@/types";
 
 function card(overrides: Partial<TitleCard>): TitleCard {
@@ -49,5 +49,23 @@ describe("crownTier", () => {
     expect(crownTier(province("14", { holder: HOLDER, rarity: "comun" }))).toBe(1);
     expect(crownTier(province("14", { holder: HOLDER, rarity: "epico" }))).toBe(2);
     expect(crownTier(province("14", { holder: HOLDER, rarity: "legendario" }))).toBe(3);
+  });
+});
+
+describe("newCrowns", () => {
+  it("points at the held crowns whose reign changed since the last snapshot", () => {
+    const before = [
+      province("14", { holder: HOLDER, point: [-63.562, -32.104], reignStartedAt: "2026-10-20T00:00:00+00:00" }),
+      province("50", { holder: null, point: [-68.343, -34.499] }),
+      province("06", { holder: HOLDER, point: [-60.5, -36.6], reignStartedAt: "2026-10-21T00:00:00+00:00" }),
+    ];
+    const after = [
+      province("14", { holder: HOLDER, point: [-63.562, -32.104], reignStartedAt: "2026-10-27T00:00:00+00:00" }),
+      province("50", { holder: HOLDER, point: [-68.343, -34.499], reignStartedAt: "2026-10-27T00:00:00+00:00" }),
+      province("06", { holder: HOLDER, point: [-60.5, -36.6], reignStartedAt: "2026-10-21T00:00:00+00:00" }),
+    ];
+
+    expect(newCrowns(before, after)).toEqual([[-63.562, -32.104], [-68.343, -34.499]]);
+    expect(newCrowns(after, after)).toEqual([]);
   });
 });
