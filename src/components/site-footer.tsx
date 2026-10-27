@@ -7,7 +7,7 @@ export function SiteFooter() {
       <span className="text-title-md font-title-md text-on-surface font-black tracking-tighter uppercase">
         CoronaTeOnline
       </span>
-      <div className="flex gap-6">
+      <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 whitespace-nowrap">
         <Link
           href="/titulos"
           className="text-label-caps font-label-caps text-outline hover:text-primary transition-colors"
@@ -19,6 +19,12 @@ export function SiteFooter() {
           className="text-label-caps font-label-caps text-outline hover:text-primary transition-colors"
         >
           Mapa del Reino
+        </Link>
+        <Link
+          href="/rankings"
+          className="text-label-caps font-label-caps text-outline hover:text-primary transition-colors"
+        >
+          Rankings
         </Link>
       </div>
       <span className="text-body-sm font-body-sm text-tertiary text-center md:text-right">
