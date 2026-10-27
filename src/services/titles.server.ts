@@ -94,6 +94,21 @@ export async function getTitlesWithCurrentReign(
   return data.map(toTitleCard);
 }
 
+// Fetches the held titles with the highest current price, priciest first.
+export async function getPriciestTitles(
+  supabase: SupabaseServerClient,
+  limit: number,
+): Promise<TitleCard[]> {
+  const { data, error } = await pricedQuery(supabase)
+    .not("current_price", "is", null)
+    .order("current_price", { ascending: false })
+    .order("created_at", { ascending: true })
+    .limit(limit);
+
+  if (error) throw error;
+  return data.map(toTitleCard);
+}
+
 // Fetches the 24 province crowns as cards, keyed by province code.
 export async function getProvinceCrowns(
   supabase: SupabaseServerClient,

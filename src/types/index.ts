@@ -53,6 +53,19 @@ export type ProvinceSummary = {
   reigns: ProvinceReign[];
 };
 
+// One row of a /rankings table; labels are computed on the server.
+export type RankingEntry = {
+  id: string;
+  href: string;
+  name: string;
+  detail: string;
+  detailIsBot: boolean;
+  value: string;
+};
+
+// The four /rankings tables, top 10 each.
+export type Rankings = Record<"priciest" | "contested" | "longest" | "magnates", RankingEntry[]>;
+
 // A past reign shown in a title's throne history.
 export type PastReign = {
   id: string;

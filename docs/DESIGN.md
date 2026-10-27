@@ -111,6 +111,7 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
 | `/@[username]` | Public shareable profile: avatar, current title(s), bio, social links, reign history |
 | `/login` | Supabase Auth: email magic link + Google OAuth; username onboarding on first login |
 | `/mapa` | Mapa del Reino: MapLibre globe with IGN country + province borders in neon (static GeoJSON in `public/geo/`, rebuilt by `scripts/build-argentina-geojson.sh`; no tile provider); hover shows a province's top 3 longest reigns (pointer devices only), click/tap opens a panel (bottom sheet on mobile) with the province crown and the top 10; selection lives in `?provincia=<slug>`. Held province crowns get a gold pin at their location (`titles_priced.lon/lat`). Held provinces glow by crown rarity (tier 1–3: border width/opacity, fill and pin size). Live: any new reign refreshes the page (`LiveRefresh`); pins and glow resync, and a crown drops and beats on the pin of each province whose reign just started (D15) |
+| `/rankings` | Four top-10 tables, live (`LiveRefresh`): priciest crowns (current price), most contested titles (most reigns), longest reigns and magnates (Coronas balance). Bots are left out of the two people tables. "Más defendido" from the roadmap became "más disputadas": there is no defense action to measure. SQL: `ranking_longest_reigns()`, `ranking_most_contested()`, `ranking_magnates()` (SECURITY DEFINER: only the top 10 balances become public) |
 
 UI copy in Spanish (es-AR). Visual direction: dark, cyberpunk + digital luxury (electric violet, magenta, gold, neon, glassmorphism) — Stitch designs exist and drive the styling pass.
 
@@ -119,7 +120,7 @@ UI copy in Spanish (es-AR). Visual direction: dark, cyberpunk + digital luxury (
 Deliberately excluded until the hypothesis validates:
 - Realtime beyond the live ticker/prices, the dethrone toast and the map pulses (shipped in D8/D9/D15)
 - Email / push notifications ("te destronaron") — dethroned users see it in-app (bell + live toast, D9)
-- User-created titles, rankings pages, profile boosts, sponsored titles
+- User-created titles, profile boosts, sponsored titles
 - Reign expiry (does not exist in the takeover model)
 
 ## 6. Stack

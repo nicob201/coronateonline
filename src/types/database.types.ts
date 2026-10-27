@@ -440,6 +440,39 @@ export type Database = {
           title_slug: string;
         }[];
       };
+      ranking_longest_reigns: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          ended_at: string;
+          holder_display_name: string;
+          holder_username: string;
+          reign_id: string;
+          started_at: string;
+          title_emoji: string;
+          title_name: string;
+          title_slug: string;
+        }[];
+      };
+      ranking_magnates: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          balance: number;
+          display_name: string;
+          username: string;
+        }[];
+      };
+      ranking_most_contested: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          holder_display_name: string;
+          holder_is_bot: boolean;
+          holder_username: string;
+          reign_count: number;
+          title_emoji: string;
+          title_name: string;
+          title_slug: string;
+        }[];
+      };
       salary_status: {
         Args: Record<PropertyKey, never>;
         Returns: {

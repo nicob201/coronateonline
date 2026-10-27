@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   getHallOfFame,
   getRecentCoronations,
-  getTitlesWithCurrentReign,
+  getPriciestTitles,
 } from "@/services/titles.server";
 import { CoronationTicker } from "@/components/coronation-ticker";
 import { LiveRefresh } from "@/components/live-refresh";
@@ -15,17 +15,12 @@ import { GuestLoginButton } from "@/features/auth/components/guest-login-button"
 // Landing: activity ticker, hero, trending titles (top by current price), Hall of Fame.
 export default async function Home() {
   const supabase = await createClient();
-  const [coronations, titles, hallOfFame, { data: { user } }] = await Promise.all([
+  const [coronations, trending, hallOfFame, { data: { user } }] = await Promise.all([
     getRecentCoronations(supabase, 6),
-    getTitlesWithCurrentReign(supabase),
+    getPriciestTitles(supabase, 3),
     getHallOfFame(supabase, 5),
     supabase.auth.getUser(),
   ]);
-
-  const trending = titles
-    .filter((t) => t.price !== null)
-    .sort((a, b) => (b.price ?? 0) - (a.price ?? 0))
-    .slice(0, 3);
 
   return (
     <>
