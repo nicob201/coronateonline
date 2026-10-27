@@ -2,12 +2,12 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { ExpressionSpecification, MapLibreMap } from "maplibre-gl";
+import type { ExpressionSpecification, GeoJSONSource, MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { formatCoronas } from "@/lib/format";
 import { BASE_PRICE } from "@/lib/titles";
 import type { ProvinceSummary } from "@/types";
-import { crownPins, crownTier } from "../crown-pins";
+import { crownPins, crownTier, newCrowns } from "../crown-pins";
 import { ProvincePanel } from "./province-panel";
 import { ProvinceReignList } from "./province-reign-list";
 
@@ -19,6 +19,8 @@ const selected: ExpressionSpecification = ["boolean", ["feature-state", "selecte
 const tier: ExpressionSpecification = ["coalesce", ["feature-state", "tier"], 0];
 
 const CARD_OFFSET = 16;
+// Matches the .crown-steal animation in globals.css.
+const STEAL_MS = 3000;
 
 // Neon globe of Argentina's provinces: hover shows the top 3 reigns, a click opens the province panel.
 export function KingdomMap({ initialData }: { initialData: ProvinceSummary[] }) {
@@ -28,6 +30,8 @@ export function KingdomMap({ initialData }: { initialData: ProvinceSummary[] }) 
   const card = useRef<HTMLDivElement>(null);
   const pointer = useRef({ x: 0, y: 0 });
   const mapRef = useRef<MapLibreMap | null>(null);
+  const markerClass = useRef<typeof Marker | null>(null);
+  const shown = useRef<ProvinceSummary[] | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const [hoverCode, setHoverCode] = useState<string | null>(null);
@@ -70,12 +74,29 @@ export function KingdomMap({ initialData }: { initialData: ProvinceSummary[] }) 
     };
   }, [loaded, selectedCode]);
 
+  // Keeps pins and glow in step with live data and drops a beating crown where a reign just started.
+  useEffect(() => {
+    const m = mapRef.current;
+    const Pulse = markerClass.current;
+    if (!m || !Pulse || !loaded) return;
+    m.getSource<GeoJSONSource>("crowns")?.setData(crownPins(initialData));
+    for (const p of initialData) m.setFeatureState({ source: "argentina", id: p.code }, { tier: crownTier(p) });
+    for (const point of shown.current ? newCrowns(shown.current, initialData) : []) {
+      const el = document.createElement("div");
+      el.className = "crown-steal";
+      el.append(Object.assign(document.createElement("span"), { textContent: "👑" }));
+      const pulse = new Pulse({ element: el }).setLngLat(point).addTo(m);
+      setTimeout(() => pulse.remove(), STEAL_MS);
+    }
+    shown.current = initialData;
+  }, [loaded, initialData]);
+
   useEffect(() => {
     let cancelled = false;
 
     // MapLibre touches window and WebGL, so it loads after hydration and only in the browser.
     import("maplibre-gl")
-      .then(({ Map, setWorkerUrl }) => {
+      .then(({ Map, Marker: MarkerClass, setWorkerUrl }) => {
         if (cancelled || !container.current) return;
         setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString());
         const m = new Map({
@@ -92,8 +113,8 @@ export function KingdomMap({ initialData }: { initialData: ProvinceSummary[] }) 
                 tolerance: 1,
                 attribution: "Límites: Instituto Geográfico Nacional",
               },
-              // Held province crowns; the province layers below still answer hover and click.
-              crowns: { type: "geojson", data: crownPins(latest.current.initialData) },
+              // Held province crowns, filled once loaded; the province layers below still answer hover and click.
+              crowns: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
             },
             layers: [
               { id: "space", type: "background", paint: { "background-color": "#0e0e0e" } },
@@ -177,14 +198,10 @@ export function KingdomMap({ initialData }: { initialData: ProvinceSummary[] }) 
           locale: { "Map.Title": "Mapa de Argentina por provincias" },
         });
         mapRef.current = m;
+        markerClass.current = MarkerClass;
         m.touchZoomRotate.disableRotation();
         m.keyboard.disableRotation();
-        m.on("load", () => {
-          for (const p of latest.current.initialData) {
-            if (crownTier(p) > 0) m.setFeatureState({ source: "argentina", id: p.code }, { tier: crownTier(p) });
-          }
-          setLoaded(true);
-        });
+        m.on("load", () => setLoaded(true));
 
         // Taps fire compatibility mouse events, so hover only runs on devices that can really hover.
         const canHover = () => window.matchMedia("(hover: hover)").matches;

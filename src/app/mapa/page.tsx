@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LiveRefresh } from "@/components/live-refresh";
 import { KingdomMap } from "@/features/map/components/kingdom-map";
 import { createClient } from "@/lib/supabase/server";
 import { getProvinceSummaries } from "@/services/map.server";
@@ -14,6 +15,7 @@ export default async function MapPage() {
 
   return (
     <main className="relative z-10 flex-1 min-h-[28rem] overflow-hidden">
+      <LiveRefresh />
       <KingdomMap initialData={provinces} />
       <div className="glass-panel pointer-events-none absolute top-4 left-4 right-4 sm:right-auto sm:max-w-sm rounded-xl p-4">
         <p className="text-label-caps font-label-caps text-tertiary">MAPA DEL REINO</p>

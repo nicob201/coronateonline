@@ -110,14 +110,14 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
 | `/t/[slug]` | Title detail: current holder, price, dethrone button, reign history ("Temporada #N") |
 | `/@[username]` | Public shareable profile: avatar, current title(s), bio, social links, reign history |
 | `/login` | Supabase Auth: email magic link + Google OAuth; username onboarding on first login |
-| `/mapa` | Mapa del Reino: MapLibre globe with IGN country + province borders in neon (static GeoJSON in `public/geo/`, rebuilt by `scripts/build-argentina-geojson.sh`; no tile provider); hover shows a province's top 3 longest reigns (pointer devices only), click/tap opens a panel (bottom sheet on mobile) with the province crown and the top 10; selection lives in `?provincia=<slug>`. Held province crowns get a gold pin at their location (`titles_priced.lon/lat`). Held provinces glow by crown rarity (tier 1–3: border width/opacity, fill and pin size). Realtime pulses arrive in D15 |
+| `/mapa` | Mapa del Reino: MapLibre globe with IGN country + province borders in neon (static GeoJSON in `public/geo/`, rebuilt by `scripts/build-argentina-geojson.sh`; no tile provider); hover shows a province's top 3 longest reigns (pointer devices only), click/tap opens a panel (bottom sheet on mobile) with the province crown and the top 10; selection lives in `?provincia=<slug>`. Held province crowns get a gold pin at their location (`titles_priced.lon/lat`). Held provinces glow by crown rarity (tier 1–3: border width/opacity, fill and pin size). Live: any new reign refreshes the page (`LiveRefresh`); pins and glow resync, and a crown drops and beats on the pin of each province whose reign just started (D15) |
 
 UI copy in Spanish (es-AR). Visual direction: dark, cyberpunk + digital luxury (electric violet, magenta, gold, neon, glassmorphism) — Stitch designs exist and drive the styling pass.
 
 ## 5. Out of Scope (MVP)
 
 Deliberately excluded until the hypothesis validates:
-- Realtime beyond the live ticker/prices and the dethrone toast (shipped in D8/D9) — e.g. map pulses (D15)
+- Realtime beyond the live ticker/prices, the dethrone toast and the map pulses (shipped in D8/D9/D15)
 - Email / push notifications ("te destronaron") — dethroned users see it in-app (bell + live toast, D9)
 - User-created titles, rankings pages, profile boosts, sponsored titles
 - Reign expiry (does not exist in the takeover model)
