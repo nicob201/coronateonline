@@ -13,6 +13,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Vercel restores Turbopack's build cache across lockfile changes and it broke next/font resolution (Dependabot PR #22).
+  experimental: { turbopackFileSystemCacheForBuild: false },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
