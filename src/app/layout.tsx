@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Montserrat, Inter, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { Background } from "@/components/background";
 import { DemoBanner } from "@/components/demo-banner";
 import { SiteHeader } from "@/components/site-header";
@@ -7,24 +7,25 @@ import { SiteFooter } from "@/components/site-footer";
 import { env } from "@/lib/env";
 import "./globals.css";
 
-const montserrat = Montserrat({
+// Self-hosted latin variable fonts (from Google Fonts): fetching them at build time made Vercel builds fail intermittently.
+const montserrat = localFont({
+  src: "./fonts/montserrat-latin.woff2",
   variable: "--font-montserrat",
-  subsets: ["latin"],
-  weight: ["400", "700", "800", "900"],
+  weight: "400 900",
   display: "swap",
 });
 
-const inter = Inter({
+const inter = localFont({
+  src: "./fonts/inter-latin.woff2",
   variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
+  weight: "400 700",
   display: "swap",
 });
 
-const jetbrains = JetBrains_Mono({
+const jetbrains = localFont({
+  src: "./fonts/jetbrains-mono-latin.woff2",
   variable: "--font-jetbrains",
-  subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: "400 700",
   display: "swap",
 });
 
