@@ -44,7 +44,7 @@ Mapa oscuro de Argentina (bordes IGN, con Malvinas y Antártida) donde las coron
 ## Semana 4 — Juego y comunidad
 
 - [x] **D16** — `/rankings`: más caras, más disputadas ("más defendido" no se puede medir: no hay acción de defensa), reinados más largos, magnates
-- [ ] **D17** — Logros / badges en el perfil
+- [x] **D17** — Logros / badges en el perfil (11 logros derivados de los reinados públicos, sin tabla)
 - [ ] **D18** — Títulos creados por usuarios (cuestan Coronas, moderación en `/admin`)
 - [ ] **D19** — Búsqueda, categorías y filtros en `/titulos`
 - [ ] **D20** — Reacciones 🍅 / 👏 al reinado actual, con rate limit
