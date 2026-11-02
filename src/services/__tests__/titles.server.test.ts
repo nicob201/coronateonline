@@ -73,6 +73,41 @@ describe("getTitlesWithCurrentReign", () => {
   });
 });
 
+describe("title categories", () => {
+  it("tells province crowns, community titles and classics apart", async () => {
+    const supabase = createSupabaseMock({
+      query: {
+        data: [
+          { ...heldRow, id: "p", level: "provincia", created_by: null },
+          { ...heldRow, id: "c", level: null, created_by: "u9" },
+          { ...heldRow, id: "s", level: null, created_by: null },
+        ],
+        error: null,
+      },
+    });
+    const cards = await getTitlesWithCurrentReign(supabase);
+    expect(cards.map((c) => [c.id, c.category])).toEqual([
+      ["p", "provincias"],
+      ["c", "comunidad"],
+      ["s", "clasicos"],
+    ]);
+  });
+
+  it("names a community title's creator on its detail page", async () => {
+    const supabase = createSupabaseMock({
+      queryByTable: {
+        titles_priced: {
+          data: { ...heldRow, created_by: "u9", creator_username: "nicocrack", creator_display_name: " " },
+          error: null,
+        },
+        reigns: { data: [], error: null },
+      },
+    });
+    const detail = await getTitleBySlug(supabase, "rey-de-cordoba");
+    expect(detail?.creator).toEqual({ username: "nicocrack", name: "nicocrack" });
+  });
+});
+
 describe("getTitleBySlug", () => {
   it("returns the priced card plus past reigns, with holderPaid", async () => {
     const pastReignRows = [

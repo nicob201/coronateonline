@@ -79,6 +79,7 @@ function toTitleCard(row: PricedRow): TitleCard {
     reignStartedAt: row.reign_started_at,
     rarity: rarity(row.current_price),
     point: row.lon !== null && row.lat !== null ? [row.lon, row.lat] : null,
+    category: row.level === "provincia" ? "provincias" : row.created_by ? "comunidad" : "clasicos",
   };
 }
 
@@ -180,6 +181,9 @@ export async function getTitleBySlug(
 
   return {
     ...card,
+    creator: data.creator_username
+      ? { username: data.creator_username, name: data.creator_display_name?.trim() || data.creator_username }
+      : null,
     holderName: card.holder ? displayName(card.holder) : null,
     holderPaid: data.holder_paid,
     pastReigns,

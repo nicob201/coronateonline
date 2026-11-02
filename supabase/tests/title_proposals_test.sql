@@ -139,6 +139,7 @@ BEGIN
   ASSERT t.slug = 'senor-del-nandu-2', format('expected slug senor-del-nandu-2, got %s', t.slug);
   ASSERT t.name = 'Señor del Ñandú' AND t.emoji = '🐦' AND t.description = 'El dueño del monte',
     format('title fields wrong: %s', t);
+  ASSERT t.created_by = a, format('the title must record its creator (0016), got %s', t.created_by);
   ASSERT (SELECT user_id = a AND price_paid = 1 AND dethroned_user_id IS NULL
           FROM public.reigns WHERE title_id = t.id AND ended_at IS NULL),
     'the author must hold the new title at the base price';
@@ -194,6 +195,13 @@ BEGIN
   BEGIN INSERT INTO public.coin_ledger (user_id, amount, reason) VALUES (a, 5, 'proposal');
   EXCEPTION WHEN check_violation THEN ok := true; END;
   ASSERT ok, 'a proposal ledger row must be a debit';
+
+  ASSERT (SELECT creator_username FROM public.titles_priced WHERE name = 'Señor del Ñandú')
+         = (SELECT username FROM public.profiles WHERE id = a),
+    'titles_priced must expose the creator of a community title';
+  ASSERT (SELECT created_by IS NULL AND creator_username IS NULL
+          FROM public.titles_priced WHERE name = 'Rey del Mate'),
+    'a seeded title has no creator';
 
   RAISE NOTICE 'title_proposals_test: all assertions passed';
 END $$;

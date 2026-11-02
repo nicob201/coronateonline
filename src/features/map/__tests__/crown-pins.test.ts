@@ -17,6 +17,7 @@ function card(overrides: Partial<TitleCard>): TitleCard {
     reignStartedAt: null,
     rarity: "comun",
     point: null,
+    category: "clasicos",
     ...overrides,
   };
 }

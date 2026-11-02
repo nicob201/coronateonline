@@ -354,6 +354,7 @@ export type Database = {
       titles: {
         Row: {
           created_at: string;
+          created_by: string | null;
           description: string;
           emoji: string;
           id: string;
@@ -366,6 +367,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           created_at?: string;
+          created_by?: string | null;
           description: string;
           emoji: string;
           id?: string;
@@ -377,6 +379,7 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          created_by?: string | null;
           description?: string;
           emoji?: string;
           id?: string;
@@ -387,6 +390,13 @@ export type Database = {
           slug?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "titles_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "titles_province_code_fkey";
             columns: ["province_code"];
@@ -401,6 +411,9 @@ export type Database = {
       titles_priced: {
         Row: {
           created_at: string;
+          created_by: string | null;
+          creator_display_name: string | null;
+          creator_username: string | null;
           current_price: number | null;
           description: string;
           emoji: string;
@@ -427,6 +440,13 @@ export type Database = {
           {
             foreignKeyName: "reigns_user_id_fkey";
             columns: ["holder_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "titles_created_by_fkey";
+            columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
