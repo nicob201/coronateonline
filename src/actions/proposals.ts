@@ -5,8 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { errorMessage } from "@/lib/errors";
 import { formatCoronas } from "@/lib/format";
 import { TITLE_PROPOSAL_COST } from "@/lib/titles";
-import { proposeTitle } from "@/services/proposals.server";
+import { proposeTitle, reviewProposal } from "@/services/proposals.server";
 import { proposeTitleSchema } from "@/features/proposals/schemas/propose-title.schema";
+import { reviewProposalSchema } from "@/features/proposals/schemas/review-proposal.schema";
 import type { ActionResult, TitleProposal } from "@/types";
 
 const NOT_AUTH = "Tenés que iniciar sesión para crear un título.";
@@ -54,6 +55,47 @@ export async function proponerTitulo(
   }
 
   // The balance chip, the wallet and the user's proposal list all change.
+  revalidatePath("/", "layout");
+  return { success: true, data: proposal };
+}
+
+const NOT_ADMIN = "No autorizado.";
+
+// Known review_title_proposal RPC exceptions → Spanish messages for the admin.
+const REVIEW_ERRORS: [string, string][] = [
+  ["Not authorized", NOT_ADMIN],
+  ["Proposal already reviewed", "Esa propuesta ya fue revisada."],
+  ["Title name taken", "Ya existe un título con ese nombre: rechazala."],
+];
+
+// Approves or rejects a title proposal; the RPC checks profiles.is_admin in the database.
+export async function revisarPropuesta(
+  _prevState: ActionResult<TitleProposal> | null,
+  formData: FormData,
+): Promise<ActionResult<TitleProposal>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, error: NOT_ADMIN };
+
+  const parsed = reviewProposalSchema.safeParse({
+    proposalId: formData.get("proposalId"),
+    decision: formData.get("decision"),
+  });
+  if (!parsed.success) return { success: false, error: "Datos inválidos." };
+
+  let proposal: TitleProposal;
+  try {
+    proposal = await reviewProposal(supabase, parsed.data.proposalId, parsed.data.decision === "approve");
+  } catch (err: unknown) {
+    const message = errorMessage(err);
+    const known = REVIEW_ERRORS.find(([key]) => message.includes(key));
+    return { success: false, error: known?.[1] ?? "No se pudo revisar la propuesta. Probá de nuevo." };
+  }
+
+  // An approval adds a title and a coronation everywhere; a rejection refunds the author's balance.
   revalidatePath("/", "layout");
   return { success: true, data: proposal };
 }

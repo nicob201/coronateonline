@@ -17,6 +17,12 @@ export type OwnProposal = Pick<TitleProposal, "id" | "name" | "emoji" | "status"
   titleSlug: string | null;
 };
 
+// A proposal waiting in the admin review queue, with its author.
+export type PendingProposal = Pick<TitleProposal, "id" | "name" | "emoji" | "description" | "created_at"> & {
+  authorUsername: string;
+  authorName: string;
+};
+
 // Cosmetic rarity tier derived from a title's current price.
 export type Rarity = "legendario" | "epico" | "comun";
 

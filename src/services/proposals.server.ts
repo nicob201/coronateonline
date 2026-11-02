@@ -1,5 +1,5 @@
 import type { SupabaseServerClient } from "@/lib/supabase/server";
-import type { OwnProposal, TitleProposal } from "@/types";
+import type { OwnProposal, PendingProposal, TitleProposal } from "@/types";
 
 // Submits a title for review via the atomic propose_title RPC, which charges its cost.
 export async function proposeTitle(
@@ -30,4 +30,35 @@ export async function getOwnProposals(
     .limit(10);
   if (error) throw error;
   return data.map(({ titles, ...proposal }) => ({ ...proposal, titleSlug: titles?.slug ?? null }));
+}
+
+// Fetches every pending proposal, oldest first, with its author (RLS shows other authors' rows only to admins).
+export async function getPendingProposals(supabase: SupabaseServerClient): Promise<PendingProposal[]> {
+  const { data, error } = await supabase
+    .from("title_proposals")
+    .select(
+      "id, name, emoji, description, created_at, author:profiles!title_proposals_user_id_fkey ( username, display_name )",
+    )
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data.map(({ author, ...proposal }) => ({
+    ...proposal,
+    authorUsername: author?.username ?? "",
+    authorName: author?.display_name?.trim() || author?.username || "",
+  }));
+}
+
+// Approves (publishes and crowns the author) or rejects (refunds) a proposal via the admin-only RPC.
+export async function reviewProposal(
+  supabase: SupabaseServerClient,
+  proposalId: string,
+  approve: boolean,
+): Promise<TitleProposal> {
+  const { data, error } = await supabase.rpc("review_title_proposal", {
+    p_proposal_id: proposalId,
+    p_approve: approve,
+  });
+  if (error) throw error;
+  return data;
 }

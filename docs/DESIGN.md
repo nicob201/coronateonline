@@ -72,10 +72,15 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
 - `is_admin` (boolean, default false)
 - Created automatically by a trigger on signup.
 
-### `titles` (admin-seeded only in MVP)
-- `id`, `slug` (unique), `name`, `emoji`, `description`, `created_at`
+### `titles` (seeded, plus approved player proposals since D18)
+- `id`, `slug` (unique), `name` (unique ignoring case), `emoji`, `description`, `created_at`
 - No holder/price columns — derived from `reigns`.
 - Geographic titles (v2.3): nullable `level` (`provincia` / `ciudad` / `barrio`), `province_code` (FK to `provinces`) and `location` (PostGIS `geography(Point, 4326)`). Either all three are set or none (CHECK), and a province has exactly one `provincia` crown (partial unique index). 24 province crowns ship in migration `0012`; `rey-de-argentina` and `reina-de-las-malvinas` stay non-geographic.
+
+### `title_proposals` (D18, migration `0015`)
+- `user_id`, `name`, `emoji`, `description`, `cost`, `status` (`pending` / `approved` / `rejected`), `title_id` (set on approval), `created_at`, `reviewed_at`.
+- At most one `pending` proposal per player (partial unique index). Readable by its author and admins; written only by RPCs.
+- `propose_title` charges 30 👑 (ledger reason `proposal`) and rejects a name already used by a title or a pending proposal. `review_title_proposal` is admin-only (`profiles.is_admin`): approve publishes the title with a slug from the name and crowns the author at the base price (1 👑) at no extra cost; reject refunds the stored `cost` (`proposal_refund`). Admins review at `/admin` (404 for everyone else).
 
 ### `provinces` (reference data, public read-only)
 - `code` (2-digit INDEC code, PK), `slug` (unique), `name`. 24 rows. `province_leaderboard(p_limit)` ranks every reign (active and ended) of every title in a province by duration.
@@ -120,7 +125,7 @@ UI copy in Spanish (es-AR). Visual direction: dark, cyberpunk + digital luxury (
 Deliberately excluded until the hypothesis validates:
 - Realtime beyond the live ticker/prices, the dethrone toast and the map pulses (shipped in D8/D9/D15)
 - Email / push notifications ("te destronaron") — dethroned users see it in-app (bell + live toast, D9)
-- User-created titles, profile boosts, sponsored titles
+- Profile boosts, sponsored titles
 - Reign expiry (does not exist in the takeover model)
 
 ## 6. Stack
