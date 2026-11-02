@@ -12,6 +12,10 @@ export function describeMovement(m: CoinMovement): string {
       return m.counterpartName ? `Destronaste a ${m.counterpartName}${where}` : `Te coronaste${where}`;
     case "dethroned":
       return `Te destronó ${m.counterpartName ?? "alguien"}${where}`;
+    case "proposal":
+      return "Propuesta de título";
+    case "proposal_refund":
+      return "Reembolso: propuesta rechazada";
     default:
       return m.reason;
   }
