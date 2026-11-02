@@ -289,6 +289,68 @@ export type Database = {
           },
         ];
       };
+      title_proposals: {
+        Row: {
+          cost: number;
+          created_at: string;
+          description: string;
+          emoji: string;
+          id: string;
+          name: string;
+          reviewed_at: string | null;
+          status: string;
+          title_id: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          cost: number;
+          created_at?: string;
+          description: string;
+          emoji: string;
+          id?: string;
+          name: string;
+          reviewed_at?: string | null;
+          status?: string;
+          title_id?: string | null;
+          user_id: string;
+        };
+        Update: {
+          cost?: number;
+          created_at?: string;
+          description?: string;
+          emoji?: string;
+          id?: string;
+          name?: string;
+          reviewed_at?: string | null;
+          status?: string;
+          title_id?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "title_proposals_title_id_fkey";
+            columns: ["title_id"];
+            isOneToOne: false;
+            referencedRelation: "titles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "title_proposals_title_id_fkey";
+            columns: ["title_id"];
+            isOneToOne: false;
+            referencedRelation: "titles_priced";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "title_proposals_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       titles: {
         Row: {
           created_at: string;
@@ -423,6 +485,27 @@ export type Database = {
         };
       };
       mark_notifications_seen: { Args: Record<PropertyKey, never>; Returns: undefined };
+      propose_title: {
+        Args: { p_description: string; p_emoji: string; p_name: string };
+        Returns: {
+          cost: number;
+          created_at: string;
+          description: string;
+          emoji: string;
+          id: string;
+          name: string;
+          reviewed_at: string | null;
+          status: string;
+          title_id: string | null;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "title_proposals";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       province_leaderboard: {
         Args: { p_limit?: number };
         Returns: {
@@ -472,6 +555,27 @@ export type Database = {
           title_name: string;
           title_slug: string;
         }[];
+      };
+      review_title_proposal: {
+        Args: { p_approve: boolean; p_proposal_id: string };
+        Returns: {
+          cost: number;
+          created_at: string;
+          description: string;
+          emoji: string;
+          id: string;
+          name: string;
+          reviewed_at: string | null;
+          status: string;
+          title_id: string | null;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "title_proposals";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       salary_status: {
         Args: Record<PropertyKey, never>;
