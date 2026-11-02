@@ -1,5 +1,6 @@
 import { type QueryData } from "@supabase/supabase-js";
 import type { SupabaseServerClient } from "@/lib/supabase/server";
+import { computeBadges, type BadgeReign } from "@/lib/badges";
 import type { Profile, ProfileReign, PublicProfile, SocialKey } from "@/types";
 
 const SOCIAL_KEYS: SocialKey[] = ["instagram", "tiktok", "youtube", "x", "twitch", "website"];
@@ -53,12 +54,27 @@ const publicProfileQuery = (supabase: SupabaseServerClient, username: string) =>
     .select(
       `username, display_name, avatar_url, bio, is_bot,
        instagram, tiktok, youtube, x, twitch, website,
-       reigns!reigns_user_id_fkey ( price_paid, started_at, ended_at, message, titles ( name, emoji, slug ) )`,
+       reigns!reigns_user_id_fkey ( price_paid, started_at, ended_at, message,
+         titles ( name, emoji, slug, level ),
+         dethroned:profiles!reigns_dethroned_user_id_fkey ( is_bot ) ),
+       times_dethroned:reigns!reigns_dethroned_user_id_fkey ( count )`,
     )
     .eq("username", username)
     .maybeSingle();
 type PublicProfileRow = QueryData<ReturnType<typeof publicProfileQuery>>;
 type ProfileReignRow = NonNullable<PublicProfileRow>["reigns"][number];
+
+// Reduces a joined reign row to the fields the badge rules need.
+function toBadgeReign(row: ProfileReignRow): BadgeReign {
+  return {
+    titleSlug: row.titles?.slug ?? "",
+    pricePaid: row.price_paid,
+    startedAt: row.started_at,
+    endedAt: row.ended_at,
+    isProvince: row.titles?.level === "provincia",
+    dethroned: row.dethroned === null ? "none" : row.dethroned.is_bot ? "bot" : "human",
+  };
+}
 
 // Flattens a joined reign row into the public profile shape.
 function toProfileReign(row: ProfileReignRow): ProfileReign {
@@ -101,6 +117,11 @@ export async function getPublicProfile(
     pastReigns: reigns
       .filter((r) => r.endedAt !== null)
       .sort((a, b) => b.startedAt.localeCompare(a.startedAt)),
+    badges: computeBadges(
+      data.reigns.map(toBadgeReign),
+      data.times_dethroned[0]?.count ?? 0,
+      Date.now(),
+    ),
   };
 }
 

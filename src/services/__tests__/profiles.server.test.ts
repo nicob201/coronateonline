@@ -29,21 +29,25 @@ function profileRow(overrides: Record<string, unknown> = {}) {
         price_paid: 5,
         started_at: "2026-08-20T00:00:00Z",
         ended_at: null,
-        titles: { name: "Rey de Córdoba", emoji: "👑", slug: "rey-de-cordoba" },
+        titles: { name: "Rey de Córdoba", emoji: "👑", slug: "rey-de-cordoba", level: "provincia" },
+        dethroned: { is_bot: true },
       },
       {
         price_paid: 2,
         started_at: "2026-08-10T00:00:00Z",
         ended_at: "2026-08-15T00:00:00Z",
-        titles: { name: "CEO de los Lunes", emoji: "😂", slug: "ceo-lunes" },
+        titles: { name: "CEO de los Lunes", emoji: "😂", slug: "ceo-lunes", level: null },
+        dethroned: null,
       },
       {
         price_paid: 3,
         started_at: "2026-08-01T00:00:00Z",
         ended_at: "2026-08-05T00:00:00Z",
-        titles: { name: "Rey de la Pizza", emoji: "🍕", slug: "rey-pizza" },
+        titles: { name: "Rey de la Pizza", emoji: "🍕", slug: "rey-pizza", level: null },
+        dethroned: { is_bot: false },
       },
     ],
+    times_dethroned: [{ count: 10 }],
     ...overrides,
   };
 }
@@ -91,6 +95,19 @@ describe("getPublicProfile", () => {
     const supabase = createSupabaseMock({ query: { data: profileRow({ is_bot: true }), error: null } });
     const result = await getPublicProfile(supabase, "baron_bug");
     expect(result?.isBot).toBe(true);
+  });
+
+  it("derives badges from the reigns' title level, dethroned player and times dethroned", async () => {
+    const supabase = createSupabaseMock({ query: { data: profileRow(), error: null } });
+    const result = await getPublicProfile(supabase, "nico");
+    expect(result?.badges.filter((b) => b.earned).map((b) => b.name)).toEqual([
+      "Primera Corona",
+      "Usurpador",
+      "Cazabots",
+      "Señor Feudal",
+      "Dinastía",
+      "Mártir",
+    ]);
   });
 
   it("keeps only non-null social links", async () => {

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getPublicProfile } from "@/services/profiles.server";
 import { ProfileHeader } from "@/features/profile/components/profile-header";
+import { ProfileBadges } from "@/features/profile/components/profile-badges";
 import { ProfileReignList } from "@/features/profile/components/profile-reign-list";
 
 // Resolves the "@handle" URL segment to a bare username, or null if it is not a profile path.
@@ -42,6 +43,8 @@ export default async function ProfilePage({ params }: PageProps<"/[username]">) 
   return (
     <main className="relative z-10 container mx-auto px-5 md:px-16 max-w-[900px] pt-16 pb-32 flex flex-col gap-10">
       <ProfileHeader profile={profile} />
+
+      <ProfileBadges badges={profile.badges} />
 
       <div className="flex flex-col gap-4">
         <h2 className="text-title-md font-title-md text-on-surface border-b border-outline-variant/30 pb-2">

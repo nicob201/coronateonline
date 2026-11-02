@@ -112,6 +112,9 @@ export type ProfileReign = {
   message: string | null;
 };
 
+// A profile achievement and whether the player has earned it.
+export type Badge = { emoji: string; name: string; description: string; earned: boolean };
+
 // Social platform keys that can appear on a public profile.
 export type SocialKey = "instagram" | "tiktok" | "youtube" | "x" | "twitch" | "website";
 
@@ -125,6 +128,7 @@ export type PublicProfile = {
   socials: Partial<Record<SocialKey, string>>;
   currentReigns: ProfileReign[];
   pastReigns: ProfileReign[];
+  badges: Badge[];
 };
 
 // A ranked user in the Hall of Fame.
