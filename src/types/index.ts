@@ -10,6 +10,18 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Title = Database["public"]["Tables"]["titles"]["Row"];
 export type Reign = Database["public"]["Tables"]["reigns"]["Row"];
 export type CoinLedgerRow = Database["public"]["Tables"]["coin_ledger"]["Row"];
+export type TitleProposal = Database["public"]["Tables"]["title_proposals"]["Row"];
+
+// One of the user's own title proposals, with the published title's slug once approved.
+export type OwnProposal = Pick<TitleProposal, "id" | "name" | "emoji" | "status" | "created_at"> & {
+  titleSlug: string | null;
+};
+
+// A proposal waiting in the admin review queue, with its author.
+export type PendingProposal = Pick<TitleProposal, "id" | "name" | "emoji" | "description" | "created_at"> & {
+  authorUsername: string;
+  authorName: string;
+};
 
 // Cosmetic rarity tier derived from a title's current price.
 export type Rarity = "legendario" | "epico" | "comun";

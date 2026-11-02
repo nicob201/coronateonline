@@ -5,6 +5,8 @@ import { formatReignDuration } from "@/lib/format";
 
 export const BASE_PRICE = 1;
 export const MIN_INCREMENT = 1;
+// What propose_title charges (migration 0015); the database is the authority, this is for display.
+export const TITLE_PROPOSAL_COST = 30;
 
 // Derives a cosmetic rarity tier from a title's current price (base price when unclaimed).
 export function rarity(currentPrice: number | null): Rarity {

@@ -48,4 +48,11 @@ describe("describeMovement", () => {
   it("falls back to 'alguien' and drops the title when the reign is gone", () => {
     expect(describeMovement(movement({ reason: "dethroned", amount: 40 }))).toBe("Te destronó alguien");
   });
+
+  it("labels a title proposal and its refund", () => {
+    expect(describeMovement(movement({ reason: "proposal", amount: -30 }))).toBe("Propuesta de título");
+    expect(describeMovement(movement({ reason: "proposal_refund", amount: 30 }))).toBe(
+      "Reembolso: propuesta rechazada",
+    );
+  });
 });

@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseServerClient } from "@/lib/supabase/server";
 import { guestIdentity } from "@/lib/auth";
@@ -28,6 +28,21 @@ export async function requireOnboardedUser() {
   }
 
   return { supabase, user, profile };
+}
+
+// Returns the signed-in admin (profiles.is_admin, read from the database); anyone else gets a 404 so the page never leaks.
+export async function requireAdmin() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const profile = user ? await getOwnProfile(supabase, user.id) : null;
+
+  if (!profile?.is_admin) {
+    notFound();
+  }
+
+  return { supabase };
 }
 
 // Starts an anonymous session with a random courtly name; the display name skips onboarding.
