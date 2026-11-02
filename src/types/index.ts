@@ -29,6 +29,9 @@ export type Rarity = "legendario" | "epico" | "comun";
 // Public subset of a profile shown as a title's holder.
 export type TitleHolder = Pick<Profile, "username" | "display_name" | "avatar_url" | "is_bot">;
 
+// Where a title comes from: a province crown, the seeded classics, or an approved player proposal.
+export type TitleCategory = "provincias" | "clasicos" | "comunidad";
+
 // A title with its current holder, price and rarity derived from the active reign.
 export type TitleCard = Pick<
   Title,
@@ -42,6 +45,7 @@ export type TitleCard = Pick<
   rarity: Rarity;
   // [lon, lat] of a geographic title, null for plain ones.
   point: [number, number] | null;
+  category: TitleCategory;
 };
 
 // One ranked reign in a province leaderboard; durationLabel is computed on the server.
@@ -91,6 +95,8 @@ export type PastReign = {
 
 // A title's detail view: the card plus a resolved holder name and full past-reign history.
 export type TitleDetail = TitleCard & {
+  // The player who created a community title (null for seeded titles or a deleted account).
+  creator: { username: string; name: string } | null;
   holderName: string | null;
   holderPaid: number | null;
   pastReigns: PastReign[];
