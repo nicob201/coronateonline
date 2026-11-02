@@ -80,6 +80,14 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
             <p className="text-body-sm font-body-sm text-on-surface-variant mt-4 max-w-md">
               {title.description}
             </p>
+            {title.creator && (
+              <p className="text-label-caps font-label-caps text-on-surface-variant mt-2">
+                Creado por{" "}
+                <Link href={`/@${title.creator.username}`} className="text-primary hover:text-tertiary">
+                  {title.creator.name}
+                </Link>
+              </p>
+            )}
             <div className="mt-4">
               <ShareButton
                 path={`/t/${slug}`}

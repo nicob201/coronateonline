@@ -74,6 +74,7 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
 
 ### `titles` (seeded, plus approved player proposals since D18)
 - `id`, `slug` (unique), `name` (unique ignoring case), `emoji`, `description`, `created_at`
+- `created_by` (nullable FK → profiles, set when a proposal is approved; migration `0016`). `/titulos` groups titles as Provincias (`level = 'provincia'`), De la comunidad (`created_by` set) and Clásicos (the rest), with search, sort and "Me alcanza" in the URL (`?q=&cat=&orden=&alcanza=1`).
 - No holder/price columns — derived from `reigns`.
 - Geographic titles (v2.3): nullable `level` (`provincia` / `ciudad` / `barrio`), `province_code` (FK to `provinces`) and `location` (PostGIS `geography(Point, 4326)`). Either all three are set or none (CHECK), and a province has exactly one `provincia` crown (partial unique index). 24 province crowns ship in migration `0012`; `rey-de-argentina` and `reina-de-las-malvinas` stay non-geographic.
 
