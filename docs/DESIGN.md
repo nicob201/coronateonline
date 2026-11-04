@@ -95,6 +95,11 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
   real amount paid; decay only affects the live threshold, never stored history.
 - Activity feed = recent reigns ordered by `started_at`. Season number = position in the title's reign sequence.
 
+### `reign_reactions` (D20, migration `0017`)
+- `reign_id` (FK → reigns), `user_id` (FK → profiles), `kind` (`tomato` / `applause`), `created_at`. One row per throw at a title's **current** reign; totals start at zero with every new reign.
+- Owner-only rows (who reacted when stays private); everyone reads totals through `reign_reaction_counts(reign_id)`.
+- `react_to_reign(reign_id, kind)` is the only write path: active reign, not your own, at most 10 throws per user per minute (serialized on the profile lock). It returns the new totals and broadcasts `{kind, tomatoes, applause}` on the private Realtime topic `reign:<id>`; a `realtime.messages` policy lets anyone listen there and nobody send. `/t/[slug]` shows 🍅 / 👏 pills under the title and every throw lands on the crown for all viewers.
+
 ### `coin_ledger` (the wallet — append-only)
 - `id`, `user_id` (FK → profiles), `amount` (signed integer 👑: credit > 0, debit < 0), `reason` (`welcome`, `dethrone` (always negative), `dethroned`, `salary`), `reign_id` (FK → reigns, nullable, `ON DELETE SET NULL`), `created_at`
 - **Balance is derived**: `coin_balance(user_id)` = sum of the user's rows. Never stored.

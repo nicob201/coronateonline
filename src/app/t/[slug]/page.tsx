@@ -15,7 +15,7 @@ import { LiveFlash } from "@/components/live-flash";
 import { TitleMorph } from "@/components/title-morph";
 import { DethroneForm } from "@/features/dethrone/components/dethrone-form";
 import { CoronationCelebration } from "@/features/dethrone/components/coronation-celebration";
-import { ReactionBar } from "@/features/reactions/components/reaction-bar";
+import { ReactionBar, REACTION_STAGE_ID } from "@/features/reactions/components/reaction-bar";
 import { formatCoronas, formatReignDuration } from "@/lib/format";
 import { minClaimAmount, RARITY_LABELS } from "@/lib/titles";
 
@@ -78,6 +78,7 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                 className="relative text-8xl mb-6"
               >
                 {title.emoji}
+                <span id={REACTION_STAGE_ID} aria-hidden="true" className="absolute inset-0 pointer-events-none" />
               </LiveFlash>
             </TitleMorph>
             <h1 className="text-headline-lg-mobile md:text-headline-lg font-headline-lg text-gradient-primary uppercase tracking-tighter">
