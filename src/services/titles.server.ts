@@ -184,6 +184,7 @@ export async function getTitleBySlug(
     creator: data.creator_username
       ? { username: data.creator_username, name: data.creator_display_name?.trim() || data.creator_username }
       : null,
+    reignId: data.reign_id,
     holderName: card.holder ? displayName(card.holder) : null,
     holderPaid: data.holder_paid,
     pastReigns,
