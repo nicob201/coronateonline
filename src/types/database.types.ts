@@ -226,6 +226,53 @@ export type Database = {
         };
         Relationships: [];
       };
+      reign_reactions: {
+        Row: {
+          created_at: string;
+          id: number;
+          kind: string;
+          reign_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: never;
+          kind: string;
+          reign_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: never;
+          kind?: string;
+          reign_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reign_reactions_reign_id_fkey";
+            columns: ["reign_id"];
+            isOneToOne: false;
+            referencedRelation: "reigns";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reign_reactions_reign_id_fkey";
+            columns: ["reign_id"];
+            isOneToOne: false;
+            referencedRelation: "titles_priced";
+            referencedColumns: ["reign_id"];
+          },
+          {
+            foreignKeyName: "reign_reactions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       reigns: {
         Row: {
           dethroned_user_id: string | null;
@@ -574,6 +621,20 @@ export type Database = {
           title_emoji: string;
           title_name: string;
           title_slug: string;
+        }[];
+      };
+      react_to_reign: {
+        Args: { p_kind: string; p_reign_id: string };
+        Returns: {
+          applause: number;
+          tomatoes: number;
+        }[];
+      };
+      reign_reaction_counts: {
+        Args: { p_reign_id: string };
+        Returns: {
+          applause: number;
+          tomatoes: number;
         }[];
       };
       review_title_proposal: {
