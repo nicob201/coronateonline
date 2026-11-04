@@ -23,6 +23,12 @@ export type PendingProposal = Pick<TitleProposal, "id" | "name" | "emoji" | "des
   authorName: string;
 };
 
+// Tomato and applause totals of one reign.
+export type ReactionCounts = Database["public"]["Functions"]["reign_reaction_counts"]["Returns"][number];
+
+// What a player can throw at a reign.
+export type ReactionKind = "tomato" | "applause";
+
 // Cosmetic rarity tier derived from a title's current price.
 export type Rarity = "legendario" | "epico" | "comun";
 
@@ -95,6 +101,8 @@ export type PastReign = {
 
 // A title's detail view: the card plus a resolved holder name and full past-reign history.
 export type TitleDetail = TitleCard & {
+  // The active reign (null while the throne is vacant).
+  reignId: string | null;
   // The player who created a community title (null for seeded titles or a deleted account).
   creator: { username: string; name: string } | null;
   holderName: string | null;

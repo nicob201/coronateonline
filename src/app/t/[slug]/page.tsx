@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getTitleBySlug } from "@/services/titles.server";
 import { getBalance } from "@/services/wallet.server";
+import { getReactionCounts } from "@/services/reactions.server";
 import { ReignHistory } from "@/components/reign-history";
 import { PriceSparkline } from "@/components/price-sparkline";
 import { LongestReigns } from "@/components/longest-reigns";
@@ -14,6 +15,7 @@ import { LiveFlash } from "@/components/live-flash";
 import { TitleMorph } from "@/components/title-morph";
 import { DethroneForm } from "@/features/dethrone/components/dethrone-form";
 import { CoronationCelebration } from "@/features/dethrone/components/coronation-celebration";
+import { ReactionBar } from "@/features/reactions/components/reaction-bar";
 import { formatCoronas, formatReignDuration } from "@/lib/format";
 import { minClaimAmount, RARITY_LABELS } from "@/lib/titles";
 
@@ -41,12 +43,16 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const balance = user ? await getBalance(supabase, user.id) : 0;
+  const [balance, reactions] = await Promise.all([
+    user ? getBalance(supabase, user.id) : 0,
+    title.reignId ? getReactionCounts(supabase, title.reignId) : null,
+  ]);
 
   const isHeld = title.holder !== null;
   const iAmHolder = !!user && user.id === title.holderUserId;
   const currentPrice = title.price;
   const nextPrice = minClaimAmount(currentPrice);
+  const loginHref = `/login?next=${encodeURIComponent(`/t/${slug}`)}`;
 
   return (
     <main className="relative z-10 container mx-auto px-5 md:px-16 max-w-[1280px] pt-12 pb-32 flex flex-col gap-12">
@@ -87,6 +93,15 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                   {title.creator.name}
                 </Link>
               </p>
+            )}
+            {title.reignId && reactions && (
+              <ReactionBar
+                key={title.reignId}
+                reignId={title.reignId}
+                initialCounts={reactions}
+                viewer={!user ? "visitor" : iAmHolder ? "holder" : "player"}
+                loginHref={loginHref}
+              />
             )}
             <div className="mt-4">
               <ShareButton
@@ -225,7 +240,7 @@ export default async function TitleDetailPage({ params }: PageProps<"/t/[slug]">
                 />
               ) : (
                 <Link
-                  href={`/login?next=${encodeURIComponent(`/t/${slug}`)}`}
+                  href={loginHref}
                   className="self-stretch text-center btn-destronar text-on-surface px-8 py-3 rounded-lg text-label-caps font-label-caps font-bold tracking-widest border border-secondary-container/50"
                 >
                   INICIAR SESIÓN PARA {isHeld ? "DESTRONAR" : "CORONARME"}

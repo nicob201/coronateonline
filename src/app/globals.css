@@ -564,6 +564,32 @@ html:has(.coronation-dialog[open]) {
   animation: coin-float 1.4s ease-out both;
 }
 
+/* A thrown 🍅 / 👏 hops up out of its button. */
+.reaction-pop {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  translate: -50% 0;
+  font-size: 1.5rem;
+  pointer-events: none;
+  animation: reaction-pop 0.8s ease-out both;
+}
+
+@keyframes reaction-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-0.25rem) scale(1.2) rotate(-10deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-2.5rem) scale(1) rotate(15deg);
+  }
+}
+
 @keyframes coin-float {
   0% {
     opacity: 0;
@@ -676,7 +702,8 @@ html:has(.coronation-dialog[open]) {
     animation: none;
   }
 
-  .coin-float {
+  .coin-float,
+  .reaction-pop {
     display: none;
   }
 
