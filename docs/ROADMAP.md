@@ -51,7 +51,7 @@ Mapa oscuro de Argentina (bordes IGN, con Malvinas y Antártida) donde las coron
 
 ## Semana 5 — Ingeniería
 
-- [ ] **D21** — E2E con Playwright (invitado → destronar → ticker) en CI
+- [x] **D21** — E2E con Playwright (invitado → destronar → ticker) en CI
 - [ ] **D22** — Tests SQL de los RPC con Supabase local en CI
 - [ ] **D23** — Revisión de seguridad: RLS, abuso de invitados (captcha), rate limiting, nombres visibles duplicados (hoy solo el `@username` es único)
 - [ ] **D24** — Vercel Analytics, Sentry, sitemap / robots, PWA, Lighthouse ≥ 95
