@@ -85,14 +85,11 @@ export async function updateProfile(
 
 const optionalUrl = z
   .url({ error: "Poné una URL válida (https://...)." })
+  .max(300, { error: "La URL no puede superar los 300 caracteres." })
   .optional();
 
 const detailsSchema = z.object({
-  display_name: z
-    .string()
-    .trim()
-    .min(1, { error: "El nombre es obligatorio." })
-    .max(50, { error: "El nombre no puede superar los 50 caracteres." }),
+  display_name: displayNameSchema,
   bio: z
     .string()
     .trim()
