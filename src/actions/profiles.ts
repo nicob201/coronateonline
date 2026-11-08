@@ -27,6 +27,17 @@ const usernameSchema = z.string().regex(/^[a-z0-9_]{3,20}$/, {
   error: "El username debe tener entre 3 y 20 caracteres (letras, números y guión bajo).",
 });
 
+const uniqueViolationSchema = z.object({ code: z.literal("23505"), message: z.string() });
+
+// Friendly message for a Postgres unique violation on a profile write, or null for any other failure.
+function profileConflictError(err: unknown): string | null {
+  const conflict = uniqueViolationSchema.safeParse(err);
+  if (!conflict.success) return null;
+  return conflict.data.message.includes("display_name")
+    ? "Ese nombre ya lo usa otra persona."
+    : "Ese username ya está en uso.";
+}
+
 // Updates username and display_name for the authenticated user (onboarding).
 export async function updateProfile(
   _prevState: ActionResult<Profile> | null,
@@ -63,19 +74,7 @@ export async function updateProfile(
       display_name: displayNameResult.data,
     });
   } catch (err: unknown) {
-    // Map Postgres unique violation on username to a friendly Spanish error.
-    if (
-      typeof err === "object" &&
-      err !== null &&
-      "code" in err &&
-      (err as { code?: string }).code === "23505"
-    ) {
-      return {
-        success: false,
-        error: "Ese username ya está en uso.",
-      };
-    }
-    return { success: false, error: "Error al actualizar el perfil." };
+    return { success: false, error: profileConflictError(err) ?? "Error al actualizar el perfil." };
   }
 
   revalidatePath("/");
@@ -160,9 +159,9 @@ export async function updateProfileDetails(
   let updated: Profile;
   try {
     updated = await updateOwnProfile(supabase, user.id, updates);
-  } catch {
+  } catch (err: unknown) {
     if (uploadedUrl) await removeAvatarByUrl(supabase, uploadedUrl);
-    return { success: false, error: "No se pudo guardar el perfil." };
+    return { success: false, error: profileConflictError(err) ?? "No se pudo guardar el perfil." };
   }
 
   if (uploadedUrl && profile.avatar_url && profile.avatar_url !== uploadedUrl) {

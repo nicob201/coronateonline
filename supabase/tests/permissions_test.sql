@@ -52,7 +52,10 @@ END $$;
 
 -- A user editing their own row straight through the API, without the Server Action.
 INSERT INTO auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at) VALUES
-  ('e1111111-1111-4111-8111-111111111111', 'authenticated', 'authenticated', 'permissions@coronate.test', '{}', '{}', now(), now());
+  ('e1111111-1111-4111-8111-111111111111', 'authenticated', 'authenticated', 'permissions@coronate.test', '{}', '{}', now(), now()),
+  ('e2222222-2222-4222-8222-222222222222', 'authenticated', 'authenticated', 'permissions2@coronate.test', '{}', '{}', now(), now());
+
+UPDATE public.profiles SET display_name = 'Sofía Única' WHERE id = 'e2222222-2222-4222-8222-222222222222';
 
 SELECT set_config('request.jwt.claims',
   '{"sub":"e1111111-1111-4111-8111-111111111111","role":"authenticated"}', true);
@@ -79,6 +82,15 @@ BEGIN
       EXECUTE format('UPDATE public.profiles SET %s WHERE id = %L', bad, me);
     EXCEPTION WHEN check_violation THEN ok := true; END;
     ASSERT ok, format('must be rejected: %s', left(bad, 60));
+  END LOOP;
+
+  -- Someone else's display name is taken, whatever the case, accents or outer spaces.
+  FOREACH bad IN ARRAY ARRAY['Sofía Única', 'SOFIA UNICA', '  sofia única  '] LOOP
+    ok := false;
+    BEGIN
+      UPDATE public.profiles SET display_name = bad WHERE id = me;
+    EXCEPTION WHEN unique_violation THEN ok := true; END;
+    ASSERT ok, format('a taken display name must be rejected: %s', bad);
   END LOOP;
 
   ok := false;
