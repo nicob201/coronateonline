@@ -21,7 +21,7 @@ jobs:
       - run: npm ci
       - run: npm run verify
 
-  e2e:
+  integration:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -32,4 +32,8 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npx supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,supavisor,postgres-meta
+      # Runs before the e2e, which dethrones a seeded holder; the SQL tests roll back and expect seed state.
+      - run: npm run test:sql
+        env:
+          SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - run: npx playwright test

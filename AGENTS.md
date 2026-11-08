@@ -22,6 +22,7 @@ npm run build        # production build
 npm run lint         # ESLint
 npm run typecheck    # route typegen + tsc --noEmit
 npm run test         # Vitest
+npm run test:sql     # SQL tests of the RPCs (needs SUPABASE_DB_URL exported, point it at the local stack)
 npm run test:e2e     # Playwright against the local stack (resets the local DB)
 npm run verify       # lint + typecheck + test + build (same as CI)
 ```
