@@ -20,6 +20,26 @@ INSERT INTO titles (id, slug, name, emoji, description) VALUES
 INSERT INTO reigns (title_id, user_id, price_paid, started_at)
   VALUES ('d3333333-3333-4333-8333-333333333333', 'd1111111-1111-4111-8111-111111111111', 10, now());
 
+-- No caller: anon has no EXECUTE, and a session without a sub is rejected by the function itself.
+SET LOCAL ROLE anon;
+DO $$
+DECLARE ok boolean := false;
+BEGIN
+  BEGIN PERFORM public.dethrone_with_coins('d4444444-4444-4444-8444-444444444444', 1);
+  EXCEPTION WHEN insufficient_privilege THEN ok := true; END;
+  ASSERT ok, 'anon must not execute dethrone_with_coins';
+END $$;
+
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE ok boolean := false;
+BEGIN
+  BEGIN PERFORM public.dethrone_with_coins('d4444444-4444-4444-8444-444444444444', 1);
+  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Not authenticated'; END;
+  ASSERT ok, 'a session without a sub must be rejected as not authenticated';
+END $$;
+RESET ROLE;
+
 -- Act as the challenger c.
 SELECT set_config('request.jwt.claims',
   '{"sub":"d2222222-2222-4222-8222-222222222222","role":"authenticated"}', true);
