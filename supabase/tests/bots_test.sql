@@ -146,7 +146,7 @@ BEGIN
   ASSERT r.message IS NOT NULL AND position('{victim}' IN r.message) = 0, format('(f) bad message: %s', r.message);
 
   -- (g) a very long victim name still yields a message within 80 chars
-  UPDATE public.profiles SET display_name = 'Humano con un nombre larguísimo para probar los mensajes de los bots'
+  UPDATE public.profiles SET display_name = left('Humano con un nombre larguísimo para probar los mensajes de los bots', 50)
   WHERE id = h;
   PERFORM pg_temp.hold(y, h, 5, interval '13 hours');
   PERFORM pg_temp.set_balance(id, 50) FROM public.profiles WHERE is_bot;

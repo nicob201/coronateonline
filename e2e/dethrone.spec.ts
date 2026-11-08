@@ -12,5 +12,5 @@ test("a guest dethrones a seeded holder and the home ticker shows it", async ({ 
   await page.getByRole("button", { name: "SEGUIR" }).click();
 
   await page.goto("/");
-  await expect(page.locator(".ticker")).toContainText("DESTRONÓ A JUANA — REY DE LA PIZZA");
+  await expect(page.locator(".ticker")).toContainText(/#\d{4} DESTRONÓ A JUANA — REY DE LA PIZZA/);
 });

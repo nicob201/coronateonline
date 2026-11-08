@@ -24,6 +24,8 @@ const FLAVORS = [
 
 export type GuestIdentity = { username: string; displayName: string };
 
+export const GUEST_ENTRY_ERROR = "No pudimos crear tu usuario invitado. Probá de nuevo en un rato.";
+
 // Builds a random courtly guest identity, e.g. bufon_0427 / "Bufón sin corona #0427".
 export function guestIdentity(random: () => number = Math.random): GuestIdentity {
   const role = ROLES[Math.floor(random() * ROLES.length)];

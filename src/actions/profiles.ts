@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { displayNameSchema } from "@/features/auth/schemas/display-name.schema";
 import { createClient } from "@/lib/supabase/server";
 import { requireOnboardedUser } from "@/services/auth.server";
 import {
@@ -26,11 +27,16 @@ const usernameSchema = z.string().regex(/^[a-z0-9_]{3,20}$/, {
   error: "El username debe tener entre 3 y 20 caracteres (letras, números y guión bajo).",
 });
 
-const displayNameSchema = z
-  .string()
-  .trim()
-  .min(1, { error: "El nombre es obligatorio." })
-  .max(50, { error: "El nombre no puede superar los 50 caracteres." });
+const uniqueViolationSchema = z.object({ code: z.literal("23505"), message: z.string() });
+
+// Friendly message for a Postgres unique violation on a profile write, or null for any other failure.
+function profileConflictError(err: unknown): string | null {
+  const conflict = uniqueViolationSchema.safeParse(err);
+  if (!conflict.success) return null;
+  return conflict.data.message.includes("display_name")
+    ? "Ese nombre ya lo usa otra persona."
+    : "Ese username ya está en uso.";
+}
 
 // Updates username and display_name for the authenticated user (onboarding).
 export async function updateProfile(
@@ -68,19 +74,7 @@ export async function updateProfile(
       display_name: displayNameResult.data,
     });
   } catch (err: unknown) {
-    // Map Postgres unique violation on username to a friendly Spanish error.
-    if (
-      typeof err === "object" &&
-      err !== null &&
-      "code" in err &&
-      (err as { code?: string }).code === "23505"
-    ) {
-      return {
-        success: false,
-        error: "Ese username ya está en uso.",
-      };
-    }
-    return { success: false, error: "Error al actualizar el perfil." };
+    return { success: false, error: profileConflictError(err) ?? "Error al actualizar el perfil." };
   }
 
   revalidatePath("/");
@@ -90,14 +84,11 @@ export async function updateProfile(
 
 const optionalUrl = z
   .url({ error: "Poné una URL válida (https://...)." })
+  .max(300, { error: "La URL no puede superar los 300 caracteres." })
   .optional();
 
 const detailsSchema = z.object({
-  display_name: z
-    .string()
-    .trim()
-    .min(1, { error: "El nombre es obligatorio." })
-    .max(50, { error: "El nombre no puede superar los 50 caracteres." }),
+  display_name: displayNameSchema,
   bio: z
     .string()
     .trim()
@@ -168,9 +159,9 @@ export async function updateProfileDetails(
   let updated: Profile;
   try {
     updated = await updateOwnProfile(supabase, user.id, updates);
-  } catch {
+  } catch (err: unknown) {
     if (uploadedUrl) await removeAvatarByUrl(supabase, uploadedUrl);
-    return { success: false, error: "No se pudo guardar el perfil." };
+    return { success: false, error: profileConflictError(err) ?? "No se pudo guardar el perfil." };
   }
 
   if (uploadedUrl && profile.avatar_url && profile.avatar_url !== uploadedUrl) {

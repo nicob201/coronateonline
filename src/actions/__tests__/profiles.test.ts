@@ -1,19 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createSupabaseMock } from "@/test/supabase-mock";
 
-const { revalidatePathMock, requireOnboardedUserMock } = vi.hoisted(() => ({
+const { revalidatePathMock, requireOnboardedUserMock, createClientMock } = vi.hoisted(() => ({
   revalidatePathMock: vi.fn(),
   requireOnboardedUserMock: vi.fn(),
+  createClientMock: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: revalidatePathMock }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
-vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
+vi.mock("@/lib/supabase/server", () => ({ createClient: createClientMock }));
 vi.mock("@/services/auth.server", () => ({
   requireOnboardedUser: requireOnboardedUserMock,
 }));
 
-import { updateProfileDetails } from "../profiles";
+import { updateProfile, updateProfileDetails } from "../profiles";
+
+const TAKEN_NAME = {
+  code: "23505",
+  message: 'duplicate key value violates unique constraint "profiles_display_name_unique"',
+};
+const TAKEN_USERNAME = {
+  code: "23505",
+  message: 'duplicate key value violates unique constraint "profiles_username_key"',
+};
 
 function pngFile(bytes = 3): File {
   return new File([new Uint8Array(bytes)], "a.png", { type: "image/png" });
@@ -112,5 +122,34 @@ describe("updateProfileDetails", () => {
 
     expect(result.success).toBe(false);
     expect(supabase.storage.from("avatars").remove).toHaveBeenCalledWith(["u1/new.png"]);
+  });
+
+  it("says the name is taken and still rolls back the avatar", async () => {
+    const supabase = createSupabaseMock({
+      query: { data: null, error: TAKEN_NAME },
+      publicUrl: "https://cdn.test/storage/v1/object/public/avatars/u1/new.png",
+    });
+    mockUser(supabase);
+
+    const result = await updateProfileDetails(null, form({ avatar: pngFile() }));
+
+    expect(result).toEqual({ success: false, error: "Ese nombre ya lo usa otra persona." });
+    expect(supabase.storage.from("avatars").remove).toHaveBeenCalledWith(["u1/new.png"]);
+  });
+});
+
+describe("updateProfile", () => {
+  it.each([
+    [TAKEN_NAME, "Ese nombre ya lo usa otra persona."],
+    [TAKEN_USERNAME, "Ese username ya está en uso."],
+    [{ message: "db down" }, "Error al actualizar el perfil."],
+  ])("maps a failed save to the right message", async (error, message) => {
+    createClientMock.mockResolvedValue(
+      createSupabaseMock({ user: { id: "u1" }, query: { data: null, error } }),
+    );
+    const fd = form();
+    fd.set("username", "nico");
+
+    expect(await updateProfile(null, fd)).toEqual({ success: false, error: message });
   });
 });

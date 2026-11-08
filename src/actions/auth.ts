@@ -1,9 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { safeNextPath } from "@/lib/auth";
+import { displayNameSchema } from "@/features/auth/schemas/display-name.schema";
+import { GUEST_ENTRY_ERROR, safeNextPath } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { signInAsGuest } from "@/services/auth.server";
+import { nameGuest } from "@/services/auth.server";
 import type { ActionResult } from "@/types";
 
 // Signs out the current user and redirects to the home page.
@@ -13,7 +14,7 @@ export async function signOut() {
   redirect("/");
 }
 
-// Enters as an anonymous guest (reusing an existing session) and returns to `next`.
+// Finishes a guest entry started in the browser: names a new guest and returns to `next`.
 export async function enterAsGuest(
   _prevState: ActionResult<null> | null,
   formData: FormData,
@@ -22,15 +23,17 @@ export async function enterAsGuest(
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const displayName = displayNameSchema.safeParse(formData.get("displayName"));
 
-  if (!user) {
+  if (!user || !displayName.success) {
+    return { success: false, error: GUEST_ENTRY_ERROR };
+  }
+
+  if (user.is_anonymous) {
     try {
-      await signInAsGuest(supabase);
+      await nameGuest(supabase, user.id, displayName.data);
     } catch {
-      return {
-        success: false,
-        error: "No pudimos crear tu usuario invitado. Probá de nuevo en un rato.",
-      };
+      return { success: false, error: GUEST_ENTRY_ERROR };
     }
   }
 
