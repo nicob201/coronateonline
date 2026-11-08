@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Background } from "@/components/background";
 import { DemoBanner } from "@/components/demo-banner";
@@ -29,6 +29,16 @@ const jetbrains = localFont({
   display: "swap",
 });
 
+// Only the icons listed in scripts/build-icon-font.sh; any other icon name renders as plain text.
+const materialSymbols = localFont({
+  src: "./fonts/material-symbols-subset.woff2",
+  variable: "--font-material-symbols",
+  weight: "400",
+  display: "block",
+});
+
+export const viewport: Viewport = { themeColor: "#131313" };
+
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   title: "CoronaTeOnline - ¿Qué querés ser?",
@@ -42,14 +52,8 @@ export default function RootLayout({
   return (
     <html
       lang="es-AR"
-      className={`${montserrat.variable} ${inter.variable} ${jetbrains.variable} h-full antialiased overflow-x-hidden`}
+      className={`${montserrat.variable} ${inter.variable} ${jetbrains.variable} ${materialSymbols.variable} h-full antialiased overflow-x-hidden`}
     >
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-          rel="stylesheet"
-        />
-      </head>
       <body className="bg-background text-on-background font-body-sm min-h-full flex flex-col cyber-grain overflow-x-clip">
         <Background />
         <SiteHeader />
