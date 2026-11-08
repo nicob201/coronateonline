@@ -22,6 +22,7 @@ npm run build        # production build
 npm run lint         # ESLint
 npm run typecheck    # route typegen + tsc --noEmit
 npm run test         # Vitest
+npm run test:e2e     # Playwright against the local stack (resets the local DB)
 npm run verify       # lint + typecheck + test + build (same as CI)
 ```
 
