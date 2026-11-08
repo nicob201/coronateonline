@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { displayNameSchema } from "@/features/auth/schemas/display-name.schema";
 import { createClient } from "@/lib/supabase/server";
 import { requireOnboardedUser } from "@/services/auth.server";
 import {
@@ -25,12 +26,6 @@ const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const usernameSchema = z.string().regex(/^[a-z0-9_]{3,20}$/, {
   error: "El username debe tener entre 3 y 20 caracteres (letras, números y guión bajo).",
 });
-
-const displayNameSchema = z
-  .string()
-  .trim()
-  .min(1, { error: "El nombre es obligatorio." })
-  .max(50, { error: "El nombre no puede superar los 50 caracteres." });
 
 // Updates username and display_name for the authenticated user (onboarding).
 export async function updateProfile(
