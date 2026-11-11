@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { displayNameSchema } from "@/features/auth/schemas/display-name.schema";
 import { GUEST_ENTRY_ERROR, safeNextPath } from "@/lib/auth";
@@ -37,6 +38,8 @@ export async function enterAsGuest(
     }
   }
 
+  // The session cookie was set in the browser, so Next can't tell the header needs a re-render.
+  revalidatePath("/", "layout");
   const next = formData.get("next");
   redirect(safeNextPath(typeof next === "string" ? next : null, "/titulos"));
 }

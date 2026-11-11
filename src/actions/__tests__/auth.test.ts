@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { redirectMock, nameGuestMock, getUserMock } = vi.hoisted(() => ({
+const { redirectMock, revalidatePathMock, nameGuestMock, getUserMock } = vi.hoisted(() => ({
   redirectMock: vi.fn(),
+  revalidatePathMock: vi.fn(),
   nameGuestMock: vi.fn(),
   getUserMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({ redirect: redirectMock }));
+vi.mock("next/cache", () => ({ revalidatePath: revalidatePathMock }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({ auth: { getUser: getUserMock } })),
 }));
@@ -31,6 +33,7 @@ describe("enterAsGuest", () => {
     getUserMock.mockResolvedValue(guest);
     await enterAsGuest(null, form("/t/rey-de-cordoba"));
     expect(nameGuestMock).toHaveBeenCalledWith(expect.anything(), "u1", NAME);
+    expect(revalidatePathMock).toHaveBeenCalledWith("/", "layout");
     expect(redirectMock).toHaveBeenCalledWith("/t/rey-de-cordoba");
   });
 
