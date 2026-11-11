@@ -24,4 +24,5 @@ export default withSentryConfig(nextConfig, {
   org: "nicob201",
   project: "coronateonline",
   widenClientFileUpload: true,
+  bundleSizeOptimizations: { excludeDebugStatements: true },
 });
