@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs/config";
 
 // Baseline security headers applied to every response. Full CSP is deferred until the design pass.
 const securityHeaders = [
@@ -19,10 +18,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Uploads source maps to Sentry when SENTRY_AUTH_TOKEN is set (Vercel); otherwise builds skip the upload.
-export default withSentryConfig(nextConfig, {
-  org: "nicob201",
-  project: "coronateonline",
-  widenClientFileUpload: true,
-  bundleSizeOptimizations: { excludeDebugStatements: true },
-});
+export default nextConfig;
