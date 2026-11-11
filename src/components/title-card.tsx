@@ -35,12 +35,12 @@ export function TitleCard({ title }: { title: TitleCardData }) {
           </span>
         )}
 
-        <h3 className="text-title-md font-title-md text-on-surface pr-24">
+        <h2 className="text-title-md font-title-md text-on-surface pr-24">
           <TitleMorph titleId={title.id} part="emoji">
             <span className="inline-block">{title.emoji}</span>
           </TitleMorph>{" "}
           {title.name.toUpperCase()}
-        </h3>
+        </h2>
 
         <LiveFlash
           value={`${title.holderUserId}:${title.price}`}

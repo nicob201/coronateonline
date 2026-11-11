@@ -54,7 +54,7 @@ Mapa oscuro de Argentina (bordes IGN, con Malvinas y Antártida) donde las coron
 - [x] **D21** — E2E con Playwright (invitado → destronar → ticker) en CI
 - [x] **D22** — Tests SQL de los RPC con Supabase local en CI
 - [x] **D23** — Revisión de seguridad: RLS y permisos, límites del perfil en la base, abuso de invitados (rate limit de Supabase por IP real, 10 por hora; captcha solo si aparece abuso), nombres visibles únicos sin distinguir mayúsculas ni acentos
-- [ ] **D24** — Vercel Analytics, Sentry, sitemap / robots, PWA, Lighthouse ≥ 95
+- [x] **D24** — Vercel Analytics, sitemap / robots, manifest instalable (sin service worker), ícono de corona, fuente de íconos de 3 KB; Lighthouse local 100 en /titulos y /mapa, home 94–100 (falta un hero estático con Suspense)
 - [ ] **D25** — Email "te destronaron" con Resend (opcional)
 
 ## Semana 6 — Packaging de portfolio
