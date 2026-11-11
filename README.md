@@ -4,6 +4,8 @@
 
 **🌐 Demo en vivo: [coronateonline.vercel.app](https://coronateonline.vercel.app)**. Entrás como invitado con un clic y jugás en 30 segundos, sin registrarte ni pagar.
 
+![Un invitado entra, destrona al Rey de la Pizza, ve la celebración y su coronación aparece en el ticker de la home](docs/readme/demo.gif)
+
 Un mercado de estatus: competís por títulos únicos y absurdos (**Rey de Córdoba**, **CEO de los Lunes**, **Rey de la Pizza**) pagando más que el que los tiene. El que paga, corona. El destronado, a llorar a las redes.
 
 ## Cómo se juega

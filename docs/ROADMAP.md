@@ -59,7 +59,7 @@ Mapa oscuro de Argentina (bordes IGN, con Malvinas y Antártida) donde las coron
 
 ## Semana 6 — Packaging de portfolio
 
-- [ ] **D26** — README con GIF, diagrama de arquitectura y ADRs en `docs/adr/`
+- [x] **D26** — README con GIF, diagrama de arquitectura (Mermaid) y 7 ADRs en `docs/adr/`
 - [ ] **D27** — Página `/acerca` como case study
 - [ ] **D28** — Comprar Coronas con checkout sandbox + webhook idempotente con firma
 - [ ] **D29** — README en inglés
