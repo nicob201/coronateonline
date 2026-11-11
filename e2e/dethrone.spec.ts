@@ -4,6 +4,7 @@ test("a guest dethrones a seeded holder and the home ticker shows it", async ({ 
   await page.goto("/");
   await page.getByRole("button", { name: "ENTRAR COMO INVITADO" }).click();
   await page.waitForURL("**/titulos");
+  await expect(page.getByRole("button", { name: "Salir" })).toBeVisible();
 
   await page.goto("/t/rey-de-la-pizza");
   await page.getByRole("button", { name: "DESTRONAR", exact: true }).click();
