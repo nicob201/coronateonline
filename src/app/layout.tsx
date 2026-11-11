@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { Analytics } from "@vercel/analytics/next";
 import { Background } from "@/components/background";
 import { DemoBanner } from "@/components/demo-banner";
 import { SiteHeader } from "@/components/site-header";
@@ -59,6 +60,7 @@ export default function RootLayout({
         <SiteHeader />
         <div className="mt-20 flex-1 flex flex-col min-w-0 max-w-full"><DemoBanner />{children}</div>
         <SiteFooter />
+        <Analytics />
       </body>
     </html>
   );
