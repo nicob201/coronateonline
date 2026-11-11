@@ -1,9 +1,16 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import Link from "next/link";
+import { useEffect } from "react";
 
 // Error boundary for every page: lets the user retry the failed segment or go home.
-export default function ErrorPage({ retry }: { error: Error & { digest?: string }; retry: () => void }) {
+export default function ErrorPage({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
+  // Boundaries swallow the error, so report it ourselves.
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+
   return (
     <main className="relative z-10 container mx-auto px-5 md:px-16 max-w-[1280px] py-24 flex flex-col items-center text-center">
       <span aria-hidden="true" className="text-[6rem] md:text-[8rem] leading-none mb-8">
