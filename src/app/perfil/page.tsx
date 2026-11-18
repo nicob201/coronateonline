@@ -8,15 +8,18 @@ import { WalletCard } from "@/features/profile/components/wallet-card";
 import { getBalance, getRecentMovements, getSalaryStatus } from "@/services/wallet.server";
 import { getOwnProposals } from "@/services/proposals.server";
 import { MyProposals } from "@/features/proposals/components/my-proposals";
+import { SaveAccountCard } from "@/features/auth/components/save-account-card";
+import { linkResultSchema } from "@/features/auth/schemas/link-result.schema";
 
 export const metadata: Metadata = {
   title: "Editar perfil - CoronaTeOnline",
   robots: { index: false, follow: false },
 };
 
-// Lets the authenticated user edit their own profile.
-export default async function EditProfilePage() {
+// Lets the authenticated user edit their own profile; guests also get the card to save their account.
+export default async function EditProfilePage({ searchParams }: PageProps<"/perfil">) {
   const { supabase, user, profile } = await requireOnboardedUser();
+  const link = linkResultSchema.parse(await searchParams);
   const [notifications, balance, salary, movements, proposals] = await Promise.all([
     getNotifications(supabase, user.id),
     getBalance(supabase, user.id),
@@ -28,6 +31,12 @@ export default async function EditProfilePage() {
 
   return (
     <main className="relative z-10 container mx-auto px-5 md:px-16 max-w-[720px] pt-16 pb-32 flex flex-col gap-8">
+      {user.is_anonymous && <SaveAccountCard linkError={link.error} />}
+      {!user.is_anonymous && link.vincular === "google" && (
+        <p role="status" className="glass-panel rounded-xl p-4 text-body-sm font-body-sm text-tertiary">
+          Listo: tu cuenta quedó guardada con Google. Ya podés entrar desde cualquier dispositivo.
+        </p>
+      )}
       {dethroneNotice && <DethroneBanner notice={dethroneNotice} />}
 
       <div className="flex items-baseline justify-between gap-4">
