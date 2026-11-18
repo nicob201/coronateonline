@@ -17,8 +17,8 @@ const dethroneRow = {
   created_at: "2026-10-07T01:00:00Z",
   reigns: {
     titles: { name: "Rey de Córdoba" },
-    holder: { username: "fran", display_name: "Fran" },
-    dethroned: { username: "nico", display_name: null },
+    holder: { username: "baron_bug", display_name: "Barón Bug", is_bot: true },
+    dethroned: { username: "nico", display_name: null, is_bot: false },
   },
 };
 
@@ -65,16 +65,16 @@ describe("claimSalary", () => {
 });
 
 describe("getRecentMovements", () => {
-  it("maps joined rows to movements with title and counterpart, newest first", async () => {
+  it("maps joined rows to movements with title and counterpart (bot or not), newest first", async () => {
     const supabase = createSupabaseMock({
       queryByTable: {
         coin_ledger: { data: [dethroneRow, dethronedRow, welcomeRow], error: null },
       },
     });
     await expect(getRecentMovements(supabase, "u1")).resolves.toEqual([
-      { id: "m2", amount: -40, reason: "dethrone", created_at: "2026-10-07T01:00:00Z", titleName: "Rey de Córdoba", counterpartName: "nico" },
-      { id: "m3", amount: 40, reason: "dethroned", created_at: "2026-10-07T01:00:00Z", titleName: "Rey de Córdoba", counterpartName: "Fran" },
-      { id: "m1", amount: 20, reason: "welcome", created_at: "2026-10-07T00:00:00Z", titleName: null, counterpartName: null },
+      { id: "m2", amount: -40, reason: "dethrone", created_at: "2026-10-07T01:00:00Z", titleName: "Rey de Córdoba", counterpartName: "nico", counterpartIsBot: false },
+      { id: "m3", amount: 40, reason: "dethroned", created_at: "2026-10-07T01:00:00Z", titleName: "Rey de Córdoba", counterpartName: "Barón Bug", counterpartIsBot: true },
+      { id: "m1", amount: 20, reason: "welcome", created_at: "2026-10-07T00:00:00Z", titleName: null, counterpartName: null, counterpartIsBot: false },
     ]);
     const builder = supabase.from("coin_ledger").select();
     expect(builder.eq).toHaveBeenCalledWith("user_id", "u1");

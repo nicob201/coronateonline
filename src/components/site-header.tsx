@@ -36,11 +36,11 @@ export async function SiteHeader() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 md:px-16 py-1 h-20 bg-surface/70 backdrop-blur-xl border-b border-outline-variant/30 shadow-md">
+    <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center gap-3 px-4 md:px-16 py-1 h-20 bg-surface/70 backdrop-blur-xl border-b border-outline-variant/30 shadow-md">
       <div className="flex items-center gap-4">
         <Link
           href="/"
-          className="text-body-lg md:text-title-md font-title-md font-black text-primary tracking-tighter uppercase"
+          className="text-base sm:text-body-lg md:text-title-md font-title-md font-black text-primary tracking-tighter uppercase"
         >
           CoronaTeOnline
         </Link>
@@ -88,7 +88,7 @@ export async function SiteHeader() {
               <Link
                 href="/perfil"
                 aria-label={`Saldo: ${formatCoronas(balance)}${salaryReady ? ". Sueldo disponible" : ""}`}
-                className="relative px-3 py-1 rounded-full border border-tertiary/40 text-label-caps font-label-caps text-tertiary hover:bg-tertiary/10 transition-colors whitespace-nowrap"
+                className="relative px-2 sm:px-3 py-1 rounded-full border border-tertiary/40 text-label-caps font-label-caps text-tertiary hover:bg-tertiary/10 transition-colors whitespace-nowrap"
               >
                 <AnimatedCoronas value={balance} />
                 {salaryReady && (

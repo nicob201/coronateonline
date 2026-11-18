@@ -183,6 +183,7 @@ export type DethroneNotice = {
   titleEmoji: string;
   titleSlug: string;
   byName: string;
+  byBot: boolean;
   pricePaid: number;
   message: string | null;
   at: string;
@@ -195,6 +196,7 @@ export type Notifications = { items: DethroneNotice[]; unread: number };
 export type CoinMovement = Pick<CoinLedgerRow, "id" | "amount" | "reason" | "created_at"> & {
   titleName: string | null;
   counterpartName: string | null;
+  counterpartIsBot: boolean;
 };
 
 // The signed-in user's daily salary: claimed today, live streak and what the next claim pays.

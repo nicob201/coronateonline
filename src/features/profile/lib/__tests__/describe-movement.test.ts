@@ -10,6 +10,7 @@ function movement(overrides: Partial<CoinMovement>): CoinMovement {
     created_at: "2026-10-07T00:00:00Z",
     titleName: null,
     counterpartName: null,
+    counterpartIsBot: false,
     ...overrides,
   };
 }
@@ -23,18 +24,18 @@ describe("describeMovement", () => {
     expect(describeMovement(movement({ reason: "salary", amount: 7 }))).toBe("Sueldo diario");
   });
 
-  it("names who you dethroned and where", () => {
+  it("names who you dethroned (the card adds the title)", () => {
     expect(
       describeMovement(
         movement({ reason: "dethrone", amount: -40, titleName: "Rey de Córdoba", counterpartName: "Nico" }),
       ),
-    ).toBe("Destronaste a Nico · Rey de Córdoba");
+    ).toBe("Destronaste a Nico");
   });
 
   it("says you crowned yourself on an unclaimed title", () => {
     expect(
       describeMovement(movement({ reason: "dethrone", amount: -1, titleName: "Rey de Argentina" })),
-    ).toBe("Te coronaste · Rey de Argentina");
+    ).toBe("Te coronaste");
   });
 
   it("names who dethroned you", () => {
@@ -42,10 +43,10 @@ describe("describeMovement", () => {
       describeMovement(
         movement({ reason: "dethroned", amount: 40, titleName: "Rey de Córdoba", counterpartName: "Fran" }),
       ),
-    ).toBe("Te destronó Fran · Rey de Córdoba");
+    ).toBe("Te destronó Fran");
   });
 
-  it("falls back to 'alguien' and drops the title when the reign is gone", () => {
+  it("falls back to 'alguien' when the reign is gone", () => {
     expect(describeMovement(movement({ reason: "dethroned", amount: 40 }))).toBe("Te destronó alguien");
   });
 

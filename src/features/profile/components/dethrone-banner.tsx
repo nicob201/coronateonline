@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BotBadge } from "@/components/bot-badge";
 import type { DethroneNotice } from "@/types";
 
 // Prominent banner shown when the authenticated user was dethroned in the last 14 days.
@@ -12,7 +13,8 @@ export function DethroneBanner({ notice }: { notice: DethroneNotice }) {
         👑 Perdiste {notice.titleName}
       </span>
       <span className="text-body-sm font-body-sm text-on-surface-variant">
-        {notice.byName} te destronó{notice.message ? `: «${notice.message}»` : ""}
+        {notice.byName}
+        {notice.byBot && <BotBadge />} te destronó{notice.message ? `: «${notice.message}»` : ""}
       </span>
       <span className="text-label-caps font-label-caps text-tertiary mt-2">
         Recuperala

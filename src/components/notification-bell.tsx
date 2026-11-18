@@ -5,7 +5,8 @@ import { useEffect, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { marcarNotificacionesLeidas } from "@/actions/notifications";
 import { LiveFlash } from "@/components/live-flash";
-import { formatCoronas, formatDate } from "@/lib/format";
+import { BotBadge } from "@/components/bot-badge";
+import { formatCoronas, formatDate, formatRelative } from "@/lib/format";
 import type { DethroneNotice, Notifications } from "@/types";
 
 const TOAST_MS = 6000;
@@ -17,6 +18,8 @@ export function NotificationBell({ initialData }: { initialData: Notifications }
   const top = items[0] ?? null;
   const [lastTopId, setLastTopId] = useState(top?.id ?? null);
   const [toast, setToast] = useState<DethroneNotice | null>(null);
+  // "hace 2 horas" is measured from when the panel was last opened, so a tab left open for hours doesn't show stale times.
+  const [now, setNow] = useState(() => Date.now());
 
   // A different top item with unread dethrones is a fresh one: toast it (the first render only records the baseline).
   if ((top?.id ?? null) !== lastTopId) {
@@ -56,7 +59,9 @@ export function NotificationBell({ initialData }: { initialData: Notifications }
         id="notifications-panel"
         popover="auto"
         onToggle={(event) => {
-          if (event.newState !== "open" || unread === 0) return;
+          if (event.newState !== "open") return;
+          setNow(Date.now());
+          if (unread === 0) return;
           // A failed call (offline, or a tab left open across a deploy) must not throw into the root layout; it just stays unread.
           startTransition(async () => {
             await marcarNotificacionesLeidas().catch(() => null);
@@ -82,10 +87,14 @@ export function NotificationBell({ initialData }: { initialData: Notifications }
                     className="flex flex-col gap-1 px-4 py-3 hover:bg-surface-container-high transition-colors"
                   >
                     <span className="text-body-sm font-body-sm text-on-surface">
-                      {item.byName} te destronó en {item.titleEmoji} {item.titleName}
+                      {item.byName}
+                      {item.byBot && <BotBadge />} te destronó en {item.titleEmoji} {item.titleName}
                     </span>
                     <span className="text-label-caps font-label-caps text-tertiary">
-                      Te pagó {formatCoronas(item.pricePaid)} · {formatDate(item.at)}
+                      Te pagó {formatCoronas(item.pricePaid)} ·{" "}
+                      <time dateTime={item.at} title={formatDate(item.at)} suppressHydrationWarning>
+                        {formatRelative(item.at, now)}
+                      </time>
                     </span>
                     {item.message && (
                       <span className="text-body-sm font-body-sm text-on-surface-variant">
@@ -115,7 +124,8 @@ export function NotificationBell({ initialData }: { initialData: Notifications }
             >
               <span className="text-title-md font-title-md text-on-surface">¡Te destronaron!</span>
               <span className="text-body-sm font-body-sm text-on-surface-variant">
-                {toast.byName} te sacó {toast.titleEmoji} {toast.titleName} y te pagó{" "}
+                {toast.byName}
+                {toast.byBot && <BotBadge />} te sacó {toast.titleEmoji} {toast.titleName} y te pagó{" "}
                 {formatCoronas(toast.pricePaid)}
               </span>
             </Link>
