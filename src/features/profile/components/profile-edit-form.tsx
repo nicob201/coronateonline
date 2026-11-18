@@ -32,32 +32,28 @@ export function ProfileEditForm({ profile }: { profile: Profile }) {
   const [state, action, pending] = useActionState(updateProfileDetails, null);
 
   return (
-    <form
-      action={action}
-      encType="multipart/form-data"
-      className="glass-panel rounded-2xl p-8 flex flex-col gap-5"
-    >
+    <form action={action} className="glass-panel rounded-2xl p-8 flex flex-col gap-5">
       <div className="flex items-center gap-4">
         {profile.avatar_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={profile.avatar_url}
             alt={profile.display_name ?? profile.username}
-            className="w-20 h-20 rounded-full object-cover border-2 border-tertiary"
+            className="w-20 h-20 shrink-0 rounded-full object-cover border-2 border-tertiary"
           />
         ) : (
-          <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center text-title-md font-title-md text-on-surface-variant border-2 border-tertiary">
+          <div className="w-20 h-20 shrink-0 rounded-full bg-surface-container flex items-center justify-center text-title-md font-title-md text-on-surface-variant border-2 border-tertiary">
             {(profile.display_name ?? profile.username).charAt(0).toUpperCase()}
           </div>
         )}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex min-w-0 flex-col gap-1.5">
           <Label htmlFor="avatar">AVATAR (JPG, PNG, WebP o GIF · máx 2 MB)</Label>
           <input
             id="avatar"
             name="avatar"
             type="file"
             accept="image/png,image/jpeg,image/webp,image/gif"
-            className="text-body-sm font-body-sm text-on-surface-variant file:mr-3 file:rounded-lg file:border-0 file:bg-surface-container-high file:px-3 file:py-1.5 file:text-on-surface"
+            className="w-full text-body-sm font-body-sm text-on-surface-variant file:mr-3 file:rounded-lg file:border-0 file:bg-surface-container-high file:px-3 file:py-1.5 file:text-on-surface"
           />
         </div>
       </div>
