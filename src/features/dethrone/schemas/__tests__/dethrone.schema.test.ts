@@ -33,6 +33,13 @@ describe("dethroneSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("explains a bad amount in Spanish", () => {
+    for (const amount of ["5.5", "0", "abc"]) {
+      const result = dethroneSchema.safeParse({ ...validInput, amount });
+      expect(result.error?.issues[0]?.message).toBe("Monto inválido.");
+    }
+  });
+
   it("rejects a non-uuid titleId", () => {
     const result = dethroneSchema.safeParse({ ...validInput, titleId: "nope" });
     expect(result.success).toBe(false);
