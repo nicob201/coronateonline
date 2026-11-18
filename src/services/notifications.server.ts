@@ -9,7 +9,7 @@ const dethronesQuery = (supabase: SupabaseServerClient, userId: string, since: s
   supabase
     .from("reigns")
     .select(
-      "id, started_at, price_paid, message, profiles!reigns_user_id_fkey ( username, display_name ), titles ( name, emoji, slug )",
+      "id, started_at, price_paid, message, profiles!reigns_user_id_fkey ( username, display_name, is_bot ), titles ( name, emoji, slug )",
     )
     .eq("dethroned_user_id", userId)
     .gt("started_at", since)
@@ -28,6 +28,7 @@ function toNotices(rows: DethroneRow[]): DethroneNotice[] {
         titleEmoji: row.titles.emoji,
         titleSlug: row.titles.slug,
         byName: row.profiles?.display_name?.trim() || row.profiles?.username || "Anónimo",
+        byBot: row.profiles?.is_bot ?? false,
         pricePaid: row.price_paid,
         message: row.message,
         at: row.started_at,

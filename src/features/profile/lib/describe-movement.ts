@@ -1,17 +1,16 @@
 import type { CoinMovement } from "@/types";
 
-// Builds the Spanish label for a wallet movement ("Destronaste a Nico · Rey de Córdoba").
+// Builds the Spanish label for a wallet movement ("Destronaste a Nico"); the card adds the bot chip and the title after it.
 export function describeMovement(m: CoinMovement): string {
-  const where = m.titleName ? ` · ${m.titleName}` : "";
   switch (m.reason) {
     case "welcome":
       return "Saldo inicial";
     case "salary":
       return "Sueldo diario";
     case "dethrone":
-      return m.counterpartName ? `Destronaste a ${m.counterpartName}${where}` : `Te coronaste${where}`;
+      return m.counterpartName ? `Destronaste a ${m.counterpartName}` : "Te coronaste";
     case "dethroned":
-      return `Te destronó ${m.counterpartName ?? "alguien"}${where}`;
+      return `Te destronó ${m.counterpartName ?? "alguien"}`;
     case "proposal":
       return "Propuesta de título";
     case "proposal_refund":

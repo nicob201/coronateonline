@@ -3,6 +3,7 @@ import type { CoinMovement, SalaryStatus } from "@/types";
 import { describeMovement } from "@/features/profile/lib/describe-movement";
 import { SalaryButton } from "@/features/profile/components/salary-button";
 import { AnimatedCoronas } from "@/components/animated-coronas";
+import { BotBadge } from "@/components/bot-badge";
 
 // Shows the user's Coronas balance, the daily salary with its streak, and the latest wallet movements.
 export function WalletCard({
@@ -40,7 +41,11 @@ export function WalletCard({
       <ul className="flex flex-col divide-y divide-outline-variant/20">
         {movements.map((m) => (
           <li key={m.id} className="flex items-center gap-4 py-2 text-body-sm font-body-sm">
-            <span className="flex-1 text-on-surface">{describeMovement(m)}</span>
+            <span className="flex-1 text-on-surface">
+              {describeMovement(m)}
+              {m.counterpartIsBot && <BotBadge />}
+              {m.titleName && ` · ${m.titleName}`}
+            </span>
             <span className="text-on-surface-variant">{formatDate(m.created_at)}</span>
             <span className={m.amount > 0 ? "text-tertiary" : "text-error"}>
               {m.amount > 0 ? "+" : ""}

@@ -32,14 +32,14 @@ const movementsQuery = (supabase: SupabaseServerClient, userId: string, limit: n
     .select(
       `id, amount, reason, created_at,
        reigns ( titles ( name ),
-         holder:profiles!reigns_user_id_fkey ( username, display_name ),
-         dethroned:profiles!reigns_dethroned_user_id_fkey ( username, display_name ) )`,
+         holder:profiles!reigns_user_id_fkey ( username, display_name, is_bot ),
+         dethroned:profiles!reigns_dethroned_user_id_fkey ( username, display_name, is_bot ) )`,
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(limit);
 type MovementRow = QueryData<ReturnType<typeof movementsQuery>>[number];
-type PersonRow = { username: string; display_name: string | null } | null;
+type PersonRow = { username: string; display_name: string | null; is_bot: boolean } | null;
 
 function personName(person: PersonRow): string | null {
   return person ? (person.display_name ?? person.username) : null;
@@ -48,14 +48,15 @@ function personName(person: PersonRow): string | null {
 // Flattens a joined ledger row: the counterpart is who you dethroned, or who dethroned you.
 function toMovement(row: MovementRow): CoinMovement {
   const reign = row.reigns;
+  const counterpart = (row.reason === "dethroned" ? reign?.holder : reign?.dethroned) ?? null;
   return {
     id: row.id,
     amount: row.amount,
     reason: row.reason,
     created_at: row.created_at,
     titleName: reign?.titles?.name ?? null,
-    counterpartName:
-      row.reason === "dethroned" ? personName(reign?.holder ?? null) : personName(reign?.dethroned ?? null),
+    counterpartName: personName(counterpart),
+    counterpartIsBot: counterpart?.is_bot ?? false,
   };
 }
 

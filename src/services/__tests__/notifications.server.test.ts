@@ -12,7 +12,7 @@ function reignRow(id: string, startedAt: string, overrides: Record<string, unkno
     started_at: startedAt,
     price_paid: 12,
     message: null,
-    profiles: { username: "fran", display_name: "Fran" },
+    profiles: { username: "fran", display_name: "Fran", is_bot: false },
     titles: { name: "Rey de Córdoba", emoji: "👑", slug: "rey-de-cordoba" },
     ...overrides,
   };
@@ -37,20 +37,21 @@ afterEach(() => {
 });
 
 describe("getNotifications", () => {
-  it("maps joined reigns to notices, newest first as returned", async () => {
-    const supabase = mockWith([reignRow("r2", T2, { message: "jaque" }), reignRow("r1", T1)], null);
+  it("maps joined reigns to notices, newest first as returned, flagging bot dethroners", async () => {
+    const bot = { username: "baron_bug", display_name: "Barón Bug", is_bot: true };
+    const supabase = mockWith([reignRow("r2", T2, { message: "jaque", profiles: bot }), reignRow("r1", T1)], null);
     const { items } = await getNotifications(supabase, "u1");
     expect(items).toEqual([
-      { id: "r2", titleName: "Rey de Córdoba", titleEmoji: "👑", titleSlug: "rey-de-cordoba", byName: "Fran", pricePaid: 12, message: "jaque", at: T2 },
-      { id: "r1", titleName: "Rey de Córdoba", titleEmoji: "👑", titleSlug: "rey-de-cordoba", byName: "Fran", pricePaid: 12, message: null, at: T1 },
+      { id: "r2", titleName: "Rey de Córdoba", titleEmoji: "👑", titleSlug: "rey-de-cordoba", byName: "Barón Bug", byBot: true, pricePaid: 12, message: "jaque", at: T2 },
+      { id: "r1", titleName: "Rey de Córdoba", titleEmoji: "👑", titleSlug: "rey-de-cordoba", byName: "Fran", byBot: false, pricePaid: 12, message: null, at: T1 },
     ]);
   });
 
   it("falls back to the username, then to Anónimo, for the dethroner's name", async () => {
     const supabase = mockWith(
       [
-        reignRow("r3", T3, { profiles: { username: "fran", display_name: "  " } }),
-        reignRow("r2", T2, { profiles: { username: "fran", display_name: null } }),
+        reignRow("r3", T3, { profiles: { username: "fran", display_name: "  ", is_bot: false } }),
+        reignRow("r2", T2, { profiles: { username: "fran", display_name: null, is_bot: false } }),
         reignRow("r1", T1, { profiles: null }),
       ],
       null,
