@@ -64,9 +64,22 @@ Mapa oscuro de Argentina (bordes IGN, con Malvinas y Antártida) donde las coron
 - [ ] **D28** — Comprar Coronas con checkout sandbox + webhook idempotente con firma
 - [ ] **D29** — README en inglés
 
+## Hecho fuera del plan
+
+- [x] Arreglos pendientes + Content-Security-Policy con nonce por request, sin `x-powered-by`, 0 vulnerabilidades en `npm audit`
+- [x] Convertir invitado en cuenta permanente: vincula su Google al mismo usuario y conserva coronas, saldo y logros; "Salir" avisa antes de perder la cuenta. Solo Google: el mail de Supabase sin SMTP propio solo llega al equipo
+
+## Pendientes
+
+- Campanita: "hace N horas" en vez de solo la fecha
+- Marcar a los bots en la billetera y en el aviso de destronamiento
+- Header apretado a 360px (el logo casi toca el saldo)
+- El perfil público trae todos los reinados sin límite (los bots juntan cientos)
+- `keep-alive.yml`: `permissions: {}`, timeout y reintentos en el `curl`
+- Login con link mágico: sin SMTP propio solo llega al equipo, y el visitante ve "Email address not authorized" en inglés (configurar SMTP o esconder / traducir esa opción)
+
 ## Backlog
 
-- Convertir invitado en cuenta permanente (vincular email / Google sin perder coronas)
 - Duelos / desafíos (Niveles 1 y 2 de la spec de Nivel 0)
 - Temporadas con reset y salón de la fama histórico
 - Mecánica alternativa: impuesto Harberger (el holder fija su precio y paga por mantenerlo)

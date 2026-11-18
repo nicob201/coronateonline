@@ -18,6 +18,7 @@ auth settings live in the dashboard and must be verified there.
 - [ ] **Google**: Client ID / Secret set. Authorized redirect URI in Google Cloud
       console = `https://<project-ref>.supabase.co/auth/v1/callback`.
 - [ ] **Anonymous sign-ins**: enabled (guest entry, D3).
+- [ ] **Allow manual linking**: ON, so a guest can link Google and keep the account (`/perfil` → GUARDÁ TU CUENTA).
 
 ## Authentication → Security & Protection
 
