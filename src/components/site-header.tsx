@@ -7,7 +7,7 @@ import { NotificationBell } from "@/components/notification-bell";
 import { LiveRefresh } from "@/components/live-refresh";
 import { AnimatedCoronas } from "@/components/animated-coronas";
 import { formatCoronas } from "@/lib/format";
-import { signOut } from "@/actions/auth";
+import { SignOutButton } from "@/components/sign-out-button";
 import type { Notifications } from "@/types";
 
 // Fetches the authenticated user's profile and renders the site header.
@@ -116,16 +116,7 @@ export async function SiteHeader() {
               <span aria-hidden="true" className="material-symbols-outlined md:hidden!">person</span>
               <span className="hidden md:inline">Perfil</span>
             </Link>
-            <form action={signOut} className="flex">
-              <button
-                type="submit"
-                aria-label="Salir"
-                className="p-2 md:px-4 text-label-caps font-label-caps text-on-surface-variant hover:text-primary transition-colors"
-              >
-                <span aria-hidden="true" className="material-symbols-outlined md:hidden!">logout</span>
-                <span className="hidden md:inline">Salir</span>
-              </button>
-            </form>
+            <SignOutButton isGuest={user?.is_anonymous ?? false} />
           </>
         ) : (
           <Link
