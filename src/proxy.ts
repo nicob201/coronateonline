@@ -2,8 +2,30 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
 
-// Refreshes the Supabase auth session on every request via proxy (formerly middleware).
+const supabaseOrigin = new URL(env.NEXT_PUBLIC_SUPABASE_URL).origin;
+
+// CSP for one response: scripts run only with this request's nonce (or when loaded by one that has it).
+function contentSecurityPolicy(nonce: string): string {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline'",
+    `img-src 'self' data: blob: ${supabaseOrigin}`,
+    "font-src 'self'",
+    `connect-src 'self' ${supabaseOrigin} ${supabaseOrigin.replace(/^http/, "ws")}`,
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+}
+
+// Refreshes the Supabase auth session and sets a per-request nonce CSP on every page (proxy, formerly middleware).
 export async function proxy(request: NextRequest) {
+  // Next reads the nonce from the request's CSP header and stamps it on its own scripts.
+  const csp = contentSecurityPolicy(btoa(crypto.randomUUID()));
+  request.headers.set("Content-Security-Policy", csp);
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -30,6 +52,7 @@ export async function proxy(request: NextRequest) {
   // IMPORTANT: Do NOT remove the session refresh — it updates expired tokens.
   await supabase.auth.getUser();
 
+  supabaseResponse.headers.set("Content-Security-Policy", csp);
   return supabaseResponse;
 }
 
