@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { errorMessage, PROFILE_INCOMPLETE_ERROR } from "@/lib/errors";
+import {
+  PROFILE_INCOMPLETE_ERROR,
+  RPC_ERROR,
+  rpcErrorMessage,
+  type RpcErrorCode,
+} from "@/lib/rpc-errors";
 import { formatCoronas } from "@/lib/format";
 import { TITLE_PROPOSAL_COST } from "@/lib/titles";
 import { proposeTitle, reviewProposal } from "@/services/proposals.server";
@@ -12,17 +17,14 @@ import type { ActionResult, TitleProposal } from "@/types";
 
 const NOT_AUTH = "Tenés que iniciar sesión para crear un título.";
 
-// Known propose_title RPC exceptions → Spanish messages (field limits are caught earlier by Zod).
-const RPC_ERRORS: [string, string][] = [
-  ["Proposal already pending", "Ya tenés una propuesta esperando revisión."],
-  ["Title name taken", "Ya existe un título con ese nombre."],
-  [
-    "Insufficient balance",
-    `No te alcanzan las Coronas: crear un título cuesta ${formatCoronas(TITLE_PROPOSAL_COST)}.`,
-  ],
-  ["Not authenticated", NOT_AUTH],
-  ["Profile incomplete", PROFILE_INCOMPLETE_ERROR],
-];
+// Spanish message for each propose_title error code (field limits are caught earlier by Zod).
+const RPC_MESSAGES: Partial<Record<RpcErrorCode, string>> = {
+  [RPC_ERROR.PROPOSAL_PENDING]: "Ya tenés una propuesta esperando revisión.",
+  [RPC_ERROR.TITLE_NAME_TAKEN]: "Ya existe un título con ese nombre.",
+  [RPC_ERROR.INSUFFICIENT_BALANCE]: `No te alcanzan las Coronas: crear un título cuesta ${formatCoronas(TITLE_PROPOSAL_COST)}.`,
+  [RPC_ERROR.NOT_AUTHENTICATED]: NOT_AUTH,
+  [RPC_ERROR.PROFILE_INCOMPLETE]: PROFILE_INCOMPLETE_ERROR,
+};
 
 // Spends the user's Coronas to submit a title for admin review; cost and balance are checked atomically by the RPC.
 export async function proponerTitulo(
@@ -50,9 +52,10 @@ export async function proponerTitulo(
   try {
     proposal = await proposeTitle(supabase, name, emoji, description);
   } catch (err: unknown) {
-    const message = errorMessage(err);
-    const known = RPC_ERRORS.find(([key]) => message.includes(key));
-    return { success: false, error: known?.[1] ?? "No se pudo enviar la propuesta. Probá de nuevo." };
+    return {
+      success: false,
+      error: rpcErrorMessage(err, RPC_MESSAGES, "No se pudo enviar la propuesta. Probá de nuevo."),
+    };
   }
 
   // The balance chip, the wallet and the user's proposal list all change.
@@ -62,12 +65,12 @@ export async function proponerTitulo(
 
 const NOT_ADMIN = "No autorizado.";
 
-// Known review_title_proposal RPC exceptions → Spanish messages for the admin.
-const REVIEW_ERRORS: [string, string][] = [
-  ["Not authorized", NOT_ADMIN],
-  ["Proposal already reviewed", "Esa propuesta ya fue revisada."],
-  ["Title name taken", "Ya existe un título con ese nombre: rechazala."],
-];
+// Spanish message for each review_title_proposal error code.
+const REVIEW_MESSAGES: Partial<Record<RpcErrorCode, string>> = {
+  [RPC_ERROR.NOT_AUTHORIZED]: NOT_ADMIN,
+  [RPC_ERROR.PROPOSAL_REVIEWED]: "Esa propuesta ya fue revisada.",
+  [RPC_ERROR.TITLE_NAME_TAKEN]: "Ya existe un título con ese nombre: rechazala.",
+};
 
 // Approves or rejects a title proposal; the RPC checks profiles.is_admin in the database.
 export async function revisarPropuesta(
@@ -91,9 +94,10 @@ export async function revisarPropuesta(
   try {
     proposal = await reviewProposal(supabase, parsed.data.proposalId, parsed.data.decision === "approve");
   } catch (err: unknown) {
-    const message = errorMessage(err);
-    const known = REVIEW_ERRORS.find(([key]) => message.includes(key));
-    return { success: false, error: known?.[1] ?? "No se pudo revisar la propuesta. Probá de nuevo." };
+    return {
+      success: false,
+      error: rpcErrorMessage(err, REVIEW_MESSAGES, "No se pudo revisar la propuesta. Probá de nuevo."),
+    };
   }
 
   // An approval adds a title and a coronation everywhere; a rejection refunds the author's balance.

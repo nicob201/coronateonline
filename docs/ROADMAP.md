@@ -66,6 +66,8 @@ Mapa oscuro de Argentina (bordes IGN, con Malvinas y Antártida) donde las coron
 
 ## Hecho fuera del plan
 
+- [x] Errores de los RPC con códigos SQLSTATE propios (`CT…`, migración 0023): las acciones traducen por código y no por texto en inglés; `bot_tick` atrapa la clase completa
+
 - [x] Preparar el repo para hacerlo público: auditoría de secretos y del historial (limpia), licencia MIT, atribución al IGN en `/mapa` y créditos en el README
 
 - [x] Arreglos pendientes + Content-Security-Policy con nonce por request, sin `x-powered-by`, 0 vulnerabilidades en `npm audit`

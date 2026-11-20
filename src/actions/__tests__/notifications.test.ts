@@ -28,11 +28,11 @@ describe("marcarNotificacionesLeidas", () => {
   });
 
   it.each([
-    ["Not authenticated", "Tenés que iniciar sesión para ver tus avisos."],
-    ["boom", "No se pudieron marcar los avisos como leídos. Probá de nuevo."],
-  ])("maps the RPC error %j to a Spanish message", async (rpcMessage, expected) => {
+    ["CT001", "Tenés que iniciar sesión para ver tus avisos."],
+    ["XX000", "No se pudieron marcar los avisos como leídos. Probá de nuevo."],
+  ])("maps the RPC error code %j to a Spanish message", async (rpcCode, expected) => {
     createClientMock.mockResolvedValue(
-      createSupabaseMock({ user: { id: "u1" }, rpc: { data: null, error: { message: rpcMessage } } }),
+      createSupabaseMock({ user: { id: "u1" }, rpc: { data: null, error: { code: rpcCode, message: "rpc error" } } }),
     );
     await expect(marcarNotificacionesLeidas()).resolves.toEqual({ success: false, error: expected });
     expect(revalidatePathMock).not.toHaveBeenCalled();

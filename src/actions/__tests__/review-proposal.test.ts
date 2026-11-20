@@ -56,13 +56,13 @@ describe("revisarPropuesta", () => {
   });
 
   it.each([
-    ["Not authorized", "No autorizado."],
-    ["Proposal already reviewed", "Esa propuesta ya fue revisada."],
-    ["Title name taken", "Ya existe un título con ese nombre: rechazala."],
-    ["Proposal not found", "No se pudo revisar la propuesta. Probá de nuevo."],
-  ])("maps the RPC error %j to a Spanish message", async (rpcMessage, expected) => {
+    ["CT004", "No autorizado."],
+    ["CT407", "Esa propuesta ya fue revisada."],
+    ["CT405", "Ya existe un título con ese nombre: rechazala."],
+    ["CT406", "No se pudo revisar la propuesta. Probá de nuevo."],
+  ])("maps the RPC error code %j to a Spanish message", async (rpcCode, expected) => {
     createClientMock.mockResolvedValue(
-      createSupabaseMock({ user: { id: "admin" }, rpc: { data: null, error: { message: rpcMessage } } }),
+      createSupabaseMock({ user: { id: "admin" }, rpc: { data: null, error: { code: rpcCode, message: "rpc error" } } }),
     );
     await expect(revisarPropuesta(null, form())).resolves.toEqual({ success: false, error: expected });
     expect(revalidatePathMock).not.toHaveBeenCalled();

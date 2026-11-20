@@ -18,7 +18,7 @@ export const DECISIONS: Decision[] = [
     adr: "0002",
     title: "Destronar solo dentro de una función atómica",
     what: "La única forma de cambiar de rey es una función de Postgres que bloquea el título, después el perfil del que desafía, y recién ahí vuelve a validar el precio y el saldo. El precio que mostró la pantalla nunca se usa para cobrar.",
-    tradeoff: "La lógica crítica vive en SQL y se prueba con tests SQL, no con Vitest. Los errores llegan como mensajes de Postgres que la acción traduce.",
+    tradeoff: "La lógica crítica vive en SQL y se prueba con tests SQL, no con Vitest. Cada error lleva un código propio (SQLSTATE) que la acción traduce, en vez de depender del texto del mensaje.",
   },
   {
     adr: "0003",
@@ -70,10 +70,6 @@ export const REVISITS: Revisit[] = [
   {
     title: "La economía casi no tiene sumideros",
     body: "El sueldo diario no tiene tope y las Coronas solo se queman al reclamar un título libre o al aprobarse una propuesta. A la larga, la inflación aplanaría los precios. Un impuesto de mantenimiento (estilo Harberger) está en el backlog.",
-  },
-  {
-    title: "Los errores dependen de textos en inglés",
-    body: "Las acciones reconocen los errores de Postgres buscando fragmentos del mensaje. Es frágil: lo robusto sería que cada error del RPC lleve un código propio y la acción lo traduzca por código.",
   },
 ];
 

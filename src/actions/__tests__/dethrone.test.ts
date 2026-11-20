@@ -32,8 +32,8 @@ const reignRow = {
   dethroned_user_id: "u2",
 };
 
-function withRpcError(message: string) {
-  return createSupabaseMock({ user: { id: "u1" }, rpc: { data: null, error: { message } } });
+function withRpcError(code: string) {
+  return createSupabaseMock({ user: { id: "u1" }, rpc: { data: null, error: { code, message: "rpc error" } } });
 }
 
 beforeEach(() => {
@@ -59,15 +59,15 @@ describe("destronar", () => {
   });
 
   it.each([
-    ["Amount must be at least 6", "El monto no alcanza: alguien pagó más. Mirá el nuevo mínimo."],
-    ["Insufficient balance", "No te alcanzan las Coronas."],
-    ["Profile incomplete", "Elegí tu nombre en el perfil antes de jugar."],
-    ["You already hold this title", "Ya sos el dueño de este título."],
-    ["Message too long", "El mensaje es demasiado largo (máx. 80 caracteres)."],
-    ["Amount must be positive", "Monto inválido."],
-    ["Title not found", "No se pudo procesar la solicitud. Probá de nuevo."],
-  ])("maps the RPC error %j to a Spanish message", async (rpcMessage, expected) => {
-    createClientMock.mockResolvedValue(withRpcError(rpcMessage));
+    ["CT105", "El monto no alcanza: alguien pagó más. Mirá el nuevo mínimo."],
+    ["CT003", "No te alcanzan las Coronas."],
+    ["CT002", "Elegí tu nombre en el perfil antes de jugar."],
+    ["CT104", "Ya sos el dueño de este título."],
+    ["CT102", "El mensaje es demasiado largo (máx. 80 caracteres)."],
+    ["CT101", "Monto inválido."],
+    ["CT103", "No se pudo procesar la solicitud. Probá de nuevo."],
+  ])("maps the RPC error code %j to a Spanish message", async (rpcCode, expected) => {
+    createClientMock.mockResolvedValue(withRpcError(rpcCode));
     await expect(destronar(null, form())).resolves.toEqual({ success: false, error: expected });
     expect(revalidatePathMock).not.toHaveBeenCalled();
   });

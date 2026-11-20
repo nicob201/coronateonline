@@ -39,7 +39,7 @@ DO $$
 DECLARE ok boolean := false;
 BEGIN
   BEGIN PERFORM public.dethrone_with_coins('d4444444-4444-4444-8444-444444444444', 1);
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Not authenticated'; END;
+  EXCEPTION WHEN SQLSTATE 'CT001' THEN ok := SQLERRM = 'Not authenticated'; END;
   ASSERT ok, 'a session without a sub must be rejected as not authenticated';
 END $$;
 RESET ROLE;
@@ -52,7 +52,7 @@ DO $$
 DECLARE ok boolean := false;
 BEGIN
   BEGIN PERFORM public.dethrone_with_coins('d4444444-4444-4444-8444-444444444444', 1);
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Profile incomplete'; END;
+  EXCEPTION WHEN SQLSTATE 'CT002' THEN ok := SQLERRM = 'Profile incomplete'; END;
   ASSERT ok, 'a profile without a display name must be rejected';
 END $$;
 RESET ROLE;
@@ -75,27 +75,27 @@ BEGIN
   -- Rejections: nothing may move.
   ok := false;
   BEGIN PERFORM public.dethrone_with_coins(t_held, 10);
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Amount must be at least 11'; END;
+  EXCEPTION WHEN SQLSTATE 'CT105' THEN ok := SQLERRM = 'Amount must be at least 11'; END;
   ASSERT ok, 'paying the current price (10) must be rejected with minimum 11';
 
   ok := false;
   BEGIN PERFORM public.dethrone_with_coins(t_held, 21);
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Insufficient balance'; END;
+  EXCEPTION WHEN SQLSTATE 'CT003' THEN ok := SQLERRM = 'Insufficient balance'; END;
   ASSERT ok, 'paying more than the balance (21 > 20) must be rejected';
 
   ok := false;
   BEGIN PERFORM public.dethrone_with_coins(t_held, 11, repeat('a', 81));
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Message too long'; END;
+  EXCEPTION WHEN SQLSTATE 'CT102' THEN ok := SQLERRM = 'Message too long'; END;
   ASSERT ok, 'an 81-char message must be rejected';
 
   ok := false;
   BEGIN PERFORM public.dethrone_with_coins(t_held, 0);
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Amount must be positive'; END;
+  EXCEPTION WHEN SQLSTATE 'CT101' THEN ok := SQLERRM = 'Amount must be positive'; END;
   ASSERT ok, 'a zero amount must be rejected';
 
   ok := false;
   BEGIN PERFORM public.dethrone_with_coins(gen_random_uuid(), 5);
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Title not found'; END;
+  EXCEPTION WHEN SQLSTATE 'CT103' THEN ok := SQLERRM = 'Title not found'; END;
   ASSERT ok, 'an unknown title must be rejected';
 
   ASSERT public.coin_balance(c) = 20, 'rejections must not move coins';
@@ -114,7 +114,7 @@ BEGIN
 
   ok := false;
   BEGIN PERFORM public.dethrone_with_coins(t_held, 13);
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'You already hold this title'; END;
+  EXCEPTION WHEN SQLSTATE 'CT104' THEN ok := SQLERRM = 'You already hold this title'; END;
   ASSERT ok, 'dethroning yourself must be rejected';
 
   -- Unclaimed title, whitespace-only message -> NULL; only the debit (burn).

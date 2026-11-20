@@ -72,7 +72,7 @@ DECLARE
 BEGIN
   BEGIN
     PERFORM public.mark_notifications_seen();
-  EXCEPTION WHEN OTHERS THEN ok := SQLERRM = 'Not authenticated';
+  EXCEPTION WHEN OTHERS THEN ok := SQLSTATE = 'CT001' AND SQLERRM = 'Not authenticated';
   END;
   ASSERT ok, 'no auth.uid() must raise Not authenticated';
 END $$;

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { errorMessage } from "@/lib/errors";
+import { RPC_ERROR, rpcErrorMessage } from "@/lib/rpc-errors";
 import { markNotificationsSeen } from "@/services/notifications.server";
 import type { ActionResult } from "@/types";
 
@@ -20,8 +20,14 @@ export async function marcarNotificacionesLeidas(): Promise<ActionResult<null>> 
   try {
     await markNotificationsSeen(supabase);
   } catch (err: unknown) {
-    if (errorMessage(err).includes("Not authenticated")) return { success: false, error: NOT_AUTH };
-    return { success: false, error: "No se pudieron marcar los avisos como leídos. Probá de nuevo." };
+    return {
+      success: false,
+      error: rpcErrorMessage(
+        err,
+        { [RPC_ERROR.NOT_AUTHENTICATED]: NOT_AUTH },
+        "No se pudieron marcar los avisos como leídos. Probá de nuevo.",
+      ),
+    };
   }
 
   revalidatePath("/", "layout");

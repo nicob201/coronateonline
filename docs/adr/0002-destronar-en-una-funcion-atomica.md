@@ -25,4 +25,4 @@ La primera versión bloqueaba el perfil con `FOR UPDATE`. En la revisión aparec
 - Dos desafíos simultáneos se ordenan solos: el segundo relee el precio nuevo y recibe "El monto no alcanza".
 - Los bots ([ADR 0004](0004-bots-con-las-mismas-reglas.md)) reutilizan la misma función, así que no hay un segundo camino de escritura.
 - La lógica crítica está en SQL. Se prueba con tests SQL (`supabase/tests/`) que corren en CI contra un Postgres local, no con Vitest.
-- Los errores llegan como mensajes de Postgres; `translateRpcError` los pasa a textos para el usuario.
+- Cada error del RPC lleva un `SQLSTATE` propio de la clase `CT` (por ejemplo `CT105` = monto por debajo del mínimo, migración 0023) además de su mensaje en inglés. Las acciones traducen por código con `src/lib/rpc-errors.ts` y no leen el texto, así que cambiar un mensaje no rompe nada. Como un código propio no lo atrapa `WHEN raise_exception`, `bot_tick` atrapa también `SQLSTATE 'CT000'` (toda la clase).

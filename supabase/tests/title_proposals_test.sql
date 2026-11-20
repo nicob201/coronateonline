@@ -48,22 +48,22 @@ DECLARE
 BEGIN
   ok := false;
   BEGIN PERFORM public.propose_title('  ab ', '👑', 'Muy corto');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Invalid name'; END;
+  EXCEPTION WHEN SQLSTATE 'CT401' THEN ok := SQLERRM = 'Invalid name'; END;
   ASSERT ok, 'a 2-char trimmed name must be rejected';
 
   ok := false;
   BEGIN PERFORM public.propose_title('  rey DEL   mate ', '👑', 'Ya existe');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Title name taken'; END;
+  EXCEPTION WHEN SQLSTATE 'CT405' THEN ok := SQLERRM = 'Title name taken'; END;
   ASSERT ok, 'an existing title name (case and spacing aside) must be rejected';
 
   ok := false;
   BEGIN PERFORM public.propose_title('Rey Sin Emoji', '  ', 'Sin emoji');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Invalid emoji'; END;
+  EXCEPTION WHEN SQLSTATE 'CT402' THEN ok := SQLERRM = 'Invalid emoji'; END;
   ASSERT ok, 'a blank emoji must be rejected';
 
   ok := false;
   BEGIN PERFORM public.propose_title('Rey Mudo', '🤐', ' x ');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Invalid description'; END;
+  EXCEPTION WHEN SQLSTATE 'CT403' THEN ok := SQLERRM = 'Invalid description'; END;
   ASSERT ok, 'a 1-char description must be rejected';
 
   ASSERT public.coin_balance(a) = 60, 'rejections must not move coins';
@@ -78,12 +78,12 @@ BEGIN
 
   ok := false;
   BEGIN PERFORM public.propose_title('Conde del Choripán', '🥩', 'Otro más');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Proposal already pending'; END;
+  EXCEPTION WHEN SQLSTATE 'CT404' THEN ok := SQLERRM = 'Proposal already pending'; END;
   ASSERT ok, 'a second pending proposal must be rejected';
 
   ok := false;
   BEGIN PERFORM public.review_title_proposal(r.id, true);
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Not authorized'; END;
+  EXCEPTION WHEN SQLSTATE 'CT004' THEN ok := SQLERRM = 'Not authorized'; END;
   ASSERT ok, 'a non-admin must not review';
 
   ok := false;
@@ -110,12 +110,12 @@ DECLARE ok boolean;
 BEGIN
   ok := false;
   BEGIN PERFORM public.propose_title('SEÑOR DEL ÑANDÚ', '🐦', 'Copia');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Title name taken'; END;
+  EXCEPTION WHEN SQLSTATE 'CT405' THEN ok := SQLERRM = 'Title name taken'; END;
   ASSERT ok, 'a name pending in someone else''s proposal must be rejected';
 
   ok := false;
   BEGIN PERFORM public.propose_title('Rey Pobre', '🪙', 'No me alcanza');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Insufficient balance'; END;
+  EXCEPTION WHEN SQLSTATE 'CT003' THEN ok := SQLERRM = 'Insufficient balance'; END;
   ASSERT ok, '20 👑 must not cover a 30 👑 proposal';
 
   ASSERT (SELECT count(*) FROM public.title_proposals) = 0, 'other authors'' proposals must be hidden';
@@ -151,12 +151,12 @@ BEGIN
 
   ok := false;
   BEGIN PERFORM public.review_title_proposal(id, false);
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Proposal already reviewed'; END;
+  EXCEPTION WHEN SQLSTATE 'CT407' THEN ok := SQLERRM = 'Proposal already reviewed'; END;
   ASSERT ok, 'a reviewed proposal must not be reviewed again';
 
   ok := false;
   BEGIN PERFORM public.review_title_proposal(gen_random_uuid(), true);
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Proposal not found'; END;
+  EXCEPTION WHEN SQLSTATE 'CT406' THEN ok := SQLERRM = 'Proposal not found'; END;
   ASSERT ok, 'an unknown proposal must be rejected';
 END $$;
 RESET ROLE;
@@ -220,7 +220,7 @@ DO $$
 DECLARE ok boolean := false;
 BEGIN
   BEGIN PERFORM public.propose_title('Titulo Valido', '👑', 'Una descripcion valida');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Profile incomplete'; END;
+  EXCEPTION WHEN SQLSTATE 'CT002' THEN ok := SQLERRM = 'Profile incomplete'; END;
   ASSERT ok, 'a profile without a display name must be rejected';
 END $$;
 

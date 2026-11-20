@@ -58,15 +58,15 @@ describe("proponerTitulo", () => {
   });
 
   it.each([
-    ["Proposal already pending", "Ya tenés una propuesta esperando revisión."],
-    ["Title name taken", "Ya existe un título con ese nombre."],
-    ["Insufficient balance", "No te alcanzan las Coronas: crear un título cuesta 30 👑."],
-    ["Not authenticated", "Tenés que iniciar sesión para crear un título."],
-    ["Profile incomplete", "Elegí tu nombre en el perfil antes de jugar."],
-    ["Invalid name", "No se pudo enviar la propuesta. Probá de nuevo."],
-  ])("maps the RPC error %j to a Spanish message", async (rpcMessage, expected) => {
+    ["CT404", "Ya tenés una propuesta esperando revisión."],
+    ["CT405", "Ya existe un título con ese nombre."],
+    ["CT003", "No te alcanzan las Coronas: crear un título cuesta 30 👑."],
+    ["CT001", "Tenés que iniciar sesión para crear un título."],
+    ["CT002", "Elegí tu nombre en el perfil antes de jugar."],
+    ["CT401", "No se pudo enviar la propuesta. Probá de nuevo."],
+  ])("maps the RPC error code %j to a Spanish message", async (rpcCode, expected) => {
     createClientMock.mockResolvedValue(
-      createSupabaseMock({ user: { id: "u1" }, rpc: { data: null, error: { message: rpcMessage } } }),
+      createSupabaseMock({ user: { id: "u1" }, rpc: { data: null, error: { code: rpcCode, message: "rpc error" } } }),
     );
     await expect(proponerTitulo(null, form())).resolves.toEqual({ success: false, error: expected });
     expect(revalidatePathMock).not.toHaveBeenCalled();

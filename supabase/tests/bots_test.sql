@@ -171,7 +171,7 @@ BEGIN
     'the bot-tick cron job must be scheduled';
 END $$;
 
--- bot_tick swallows only lost races (raise_exception); any other error must fail the run.
+-- bot_tick swallows only lost races (the game's CT error codes); any other error must fail the run.
 CREATE TEMP SEQUENCE bot_move_calls;
 DO $$
 DECLARE
@@ -181,7 +181,7 @@ BEGIN
   CREATE OR REPLACE FUNCTION public.bot_move() RETURNS public.reigns LANGUAGE plpgsql AS $f$
   BEGIN
     PERFORM nextval('pg_temp.bot_move_calls');
-    RAISE EXCEPTION 'Amount must be at least 99';
+    RAISE EXCEPTION 'Amount must be at least 99' USING ERRCODE = 'CT105';
   END $f$;
   FOR i IN 1..30 LOOP
     PERFORM public.bot_tick();
