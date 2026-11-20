@@ -66,6 +66,8 @@ Mapa oscuro de Argentina (bordes IGN, con Malvinas y Antártida) donde las coron
 
 ## Hecho fuera del plan
 
+- [x] Preparar el repo para hacerlo público: auditoría de secretos y del historial (limpia), licencia MIT, atribución al IGN en `/mapa` y créditos en el README
+
 - [x] Arreglos pendientes + Content-Security-Policy con nonce por request, sin `x-powered-by`, 0 vulnerabilidades en `npm audit`
 - [x] Convertir invitado en cuenta permanente: vincula su Google al mismo usuario y conserva coronas, saldo y logros; "Salir" avisa antes de perder la cuenta. Solo Google: el mail de Supabase sin SMTP propio solo llega al equipo
 - [x] Pulido: la campanita dice "hace 2 horas", los bots llevan su chip 🤖 BOT en la billetera, el aviso de `/perfil`, la campanita y el toast, y el header entra en 360px aun con saldos de 5 cifras
