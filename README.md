@@ -128,3 +128,11 @@ supabase/
 e2e/            Playwright tests
 docs/           design, roadmap and ADRs
 ```
+
+## Credits and licenses
+
+- **Code:** [MIT](LICENSE).
+- **Map data:** `public/geo/argentina.json` is derived from the IGN's `provincia` layer and is **not** covered by the MIT license. It follows the [IGN's terms of use](https://www.ign.gob.ar/descargas/tyc1.html): *FUENTE: Instituto Geográfico Nacional de la República Argentina*, data downloaded in October 2026, shared free of charge. This project is not affiliated with or endorsed by the IGN.
+- **Fonts:** Inter, Montserrat and JetBrains Mono, self-hosted under the SIL Open Font License ([`src/app/fonts/OFL.txt`](src/app/fonts/OFL.txt)).
+- **Icons:** a subset of Google's Material Symbols (Apache-2.0).
+- **Maps engine:** [MapLibre GL](https://maplibre.org) (BSD-3-Clause).

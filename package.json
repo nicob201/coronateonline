@@ -2,6 +2,7 @@
   "name": "coronateonline",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "predev": "node scripts/check-local-supabase.mjs",
     "dev": "next dev",

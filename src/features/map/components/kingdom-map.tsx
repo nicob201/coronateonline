@@ -111,7 +111,7 @@ export function KingdomMap({ initialData }: { initialData: ProvinceSummary[] }) 
                 promoteId: "code",
                 // Extra simplification per zoom keeps the blurred glow from turning jagged coasts into spikes.
                 tolerance: 1,
-                attribution: "Límites: Instituto Geográfico Nacional",
+                attribution: "FUENTE: Instituto Geográfico Nacional de la República Argentina (datos de octubre de 2026). Sin vinculación con el IGN.",
               },
               // Held province crowns, filled once loaded; the province layers below still answer hover and click.
               crowns: { type: "geojson", data: { type: "FeatureCollection", features: [] } },

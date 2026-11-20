@@ -126,3 +126,11 @@ supabase/
 e2e/            tests de Playwright
 docs/           diseño, roadmap y ADRs
 ```
+
+## Créditos y licencias
+
+- **Código:** [MIT](LICENSE).
+- **Datos del mapa:** `public/geo/argentina.json` deriva de la capa `provincia` del IGN y **no** está cubierto por la licencia MIT. Sigue los [términos de uso del IGN](https://www.ign.gob.ar/descargas/tyc1.html): *FUENTE: Instituto Geográfico Nacional de la República Argentina*, datos descargados en octubre de 2026, compartidos de forma gratuita. Este proyecto no tiene vinculación con el IGN ni cuenta con su respaldo.
+- **Tipografías:** Inter, Montserrat y JetBrains Mono, alojadas en el repo bajo la SIL Open Font License ([`src/app/fonts/OFL.txt`](src/app/fonts/OFL.txt)).
+- **Íconos:** un subconjunto de Material Symbols de Google (Apache-2.0).
+- **Motor de mapas:** [MapLibre GL](https://maplibre.org) (BSD-3-Clause).
