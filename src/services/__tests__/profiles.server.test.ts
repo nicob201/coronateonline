@@ -97,6 +97,14 @@ describe("getPublicProfile", () => {
     expect(result?.isBot).toBe(true);
   });
 
+  it("fetches the newest reigns first and caps them explicitly", async () => {
+    const supabase = createSupabaseMock({ query: { data: profileRow(), error: null } });
+    await getPublicProfile(supabase, "nico");
+    const profiles = supabase.from("profiles").select();
+    expect(profiles.order).toHaveBeenCalledWith("started_at", { ascending: false, referencedTable: "reigns" });
+    expect(profiles.limit).toHaveBeenCalledWith(1000, { referencedTable: "reigns" });
+  });
+
   it("derives badges from the reigns' title level, dethroned player and times dethroned", async () => {
     const supabase = createSupabaseMock({ query: { data: profileRow(), error: null } });
     const result = await getPublicProfile(supabase, "nico");

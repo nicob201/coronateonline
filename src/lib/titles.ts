@@ -4,6 +4,12 @@ import type { RankedReign, Rarity } from "@/types";
 import { formatReignDuration } from "@/lib/format";
 
 export const BASE_PRICE = 1;
+
+// Most reigns a history query fetches (PostgREST's own response cap); only the newest are ever dropped.
+export const REIGN_FETCH_CAP = 1000;
+
+// Past reigns rendered on a profile or title page; older ones collapse into a count.
+export const REIGNS_SHOWN = 25;
 export const MIN_INCREMENT = 1;
 // What propose_title charges (migration 0015); the database is the authority, this is for display.
 export const TITLE_PROPOSAL_COST = 30;

@@ -2,6 +2,7 @@ import { type QueryData } from "@supabase/supabase-js";
 import type { SupabaseServerClient } from "@/lib/supabase/server";
 import { computeBadges, type BadgeReign } from "@/lib/badges";
 import { SOCIAL_KEYS } from "@/lib/socials";
+import { REIGN_FETCH_CAP } from "@/lib/titles";
 import type { Profile, ProfileReign, PublicProfile, SocialKey } from "@/types";
 
 const AVATAR_BUCKET = "avatars";
@@ -44,6 +45,9 @@ const publicProfileQuery = (supabase: SupabaseServerClient, username: string) =>
        times_dethroned:reigns!reigns_dethroned_user_id_fkey ( count )`,
     )
     .eq("username", username)
+    // ponytail: badges read the newest REIGN_FETCH_CAP reigns; an exact count over a longer history needs a SQL aggregate.
+    .order("started_at", { ascending: false, referencedTable: "reigns" })
+    .limit(REIGN_FETCH_CAP, { referencedTable: "reigns" })
     .maybeSingle();
 type PublicProfileRow = QueryData<ReturnType<typeof publicProfileQuery>>;
 type ProfileReignRow = NonNullable<PublicProfileRow>["reigns"][number];

@@ -108,6 +108,18 @@ describe("title categories", () => {
   });
 });
 
+describe("getTitleBySlug history", () => {
+  it("asks for the newest past reigns with an explicit cap", async () => {
+    const supabase = createSupabaseMock({
+      queryByTable: { titles_priced: { data: heldRow, error: null }, reigns: { data: [], error: null } },
+    });
+    await getTitleBySlug(supabase, "rey-de-cordoba");
+    const reigns = supabase.from("reigns").select();
+    expect(reigns.order).toHaveBeenCalledWith("started_at", { ascending: false });
+    expect(reigns.limit).toHaveBeenCalledWith(1000);
+  });
+});
+
 describe("getTitleBySlug", () => {
   it("returns the priced card plus past reigns, with holderPaid", async () => {
     const pastReignRows = [

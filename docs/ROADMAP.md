@@ -72,7 +72,6 @@ Mapa oscuro de Argentina (bordes IGN, con Malvinas y Antártida) donde las coron
 
 ## Pendientes
 
-- El perfil público trae todos los reinados sin límite (los bots juntan cientos)
 - Login con link mágico: sin SMTP propio solo llega al equipo, y el visitante ve "Email address not authorized" en inglés (configurar SMTP o esconder / traducir esa opción)
 
 ## Backlog

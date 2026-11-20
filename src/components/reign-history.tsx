@@ -1,5 +1,5 @@
 import { formatCoronas, formatReignDuration } from "@/lib/format";
-import { BASE_PRICE } from "@/lib/titles";
+import { BASE_PRICE, REIGNS_SHOWN } from "@/lib/titles";
 import { BotBadge } from "@/components/bot-badge";
 import type { PastReign } from "@/types";
 
@@ -19,7 +19,7 @@ export function ReignHistory({
         HISTORIAL DEL TRONO
       </h3>
       <div className="glass-panel rounded-xl flex flex-col overflow-hidden">
-        {pastReigns.map((r) => (
+        {pastReigns.slice(0, REIGNS_SHOWN).map((r) => (
           <div
             key={r.id}
             className="flex items-center justify-between p-4 border-b border-white/10"
@@ -48,6 +48,12 @@ export function ReignHistory({
             </div>
           </div>
         ))}
+
+        {pastReigns.length > REIGNS_SHOWN && (
+          <p className="p-4 border-b border-white/10 text-body-sm font-body-sm text-on-surface-variant">
+            … y {pastReigns.length - REIGNS_SHOWN} reinados anteriores
+          </p>
+        )}
 
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-4">

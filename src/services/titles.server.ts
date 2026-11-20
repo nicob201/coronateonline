@@ -1,6 +1,12 @@
 import { type QueryData } from "@supabase/supabase-js";
 import type { SupabaseServerClient } from "@/lib/supabase/server";
-import { BASE_PRICE, type ReignForRanking, rankReignsByDuration, rarity } from "@/lib/titles";
+import {
+  BASE_PRICE,
+  REIGN_FETCH_CAP,
+  type ReignForRanking,
+  rankReignsByDuration,
+  rarity,
+} from "@/lib/titles";
 import type {
   Coronation,
   HallOfFameEntry,
@@ -28,7 +34,8 @@ const pastReignsQuery = (supabase: SupabaseServerClient, titleId: string) =>
     .select("id, price_paid, started_at, ended_at, message, profiles!reigns_user_id_fkey ( username, display_name, is_bot )")
     .eq("title_id", titleId)
     .not("ended_at", "is", null)
-    .order("started_at", { ascending: false });
+    .order("started_at", { ascending: false })
+    .limit(REIGN_FETCH_CAP);
 type PastReignRow = QueryData<ReturnType<typeof pastReignsQuery>>[number];
 
 // Resolves a holder's best display name, or a fallback.
