@@ -66,7 +66,7 @@ Mapa oscuro de Argentina (bordes IGN, con Malvinas y Antártida) donde las coron
 
 ## Hecho fuera del plan
 
-- [x] E2E de 4 a 12 tests: avatar de 1,5 MB (reproduce el 413 si se saca `bodySizeLimit`), reacciones, sueldo, propuestas con el error de dos pestañas, mapa y rankings; `globalSetup` que espera a PostgREST tras `db reset`
+- [x] E2E de 4 a 16 tests: avatar de 1,5 MB (reproduce el 413 si se saca `bodySizeLimit`), reacciones, sueldo, propuestas con el error de dos pestañas, revisión de admin (aprobar / rechazar con reembolso), aviso "te destronaron" en vivo entre dos sesiones, mapa y rankings; `globalSetup` que espera a PostgREST tras `db reset`
 
 - [x] Errores de los RPC con códigos SQLSTATE propios (`CT…`, migración 0023): las acciones traducen por código y no por texto en inglés; `bot_tick` atrapa la clase completa
 

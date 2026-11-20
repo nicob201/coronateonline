@@ -38,20 +38,57 @@ export function largePng(side = 720): Buffer {
   ]);
 }
 
-// Credits Coronas to the newest profile (the guest the test just entered as) through the service role.
-export async function grantCoronasToNewestGuest(amount: number): Promise<void> {
+function serviceRequest(path: string, init: RequestInit = {}): Promise<Response> {
   const apiUrl = process.env.E2E_API_URL;
   const key = process.env.E2E_SERVICE_ROLE_KEY;
   if (!apiUrl || !key) throw new Error("E2E_API_URL and E2E_SERVICE_ROLE_KEY come from playwright.config.ts");
   const headers = { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" };
+  return fetch(`${apiUrl}/rest/v1/${path}`, { ...init, headers });
+}
 
-  const profiles = await fetch(`${apiUrl}/rest/v1/profiles?select=id&order=created_at.desc&limit=1`, { headers });
-  const [{ id }] = z.array(z.object({ id: z.string() })).parse(await profiles.json());
+async function newestGuestId(): Promise<string> {
+  const response = await serviceRequest("profiles?select=id&order=created_at.desc&limit=1");
+  const [{ id }] = z.array(z.object({ id: z.string() })).parse(await response.json());
+  return id;
+}
 
-  const credit = await fetch(`${apiUrl}/rest/v1/coin_ledger`, {
+// Credits Coronas to the newest profile (the guest the test just entered as) through the service role.
+export async function grantCoronasToNewestGuest(amount: number): Promise<void> {
+  const credit = await serviceRequest("coin_ledger", {
     method: "POST",
-    headers,
-    body: JSON.stringify({ user_id: id, amount, reason: "dethroned" }),
+    body: JSON.stringify({ user_id: await newestGuestId(), amount, reason: "dethroned" }),
   });
   expect(credit.ok).toBe(true);
+}
+
+// Makes the newest profile an admin through the service role (the database, not the client, decides who is one).
+export async function makeNewestGuestAdmin(): Promise<void> {
+  const update = await serviceRequest(`profiles?id=eq.${await newestGuestId()}`, {
+    method: "PATCH",
+    body: JSON.stringify({ is_admin: true }),
+  });
+  expect(update.ok).toBe(true);
+}
+
+// Dethrones a title from its page and closes the coronation dialog.
+export async function dethroneTitle(page: Page, slug: string): Promise<void> {
+  await page.goto(`/t/${slug}`);
+  await page.getByRole("button", { name: "DESTRONAR", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "¡Te coronaste!" })).toBeVisible();
+  await page.getByRole("button", { name: "SEGUIR" }).click();
+}
+
+// Resolves once the page has had `count` Realtime subscriptions acknowledged by the server; register it before navigating.
+export function realtimeJoins(page: Page, count: number): Promise<void> {
+  return new Promise((resolve) => {
+    let joined = 0;
+    page.on("websocket", (socket) =>
+      socket.on("framereceived", ({ payload }) => {
+        if (typeof payload === "string" && payload.includes("phx_reply") && payload.includes("postgres_changes")) {
+          joined += 1;
+          if (joined === count) resolve();
+        }
+      }),
+    );
+  });
 }

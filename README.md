@@ -88,7 +88,7 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Supabase
 Every PR goes through two CI jobs ([`ci.yml`](.github/workflows/ci.yml)):
 
 - **`verify`:** lint, typecheck, Vitest tests and a production build.
-- **`integration`:** starts Supabase in Docker and runs the SQL tests of every RPC ([`supabase/tests/`](supabase/tests/)), including a concurrency test with real parallel sessions (same-title race, double spend, two users dethroning each other), then 12 Playwright E2E tests against the production build: guest entry, dethroning, reactions, the daily salary, title proposals (including the error raised when two tabs race), the map, the rankings, a 1.5 MB avatar upload and the CSP.
+- **`integration`:** starts Supabase in Docker and runs the SQL tests of every RPC ([`supabase/tests/`](supabase/tests/)), including a concurrency test with real parallel sessions (same-title race, double spend, two users dethroning each other), then 16 Playwright E2E tests against the production build: guest entry, dethroning, the live "you were dethroned" notification across two sessions, reactions, the daily salary, title proposals (including the error raised when two tabs race), the admin review of proposals (approve, reject with refund, and the 404 for everyone else), the map, the rankings, a 1.5 MB avatar upload and the CSP.
 
 The schema lives in versioned migrations ([`supabase/migrations/`](supabase/migrations/)). A daily workflow requests `/titulos` so Supabase doesn't pause the free-tier project.
 
