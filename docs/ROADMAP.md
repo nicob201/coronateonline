@@ -62,7 +62,7 @@ Mapa oscuro de Argentina (bordes IGN, con Malvinas y Antártida) donde las coron
 - [x] **D26** — README con GIF, diagrama de arquitectura (Mermaid) y 7 ADRs en `docs/adr/`
 - [x] **D27** — Página `/acerca` como case study: problema, arquitectura, 7 decisiones con su costo, el bug del deadlock, lo que se haría distinto y los números
 - [ ] **D28** — Comprar Coronas con checkout sandbox + webhook idempotente con firma
-- [ ] **D29** — README en inglés
+- [x] **D29** — README en inglés (`README.md`); el español pasa a `README.es.md`
 
 ## Hecho fuera del plan
 

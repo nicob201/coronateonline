@@ -2,125 +2,129 @@
 
 [![CI](https://github.com/nicob201/coronateonline/actions/workflows/ci.yml/badge.svg)](https://github.com/nicob201/coronateonline/actions/workflows/ci.yml)
 
-**🌐 Demo en vivo: [coronateonline.vercel.app](https://coronateonline.vercel.app)**. Entrás como invitado con un clic y jugás en 30 segundos, sin registrarte ni pagar.
+🇦🇷 [Leer en español](README.es.md)
 
-![Un invitado entra, destrona al Rey de la Pizza, ve la celebración y su coronación aparece en el ticker de la home](docs/readme/demo.gif)
+**🌐 Live demo: [coronateonline.vercel.app](https://coronateonline.vercel.app)**. Enter as a guest with one click and play within 30 seconds: no sign-up, no payment.
 
-Un mercado de estatus: competís por títulos únicos y absurdos (**Rey de Córdoba**, **CEO de los Lunes**, **Rey de la Pizza**) pagando más que el que los tiene. El que paga, corona. El destronado, a llorar a las redes.
+![A guest enters, dethrones the Pizza King, sees the celebration and their coronation shows up in the home ticker](docs/readme/demo.gif)
 
-## Cómo se juega
+A status market: you compete for unique, absurd titles (**Rey de Córdoba**, **CEO de los Lunes**, **Rey de la Pizza**) by paying more than whoever holds them. Whoever pays gets crowned; the dethroned one goes to cry on social media. The UI is in Spanish (Argentina), the code and docs are in English, except the architecture decision records, which are in Spanish.
 
-- Cada título tiene un rey y un precio. Para destronarlo pagás el precio + 1 👑, y el destronado se queda con tus Coronas.
-- No hay subastas ni timers: la corona es tuya hasta que alguien pague más. Si nadie la disputa, el precio baja de a poco.
-- Arrancás con 20 👑 y cobrás un sueldo diario que crece con la racha. Cinco bots juegan con las mismas reglas para que el reino nunca esté quieto.
+## How it plays
 
-## Qué tiene
+- Every title has a king and a price. To dethrone them you pay the price + 1 👑, and the dethroned holder keeps your Coronas.
+- There are no auctions or timers: the crown is yours until someone pays more. If nobody contests it, the price slowly decays.
+- You start with 20 👑 and collect a daily salary that grows with your streak. Five bots play by the same rules so the realm is never still.
 
-- **Tiempo real:** el ticker, los precios y los reyes se actualizan solos, y una campanita te avisa cuando te destronan.
-- **Mapa del Reino** (`/mapa`): un globo con las 24 provincias del IGN, cada una con su corona, que brilla más cuanto más cara está.
-- **Rankings** (`/rankings`) y **logros** en el perfil, calculados a partir de los reinados.
-- **Títulos de la comunidad:** proponés uno por 30 👑 y un admin lo aprueba.
-- **Reacciones 🍅 / 👏** al rey actual, en vivo para todos.
-- **Búsqueda y filtros** en `/titulos`, con todo el estado en la URL.
-- **Case study** (`/acerca`): el problema, la arquitectura, las 7 decisiones con su costo y lo que se haría distinto.
-- **Lighthouse en producción (mobile):** 100 de rendimiento en la home y `/titulos`, 99 en `/mapa`; 100 en accesibilidad, buenas prácticas y SEO.
+## What's in it
 
-## Arquitectura
+- **Real time:** the ticker, prices and kings update on their own, and a bell tells you when you get dethroned.
+- **Realm Map** (`/mapa`): a globe with the 24 IGN provinces, each with its crown, glowing brighter the pricier it is.
+- **Rankings** (`/rankings`) and **achievements** on the profile, all derived from the reign history.
+- **Community titles:** propose one for 30 👑 and an admin approves it.
+- **🍅 / 👏 reactions** to the current king, live for everyone.
+- **Search and filters** on `/titulos`, with all state in the URL.
+- **Case study** (`/acerca`): the problem, the architecture, the 7 decisions with what each cost, and what would change today.
+- **Lighthouse in production (mobile):** 100 performance on the home page and `/titulos`, 99 on `/mapa`; 100 in accessibility, best practices and SEO.
+
+## Architecture
 
 ```mermaid
 flowchart LR
-  subgraph Navegador
+  subgraph Browser
     UI["Client Components<br/>(React 19)"]
   end
 
   subgraph Vercel["Vercel · Next.js 16"]
-    RSC["Server Components<br/>carga inicial"]
-    SA["Server Actions<br/>auth → Zod → servicio"]
+    RSC["Server Components<br/>initial load"]
+    SA["Server Actions<br/>auth → Zod → service"]
   end
 
   subgraph Supabase
-    PG[("Postgres<br/>RLS + RPC atómicos")]
-    AUTH["Auth<br/>invitados anónimos"]
+    PG[("Postgres<br/>RLS + atomic RPCs")]
+    AUTH["Auth<br/>anonymous guests"]
     RT["Realtime"]
-    CRON["pg_cron<br/>bots cada 20 min"]
+    CRON["pg_cron<br/>bots every 20 min"]
   end
 
-  UI -- navegación --> RSC
-  UI -- destronar, cobrar, reaccionar --> SA
+  UI -- navigation --> RSC
+  UI -- dethrone, claim salary, react --> SA
   UI -- signInAnonymously --> AUTH
-  RSC -- consultas --> PG
-  SA -- "dethrone_with_coins y otros RPC" --> PG
-  CRON -- "mismo RPC que los humanos" --> PG
-  PG -- "INSERT en reigns" --> RT
+  RSC -- queries --> PG
+  SA -- "dethrone_with_coins and other RPCs" --> PG
+  CRON -- "same RPC as humans" --> PG
+  PG -- "INSERT into reigns" --> RT
   RT -- "router.refresh()" --> UI
 ```
 
-Los datos se cargan en Server Components y llegan a los Client Components como props. Todo lo que escribe pasa por una Server Action, que valida con Zod y delega en un servicio. Algunas reglas que sostienen el diseño:
+Data is loaded in Server Components and reaches Client Components as props. Everything that writes goes through a Server Action, which validates with Zod and delegates to a service. A few rules the design rests on:
 
-- **Una sola fuente de verdad.** El rey y el precio de un título se derivan de `reigns`, y el saldo de cada usuario, de `coin_ledger`. Ninguno se guarda en una columna.
-- **Todo lo que mueve Coronas es atómico y vive en Postgres.** El servidor nunca cobra el precio que mostró la pantalla: la función vuelve a validarlo con los locks tomados.
-- **RLS en todas las tablas.** El cliente no puede escribir `titles`, `reigns` ni el ledger; solo las funciones `SECURITY DEFINER` lo hacen.
+- **One source of truth.** A title's king and price are derived from `reigns`, and each user's balance from `coin_ledger`. Neither is stored in a column.
+- **Everything that moves Coronas is atomic and lives in Postgres.** The server never charges the price the screen showed: the function re-validates it with the locks held.
+- **RLS on every table.** The client can't write `titles`, `reigns` or the ledger; only `SECURITY DEFINER` functions do.
 
-### Decisiones de arquitectura
+### Architecture decisions
 
-| ADR | Decisión |
+The ADRs are written in Spanish.
+
+| ADR | Decision |
 |---|---|
-| [0001](docs/adr/0001-coronas-y-saldo-derivado.md) | Coronas enteras y saldo derivado del ledger |
-| [0002](docs/adr/0002-destronar-en-una-funcion-atomica.md) | Destronar solo dentro de una función atómica de Postgres |
-| [0003](docs/adr/0003-estado-derivado-de-reigns.md) | Rey actual, precio y notificaciones derivados de `reigns` |
-| [0004](docs/adr/0004-bots-con-las-mismas-reglas.md) | Bots que juegan con las mismas reglas, desde `pg_cron` |
-| [0005](docs/adr/0005-tiempo-real-con-router-refresh.md) | Tiempo real: el cambio en la base dispara un `router.refresh()` |
-| [0006](docs/adr/0006-mapa-sin-proveedor-de-tiles.md) | Mapa con MapLibre y un GeoJSON propio del IGN, sin proveedor de mapas |
-| [0007](docs/adr/0007-invitados-desde-el-navegador.md) | Los invitados entran desde el navegador, sin captcha |
+| [0001](docs/adr/0001-coronas-y-saldo-derivado.md) | Integer Coronas and a balance derived from the ledger |
+| [0002](docs/adr/0002-destronar-en-una-funcion-atomica.md) | Dethroning only inside an atomic Postgres function |
+| [0003](docs/adr/0003-estado-derivado-de-reigns.md) | Current king, price and notifications derived from `reigns` |
+| [0004](docs/adr/0004-bots-con-las-mismas-reglas.md) | Bots that play by the same rules, from `pg_cron` |
+| [0005](docs/adr/0005-tiempo-real-con-router-refresh.md) | Real time: a database change triggers a `router.refresh()` |
+| [0006](docs/adr/0006-mapa-sin-proveedor-de-tiles.md) | Map with MapLibre and our own IGN GeoJSON, no map provider |
+| [0007](docs/adr/0007-invitados-desde-el-navegador.md) | Guests sign in from the browser, no captcha |
 
-Más contexto: la spec del producto en [`docs/DESIGN.md`](docs/DESIGN.md), las reglas de código en [`AGENTS.md`](AGENTS.md), el plan día por día en [`docs/ROADMAP.md`](docs/ROADMAP.md) y los diseños de las features grandes en [`docs/superpowers/specs/`](docs/superpowers/specs/).
+More context: the product spec in [`docs/DESIGN.md`](docs/DESIGN.md), the code rules in [`AGENTS.md`](AGENTS.md), the day-by-day plan in [`docs/ROADMAP.md`](docs/ROADMAP.md) and the designs of the larger features in [`docs/superpowers/specs/`](docs/superpowers/specs/).
 
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Supabase (Postgres, Auth, Realtime, Storage, pg_cron, PostGIS) · MapLibre GL · Zod · Vitest · Playwright · Vercel
 
-## Calidad
+## Quality
 
-Cada PR pasa por dos jobs de CI ([`ci.yml`](.github/workflows/ci.yml)):
+Every PR goes through two CI jobs ([`ci.yml`](.github/workflows/ci.yml)):
 
-- **`verify`:** lint, typecheck, tests de Vitest y build de producción.
-- **`integration`:** levanta Supabase en Docker, corre los tests SQL de cada RPC ([`supabase/tests/`](supabase/tests/)) y un E2E con Playwright: entrar como invitado, destronar y ver la coronación en el ticker.
+- **`verify`:** lint, typecheck, Vitest tests and a production build.
+- **`integration`:** starts Supabase in Docker and runs the SQL tests of every RPC ([`supabase/tests/`](supabase/tests/)), including a concurrency test with real parallel sessions (same-title race, double spend, two users dethroning each other), then a Playwright E2E: enter as a guest, dethrone and see the coronation in the ticker.
 
-El esquema vive en migraciones versionadas ([`supabase/migrations/`](supabase/migrations/)). Un workflow diario pide `/titulos` para que Supabase no pause el proyecto gratuito.
+The schema lives in versioned migrations ([`supabase/migrations/`](supabase/migrations/)). A daily workflow requests `/titulos` so Supabase doesn't pause the free-tier project.
 
-## Correr en local
+## Run locally
 
-Necesitás Node 20 o más y Docker (Docker Desktop, colima u OrbStack).
+You need Node 20 or later and Docker (Docker Desktop, colima or OrbStack).
 
 ```bash
 npm install
-npx supabase start            # Postgres, Auth y Realtime en Docker, con datos de ejemplo
-cp .env.example .env.local    # completá con API_URL y ANON_KEY de `npx supabase status -o env`
+npx supabase start            # Postgres, Auth and Realtime in Docker, with sample data
+cp .env.example .env.local    # fill in API_URL and ANON_KEY from `npx supabase status -o env`
 npm run dev
 ```
 
-| Comando | Qué hace |
+| Command | What it does |
 |---|---|
-| `npm run dev` | Servidor de desarrollo |
-| `npm run verify` | Lint, typecheck, tests y build: lo mismo que el job `verify` de CI |
-| `npm run test:sql` | Tests SQL de los RPC. Necesita `SUPABASE_DB_URL` apuntando al stack local |
-| `npm run test:e2e` | Playwright contra el stack local. Resetea la base local antes de correr |
+| `npm run dev` | Development server |
+| `npm run verify` | Lint, typecheck, tests and build: the same as CI's `verify` job |
+| `npm run test:sql` | SQL tests of the RPCs plus the concurrency test. Needs `SUPABASE_DB_URL` pointing at the local stack |
+| `npm run test:e2e` | Playwright against the local stack. Resets the local database first |
 
-Antes de `dev`, `build` y `test:sql`, un chequeo frena todo si alguna URL local de Supabase no pertenece a los contenedores de este proyecto, para no escribir nunca en la base de otro.
+Before `dev`, `build` and `test:sql`, a check stops everything if any local Supabase URL doesn't belong to this project's containers, so it never writes to another project's database.
 
-## Estructura
+## Structure
 
 ```
 src/
-  app/          páginas (App Router): llaman a un servicio y pasan props
-  actions/      Server Actions: auth → validación → servicio → revalidate
-  services/     lógica de negocio y consultas a Supabase
-  features/     código de cada feature (componentes, hooks, schemas)
-  components/   UI compartida
-  lib/          utilidades, env validado con Zod y clientes de Supabase
+  app/          pages (App Router): call a service and pass props
+  actions/      Server Actions: auth → validation → service → revalidate
+  services/     business logic and Supabase queries
+  features/     per-feature code (components, hooks, schemas)
+  components/   shared UI
+  lib/          utilities, Zod-validated env and Supabase clients
 supabase/
-  migrations/   esquema versionado
-  tests/        tests SQL de los RPC
-e2e/            tests de Playwright
-docs/           diseño, roadmap y ADRs
+  migrations/   versioned schema
+  tests/        SQL tests of the RPCs and the concurrency test
+e2e/            Playwright tests
+docs/           design, roadmap and ADRs
 ```
