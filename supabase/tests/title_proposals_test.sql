@@ -13,6 +13,11 @@ INSERT INTO auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_d
   ('e1111111-1111-4111-8111-111111111111', 'authenticated', 'authenticated', 'proposal_a@coronate.test', '{}', '{}', now(), now()),
   ('e2222222-2222-4222-8222-222222222222', 'authenticated', 'authenticated', 'proposal_p@coronate.test', '{}', '{}', now(), now()),
   ('e3333333-3333-4333-8333-333333333333', 'authenticated', 'authenticated', 'proposal_m@coronate.test', '{}', '{}', now(), now());
+-- Fixture users finished onboarding; the extra one (no display name) did not.
+UPDATE public.profiles SET display_name = 'Fixture ' || left(id::text, 8)
+WHERE id IN (SELECT id FROM auth.users WHERE email LIKE 'proposal\_%@coronate.test');
+INSERT INTO auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at) VALUES
+  ('e4444444-4444-4444-8444-444444444444', 'authenticated', 'authenticated', 'proposal_unnamed@coronate.test', '{}', '{}', now(), now());
 
 UPDATE profiles SET is_admin = true WHERE id = 'e3333333-3333-4333-8333-333333333333';
 INSERT INTO coin_ledger (user_id, amount, reason) VALUES ('e1111111-1111-4111-8111-111111111111', 40, 'salary');
@@ -204,6 +209,19 @@ BEGIN
     'a seeded title has no creator';
 
   RAISE NOTICE 'title_proposals_test: all assertions passed';
+END $$;
+
+-- A profile without a display name is rejected before anything else happens.
+RESET ROLE;
+SELECT set_config('request.jwt.claims',
+  '{"sub":"e4444444-4444-4444-8444-444444444444","role":"authenticated"}', true);
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE ok boolean := false;
+BEGIN
+  BEGIN PERFORM public.propose_title('Titulo Valido', '👑', 'Una descripcion valida');
+  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Profile incomplete'; END;
+  ASSERT ok, 'a profile without a display name must be rejected';
 END $$;
 
 ROLLBACK;

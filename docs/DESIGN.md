@@ -1,6 +1,6 @@
-# CoronaTeOnline — Design Spec (v2)
+# CoronaTeOnline — Design Spec (v2.3)
 
-*2026-08-23 — validation MVP. v2 2026-10-07 — Coronas (virtual currency) replace ARS; see `docs/ROADMAP.md`.*
+*2026-08-23 — validation MVP. v2 2026-10-07 — Coronas (virtual currency) replace ARS; see `docs/ROADMAP.md`. v2.1 daily salary, v2.2 bots, v2.3 geographic titles; later days (D8–D26) add realtime, rankings, community titles, reactions and security hardening, described below.*
 
 ## 1. Product
 
@@ -42,7 +42,7 @@ toward the activity floor.
 ### Dethrone flow (v2 — Coronas, atomic)
 
 1. A logged-in user (guests included) on a title page offers **X 👑** (X ≥ current price + 1, or ≥ 1 if unclaimed; they may offer more to raise the next threshold). The page shows their balance; the button reads "TE FALTAN N 👑" when short.
-2. The server action validates with Zod and calls `dethrone_with_coins`, which in one transaction locks the title (then the challenger's profile), re-checks the live price and the balance, ends the active reign, starts the new one and writes the ledger.
+2. The server action validates with Zod and calls `dethrone_with_coins`, which in one transaction requires a finished profile (`assert_onboarded`, see Database rules), locks the title (then the challenger's profile), re-checks the live price and the balance, ends the active reign, starts the new one and writes the ledger.
 3. **Zero-sum:** the dethroned holder is credited exactly X 👑. Claiming an unclaimed title only debits — those Coronas are burned (the economy's only sink).
 4. The coronation message (≤ 80 chars) is stored on the reign and shown publicly at once; until moderation exists it is cleared with SQL if needed.
 
@@ -64,7 +64,7 @@ Concurrency: two challengers on one title serialize on the title lock; the secon
 
 ## 3. Domain Model
 
-Four domain tables plus the single-row `pricing_config`. One source of truth: current holder and current price are always derived from `reigns`; a user's balance is always derived from `coin_ledger`.
+The domain tables are `profiles`, `titles`, `title_proposals`, `provinces`, `reigns`, `reign_reactions` and `coin_ledger`, plus the single-row `pricing_config`. One source of truth: current holder and current price are always derived from `reigns`; a user's balance is always derived from `coin_ledger`.
 
 ### `profiles` (1:1 with `auth.users`)
 - `id` (uuid, PK, FK → auth.users), `username` (unique slug, for `/@username`), `display_name`, `avatar_url`, `bio`
@@ -94,6 +94,8 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
   floored by `title_price_floor(title_id)`. `reigns.price_paid` always records the
   real amount paid; decay only affects the live threshold, never stored history.
 - Activity feed = recent reigns ordered by `started_at`. Season number = position in the title's reign sequence.
+- Indexes on `(title_id, started_at DESC)` (title history) and `(user_id, started_at DESC)` (public profiles), plus the partial unique one-active-reign index.
+- The home Hall of Fame is `ranking_hall_of_fame(p_limit)`: humans ranked by total reigns, aggregated in Postgres because PostgREST caps responses at 1000 rows.
 
 ### `reign_reactions` (D20, migration `0017`)
 - `reign_id` (FK → reigns), `user_id` (FK → profiles), `kind` (`tomato` / `applause`), `created_at`. One row per throw at a title's **current** reign; totals start at zero with every new reign.
@@ -101,7 +103,7 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
 - `react_to_reign(reign_id, kind)` is the only write path: active reign, not your own, at most 10 throws per user per minute (serialized on the profile lock). It returns the new totals and broadcasts `{kind, tomatoes, applause}` on the private Realtime topic `reign:<id>`; a `realtime.messages` policy lets anyone listen there and nobody send. `/t/[slug]` shows 🍅 / 👏 pills under the title and every throw lands on the crown for all viewers.
 
 ### `coin_ledger` (the wallet — append-only)
-- `id`, `user_id` (FK → profiles), `amount` (signed integer 👑: credit > 0, debit < 0), `reason` (`welcome`, `dethrone` (always negative), `dethroned`, `salary`), `reign_id` (FK → reigns, nullable, `ON DELETE SET NULL`), `created_at`
+- `id`, `user_id` (FK → profiles), `amount` (signed integer 👑: credit > 0, debit < 0), `reason` (`welcome`, `dethrone` (always negative), `dethroned`, `salary`, `proposal`, `proposal_refund`), `reign_id` (FK → reigns, nullable, `ON DELETE SET NULL`), `created_at`
 - **Balance is derived**: `coin_balance(user_id)` = sum of the user's rows. Never stored.
 - 20 👑 `welcome` row per profile, inserted by a trigger on `profiles`; a unique partial index allows only one.
 - One `salary` row per user per Argentine day (unique partial index); see "Daily salary with streak".
@@ -110,9 +112,10 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
 ### Database rules
 - RLS enabled on every table. Public read for `profiles`, `titles`, `reigns`. No client-side writes to `titles`/`reigns` — transfers happen exclusively inside a `SECURITY DEFINER` function.
 - Money integrity enforced by CHECK constraints (positive amounts; non-zero ledger movements).
+- **Onboarding gate:** `assert_onboarded(user_id)` raises `Profile incomplete` when the profile has no `display_name`; `dethrone_with_coins`, `react_to_reign`, `propose_title` and `claim_salary` call it, so no path (action, RPC, bot, manual SQL) can skip `/onboarding`. Guests are named when they enter.
 - Keep-alive: pg_cron jobs do not count as activity for Supabase's free-tier pause, so a daily GitHub Actions request to `/titulos` keeps the project awake.
 
-## 4. Pages (MVP)
+## 4. Pages
 
 | Route | Content |
 |---|---|
@@ -120,7 +123,10 @@ Four domain tables plus the single-row `pricing_config`. One source of truth: cu
 | `/titulos` | Grid of all titles with crown, holder, current price |
 | `/t/[slug]` | Title detail: current holder, price, dethrone button, reign history ("Temporada #N") |
 | `/@[username]` | Public shareable profile: avatar, current title(s), bio, social links, reign history |
-| `/login` | Supabase Auth: email magic link + Google OAuth; username onboarding on first login |
+| `/login` | Supabase Auth: email magic link + Google OAuth + guest entry (anonymous sign-in, named on entry); username onboarding on first login |
+| `/perfil` | The player's own profile: edit details and avatar, wallet and salary, their proposals; guests see a card to save the account by linking Google (D-link, PR #43) |
+| `/titulos/nuevo` | Propose a title (30 👑, one pending per player) |
+| `/admin` | Review title proposals (`profiles.is_admin`; 404 for everyone else) |
 | `/mapa` | Mapa del Reino: MapLibre globe with IGN country + province borders in neon (static GeoJSON in `public/geo/`, rebuilt by `scripts/build-argentina-geojson.sh`; no tile provider); hover shows a province's top 3 longest reigns (pointer devices only), click/tap opens a panel (bottom sheet on mobile) with the province crown and the top 10; selection lives in `?provincia=<slug>`. Held province crowns get a gold pin at their location (`titles_priced.lon/lat`). Held provinces glow by crown rarity (tier 1–3: border width/opacity, fill and pin size). Live: any new reign refreshes the page (`LiveRefresh`); pins and glow resync, and a crown drops and beats on the pin of each province whose reign just started (D15) |
 | `/rankings` | Four top-10 tables, live (`LiveRefresh`): priciest crowns (current price), most contested titles (most reigns), longest reigns and magnates (Coronas balance). Bots are left out of the two people tables. "Más defendido" from the roadmap became "más disputadas": there is no defense action to measure. SQL: `ranking_longest_reigns()`, `ranking_most_contested()`, `ranking_magnates()` (SECURITY DEFINER: only the top 10 balances become public) |
 
@@ -140,12 +146,4 @@ Next.js 16 (App Router) + TypeScript + Tailwind v4 + Supabase (Postgres/Auth) + 
 
 ## 7. Build Roadmap
 
-Each step is one feature branch, implemented via one prompt, reviewed by diff:
-
-1. **Supabase foundation** — env validation, Supabase clients, auth middleware, migration 0001 (schema + RLS + functions + trigger), seed titles, generated DB types
-2. **Auth** — login (magic link + Google), auth callback, username onboarding
-3. **Titles** — landing, titles grid, title detail with history
-4. **Dethrone flow** — claim creation + payment instructions screen
-5. **Public profiles** — `/@username`
-6. **Admin** — claim confirmation
-7. **Design pass** — apply Stitch designs, OG/share cards
+The original 7-step plan was replaced by the day-by-day plan in `docs/ROADMAP.md` (the source of truth for what shipped), with the architecture decisions in `docs/adr/`.

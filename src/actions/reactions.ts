@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { errorMessage } from "@/lib/errors";
+import { errorMessage, PROFILE_INCOMPLETE_ERROR } from "@/lib/errors";
 import { reactToReign } from "@/services/reactions.server";
 import { reactionSchema } from "@/features/reactions/schemas/reaction.schema";
 import type { ActionResult, ReactionCounts, ReactionKind } from "@/types";
@@ -14,6 +14,7 @@ function translateRpcError(message: string): string {
   if (message.includes("Reign not active")) return "Ese reinado ya terminó.";
   if (message.includes("Own reign")) return "No podés reaccionar a tu propio reinado.";
   if (message.includes("Not authenticated")) return NOT_AUTH;
+  if (message.includes("Profile incomplete")) return PROFILE_INCOMPLETE_ERROR;
   return "No se pudo reaccionar. Probá de nuevo.";
 }
 

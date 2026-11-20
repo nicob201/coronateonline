@@ -62,6 +62,7 @@ describe("proponerTitulo", () => {
     ["Title name taken", "Ya existe un título con ese nombre."],
     ["Insufficient balance", "No te alcanzan las Coronas: crear un título cuesta 30 👑."],
     ["Not authenticated", "Tenés que iniciar sesión para crear un título."],
+    ["Profile incomplete", "Elegí tu nombre en el perfil antes de jugar."],
     ["Invalid name", "No se pudo enviar la propuesta. Probá de nuevo."],
   ])("maps the RPC error %j to a Spanish message", async (rpcMessage, expected) => {
     createClientMock.mockResolvedValue(

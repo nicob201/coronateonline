@@ -12,6 +12,11 @@ INSERT INTO auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_d
   ('5a222222-2222-4222-8222-222222222222', 'authenticated', 'authenticated', 'salary_v@coronate.test', '{}', '{}', now(), now()),
   ('5a333333-3333-4333-8333-333333333333', 'authenticated', 'authenticated', 'salary_w@coronate.test', '{}', '{}', now(), now()),
   ('5a444444-4444-4444-8444-444444444444', 'authenticated', 'authenticated', 'salary_x@coronate.test', '{}', '{}', now(), now());
+-- Fixture users finished onboarding; the extra one (no display name) did not.
+UPDATE public.profiles SET display_name = 'Fixture ' || left(id::text, 8)
+WHERE id IN (SELECT id FROM auth.users WHERE email LIKE 'salary\_%@coronate.test');
+INSERT INTO auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at) VALUES
+  ('5a555555-5555-4555-8555-555555555555', 'authenticated', 'authenticated', 'salary_unnamed@coronate.test', '{}', '{}', now(), now());
 
 INSERT INTO public.coin_ledger (user_id, amount, reason, created_at)
 SELECT '5a222222-2222-4222-8222-222222222222'::uuid, 5, 'salary', now() - make_interval(days => d)
@@ -123,6 +128,19 @@ BEGIN
   ASSERT ok, 'anon must not claim a salary';
 
   RAISE NOTICE 'salary_test: all assertions passed';
+END $$;
+
+-- A profile without a display name is rejected before anything else happens.
+RESET ROLE;
+SELECT set_config('request.jwt.claims',
+  '{"sub":"5a555555-5555-4555-8555-555555555555","role":"authenticated"}', true);
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE ok boolean := false;
+BEGIN
+  BEGIN PERFORM public.claim_salary();
+  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Profile incomplete'; END;
+  ASSERT ok, 'a profile without a display name must be rejected';
 END $$;
 
 ROLLBACK;
