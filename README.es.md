@@ -86,7 +86,7 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Supabase
 Cada PR pasa por dos jobs de CI ([`ci.yml`](.github/workflows/ci.yml)):
 
 - **`verify`:** lint, typecheck, tests de Vitest y build de producción.
-- **`integration`:** levanta Supabase en Docker, corre los tests SQL de cada RPC ([`supabase/tests/`](supabase/tests/)), incluido un test de concurrencia con sesiones paralelas reales (carrera por un título, doble gasto y dos usuarios destronándose a la vez), y 12 tests E2E con Playwright contra el build de producción: entrada de invitados, destronar, reacciones, el sueldo diario, propuestas de títulos (incluido el error cuando dos pestañas compiten), el mapa, los rankings, la subida de un avatar de 1,5 MB y el CSP.
+- **`integration`:** levanta Supabase en Docker, corre los tests SQL de cada RPC ([`supabase/tests/`](supabase/tests/)), incluido un test de concurrencia con sesiones paralelas reales (carrera por un título, doble gasto y dos usuarios destronándose a la vez), y 16 tests E2E con Playwright contra el build de producción: entrada de invitados, destronar, el aviso en vivo de "te destronaron" entre dos sesiones, reacciones, el sueldo diario, propuestas de títulos (incluido el error cuando dos pestañas compiten), la revisión de propuestas como admin (aprobar, rechazar con reembolso y el "no existe" para el resto), el mapa, los rankings, la subida de un avatar de 1,5 MB y el CSP.
 
 El esquema vive en migraciones versionadas ([`supabase/migrations/`](supabase/migrations/)). Un workflow diario pide `/titulos` para que Supabase no pause el proyecto gratuito.
 
