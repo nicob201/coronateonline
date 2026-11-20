@@ -182,12 +182,19 @@ describe("bots", () => {
     expect(c.dethronedIsBot).toBe(false);
   });
 
-  it("asks the database to leave bots out of the hall of fame", async () => {
-    const supabase = createSupabaseMock({ query: { data: [], error: null } });
-    await getHallOfFame(supabase, 5);
-    expect(supabase.from("reigns").select).toHaveBeenCalledWith(
-      expect.stringContaining("profiles!reigns_user_id_fkey!inner"),
-    );
-    expect(supabase.from("reigns").select().eq).toHaveBeenCalledWith("profiles.is_bot", false);
+  it("maps the hall of fame RPC rows and asks for the requested limit", async () => {
+    const supabase = createSupabaseMock({
+      rpc: {
+        data: [
+          { username: "nico", display_name: null, avatar_url: null, reign_count: 7, latest_title_name: "Rey de Córdoba" },
+        ],
+        error: null,
+      },
+    });
+    const entries = await getHallOfFame(supabase, 5);
+    expect(supabase.rpc).toHaveBeenCalledWith("ranking_hall_of_fame", { p_limit: 5 });
+    expect(entries).toEqual([
+      { username: "nico", name: "nico", avatarUrl: null, reignCount: 7, latestTitleName: "Rey de Córdoba" },
+    ]);
   });
 });

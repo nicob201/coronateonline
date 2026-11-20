@@ -10,7 +10,11 @@ BEGIN;
 -- (20 👑 each); t_held held by h at 10 (inside grace -> current 10, minimum 11); two free titles.
 INSERT INTO auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at) VALUES
   ('d1111111-1111-4111-8111-111111111111', 'authenticated', 'authenticated', 'dethrone_h@coronate.test', '{}', '{}', now(), now()),
-  ('d2222222-2222-4222-8222-222222222222', 'authenticated', 'authenticated', 'dethrone_c@coronate.test', '{}', '{}', now(), now());
+  ('d2222222-2222-4222-8222-222222222222', 'authenticated', 'authenticated', 'dethrone_c@coronate.test', '{}', '{}', now(), now()),
+  ('d6666666-6666-4666-8666-666666666666', 'authenticated', 'authenticated', 'dethrone_n@coronate.test', '{}', '{}', now(), now());
+-- h and c finished onboarding; n (no display name) did not.
+UPDATE public.profiles SET display_name = 'Dethrone Titular' WHERE id = 'd1111111-1111-4111-8111-111111111111';
+UPDATE public.profiles SET display_name = 'Dethrone Retador' WHERE id = 'd2222222-2222-4222-8222-222222222222';
 
 INSERT INTO titles (id, slug, name, emoji, description) VALUES
   ('d3333333-3333-4333-8333-333333333333', 'dethrone-held',  'H',  '👑', 'x'),
@@ -37,6 +41,19 @@ BEGIN
   BEGIN PERFORM public.dethrone_with_coins('d4444444-4444-4444-8444-444444444444', 1);
   EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Not authenticated'; END;
   ASSERT ok, 'a session without a sub must be rejected as not authenticated';
+END $$;
+RESET ROLE;
+
+-- A profile without a display name cannot dethrone, even with coins and a valid price.
+SELECT set_config('request.jwt.claims',
+  '{"sub":"d6666666-6666-4666-8666-666666666666","role":"authenticated"}', true);
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE ok boolean := false;
+BEGIN
+  BEGIN PERFORM public.dethrone_with_coins('d4444444-4444-4444-8444-444444444444', 1);
+  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Profile incomplete'; END;
+  ASSERT ok, 'a profile without a display name must be rejected';
 END $$;
 RESET ROLE;
 

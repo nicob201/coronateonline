@@ -1,5 +1,8 @@
 import type { SocialKey } from "@/types";
 
+// Every social platform a profile can link, in display order.
+export const SOCIAL_KEYS: SocialKey[] = ["instagram", "tiktok", "youtube", "x", "twitch", "website"];
+
 const BASES: Record<SocialKey, string> = {
   instagram: "https://instagram.com/",
   tiktok: "https://www.tiktok.com/@",

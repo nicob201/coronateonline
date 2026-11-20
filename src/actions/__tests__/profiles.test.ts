@@ -25,8 +25,10 @@ const TAKEN_USERNAME = {
   message: 'duplicate key value violates unique constraint "profiles_username_key"',
 };
 
-function pngFile(bytes = 3): File {
-  return new File([new Uint8Array(bytes)], "a.png", { type: "image/png" });
+function pngFile(bytes = 8): File {
+  const content = new Uint8Array(bytes);
+  content.set([0x89, 0x50, 0x4e, 0x47]);
+  return new File([content], "a.png", { type: "image/png" });
 }
 
 function form(overrides: Record<string, string | File> = {}): FormData {
@@ -83,6 +85,15 @@ describe("updateProfileDetails", () => {
     mockUser(supabase);
     const pdf = new File([new Uint8Array(3)], "cv.pdf", { type: "application/pdf" });
     const result = await updateProfileDetails(null, form({ avatar: pdf }));
+    expect(result.success).toBe(false);
+    expect(supabase.storage.from("avatars").upload).not.toHaveBeenCalled();
+  });
+
+  it("rejects a file that claims to be a PNG but has no image signature", async () => {
+    const supabase = createSupabaseMock({ query: { data: { username: "nico" }, error: null } });
+    mockUser(supabase);
+    const fake = new File([new Uint8Array(8)], "a.png", { type: "image/png" });
+    const result = await updateProfileDetails(null, form({ avatar: fake }));
     expect(result.success).toBe(false);
     expect(supabase.storage.from("avatars").upload).not.toHaveBeenCalled();
   });

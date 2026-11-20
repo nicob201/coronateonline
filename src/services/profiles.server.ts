@@ -1,9 +1,8 @@
 import { type QueryData } from "@supabase/supabase-js";
 import type { SupabaseServerClient } from "@/lib/supabase/server";
 import { computeBadges, type BadgeReign } from "@/lib/badges";
+import { SOCIAL_KEYS } from "@/lib/socials";
 import type { Profile, ProfileReign, PublicProfile, SocialKey } from "@/types";
-
-const SOCIAL_KEYS: SocialKey[] = ["instagram", "tiktok", "youtube", "x", "twitch", "website"];
 
 const AVATAR_BUCKET = "avatars";
 const EXT_BY_TYPE: Record<string, string> = {
@@ -27,21 +26,6 @@ export async function getOwnProfile(
     .from("profiles")
     .select("*")
     .eq("id", userId)
-    .maybeSingle();
-
-  if (error) throw error;
-  return data;
-}
-
-// Fetches a profile by username.
-export async function getProfileByUsername(
-  supabase: SupabaseServerClient,
-  username: string,
-) {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("username", username)
     .maybeSingle();
 
   if (error) throw error;
