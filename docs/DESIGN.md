@@ -46,7 +46,7 @@ toward the activity floor.
 3. **Zero-sum:** the dethroned holder is credited exactly X 👑. Claiming an unclaimed title only debits — those Coronas are burned (the economy's only sink).
 4. The coronation message (≤ 80 chars) is stored on the reign and shown publicly at once; until moderation exists it is cleared with SQL if needed.
 
-Concurrency: two challengers on one title serialize on the title lock; the second re-reads the new price and is rejected with "El monto no alcanza". Spends by one user serialize on their profile row, locked `FOR NO KEY UPDATE` — never `FOR UPDATE`, which deadlocks against the `KEY SHARE` the foreign keys take when two users dethrone each other at once.
+Concurrency: two challengers on one title serialize on the title lock; the second re-reads the new price and is rejected with "El monto no alcanza". Spends by one user serialize on their profile row, locked `FOR NO KEY UPDATE` — never `FOR UPDATE`, which deadlocks against the `KEY SHARE` the foreign keys take when two users dethrone each other at once. `supabase/tests/concurrency_test.sh` proves all three with real concurrent sessions (same-title race, one user spending twice, two users dethroning each other) and fails if any of those locks is removed.
 
 ### Daily salary with streak (v2.1)
 
