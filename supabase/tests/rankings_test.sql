@@ -1,5 +1,5 @@
 -- supabase/tests/rankings_test.sql
--- Verifies migration 0014: the three ranking functions order correctly, leave bots out
+-- Verifies migrations 0014 and 0021: the ranking functions (incl. the hall of fame) order correctly, leave bots out
 -- of the people rankings, stop at 10 rows and are callable by anon.
 -- Run: psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rankings_test.sql
 -- Everything runs in one transaction and ROLLBACKs; fixtures are big enough to top any seed data.
@@ -52,6 +52,13 @@ BEGIN
     'the richest person tops the magnates with welcome grant + credit';
   ASSERT NOT EXISTS (SELECT 1 FROM public.ranking_magnates() WHERE username = 'rank_b'), 'bots are not magnates';
   ASSERT (SELECT count(*) FROM public.ranking_magnates()) <= 10, 'magnates stop at 10';
+
+  ASSERT (SELECT row(username, reign_count, latest_title_name) FROM public.ranking_hall_of_fame() LIMIT 1)
+    = row('rank_a'::text, 41, 'Corona Disputada'::text),
+    'the person with most reigns tops the hall of fame, with their latest title';
+  ASSERT NOT EXISTS (SELECT 1 FROM public.ranking_hall_of_fame(100) WHERE username = 'rank_b'),
+    'bots are not in the hall of fame';
+  ASSERT (SELECT count(*) FROM public.ranking_hall_of_fame(1)) = 1, 'the limit argument is honoured';
 
   RAISE NOTICE 'rankings_test: all assertions passed';
 END $$;

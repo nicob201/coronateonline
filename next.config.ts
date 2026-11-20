@@ -15,6 +15,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Server Actions cap the body at 1 MB; avatars may be 2 MB plus multipart overhead.
+  experimental: { serverActions: { bodySizeLimit: "3mb" } },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

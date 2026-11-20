@@ -35,6 +35,7 @@ auth settings live in the dashboard and must be verified there.
 
 ## Known gaps (tracked, not yet fixed)
 
-- **Onboarding is bypassable**: a signed-in user with no `display_name` can still
-  dethrone, react and claim the salary; the UI falls back to `@username`. Guests get
-  a name on entry, so only email/Google users who skip `/onboarding` hit this.
+- **Onboarding is bypassable for reactions and salary**: `dethrone_with_coins` now rejects
+  a profile with no `display_name` ("Profile incomplete"), but a signed-in user who skips
+  `/onboarding` can still react and claim the salary. Guests get a name on entry, so only
+  email/Google users hit this.

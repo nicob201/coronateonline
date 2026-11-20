@@ -4,6 +4,8 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { displayNameSchema } from "@/features/auth/schemas/display-name.schema";
+import { hasImageSignature } from "@/lib/image-signature";
+import { SOCIAL_KEYS } from "@/lib/socials";
 import { createClient } from "@/lib/supabase/server";
 import { requireOnboardedUser } from "@/services/auth.server";
 import {
@@ -12,9 +14,8 @@ import {
   uploadAvatar,
   type ProfileUpdate,
 } from "@/services/profiles.server";
-import type { ActionResult, Profile, SocialKey } from "@/types";
+import type { ActionResult, Profile } from "@/types";
 
-const SOCIAL_KEYS: SocialKey[] = ["instagram", "tiktok", "youtube", "x", "twitch", "website"];
 const ALLOWED_AVATAR_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -139,6 +140,9 @@ export async function updateProfileDetails(
     }
     if (avatar.size > MAX_AVATAR_BYTES) {
       return { success: false, error: "El avatar no puede superar los 2 MB." };
+    }
+    if (!hasImageSignature(new Uint8Array(await avatar.slice(0, 12).arrayBuffer()))) {
+      return { success: false, error: "El avatar debe ser JPG, PNG, WebP o GIF." };
     }
     try {
       uploadedUrl = await uploadAvatar(supabase, user.id, avatar);

@@ -18,15 +18,6 @@ const coronationsQuery = (supabase: SupabaseServerClient) =>
     );
 type CoronationRow = QueryData<ReturnType<typeof coronationsQuery>>[number];
 
-// Bots play ~12 times a day; the Hall of Fame is for people (filtered in the
-// database so bot rows never use up PostgREST's row limit).
-const hallOfFameQuery = (supabase: SupabaseServerClient) =>
-  supabase
-    .from("reigns")
-    .select("started_at, profiles!reigns_user_id_fkey!inner ( username, display_name, avatar_url ), titles ( name )")
-    .eq("profiles.is_bot", false);
-type HallOfFameRow = QueryData<ReturnType<typeof hallOfFameQuery>>[number];
-
 const pricedQuery = (supabase: SupabaseServerClient) =>
   supabase.from("titles_priced").select("*");
 type PricedRow = QueryData<ReturnType<typeof pricedQuery>>[number];
@@ -229,34 +220,16 @@ export async function getHallOfFame(
   supabase: SupabaseServerClient,
   limit: number,
 ): Promise<HallOfFameEntry[]> {
-  const { data, error } = await hallOfFameQuery(supabase).order("started_at", {
-    ascending: false,
-  });
+  const { data, error } = await supabase.rpc("ranking_hall_of_fame", { p_limit: limit });
 
   if (error) throw error;
 
-  const rows: HallOfFameRow[] = data;
-
-  // ponytail: in-JS aggregation over all reigns; move to a view/RPC if reign volume grows.
-  const byUser = new Map<string, HallOfFameEntry>();
-  for (const row of rows) {
-    if (!row.profiles) continue;
-    const key = row.profiles.username;
-    const existing = byUser.get(key);
-    if (existing) {
-      existing.reignCount += 1;
-    } else {
-      byUser.set(key, {
-        username: row.profiles.username,
-        name: displayName(row.profiles),
-        avatarUrl: row.profiles.avatar_url,
-        reignCount: 1,
-        latestTitleName: row.titles?.name ?? "",
-      });
-    }
-  }
-
-  return [...byUser.values()]
-    .sort((a, b) => b.reignCount - a.reignCount)
-    .slice(0, limit);
+  return data.map((row) => ({
+    username: row.username,
+    name: displayName(row),
+    // Generated function types mark these nullable columns as non-null.
+    avatarUrl: row.avatar_url ?? null,
+    reignCount: row.reign_count,
+    latestTitleName: row.latest_title_name,
+  }));
 }

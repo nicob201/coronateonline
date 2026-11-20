@@ -590,6 +590,16 @@ export type Database = {
           title_slug: string;
         }[];
       };
+      ranking_hall_of_fame: {
+        Args: { p_limit?: number };
+        Returns: {
+          avatar_url: string;
+          display_name: string;
+          latest_title_name: string;
+          reign_count: number;
+          username: string;
+        }[];
+      };
       ranking_longest_reigns: {
         Args: Record<PropertyKey, never>;
         Returns: {
