@@ -2,29 +2,28 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { errorMessage, PROFILE_INCOMPLETE_ERROR } from "@/lib/errors";
+import {
+  PROFILE_INCOMPLETE_ERROR,
+  RPC_ERROR,
+  rpcErrorMessage,
+  type RpcErrorCode,
+} from "@/lib/rpc-errors";
 import { dethrone } from "@/services/dethrone.server";
 import { dethroneSchema } from "@/features/dethrone/schemas/dethrone.schema";
 import type { ActionResult, Reign } from "@/types";
 
 const NOT_AUTH = "Tenés que iniciar sesión para destronar.";
 
-// Maps a known dethrone_with_coins RPC exception message to a Spanish user message.
-// ponytail: substring match on English RPC messages; upgrade to SQLSTATE codes in a migration if these strings drift.
-function translateRpcError(message: string): string {
-  if (message.includes("at least")) {
-    return "El monto no alcanza: alguien pagó más. Mirá el nuevo mínimo.";
-  }
-  if (message.includes("Insufficient balance")) return "No te alcanzan las Coronas.";
-  if (message.includes("already hold")) return "Ya sos el dueño de este título.";
-  if (message.includes("Message too long")) {
-    return "El mensaje es demasiado largo (máx. 80 caracteres).";
-  }
-  if (message.includes("Not authenticated")) return NOT_AUTH;
-  if (message.includes("Profile incomplete")) return PROFILE_INCOMPLETE_ERROR;
-  if (message.includes("must be positive")) return "Monto inválido.";
-  return "No se pudo procesar la solicitud. Probá de nuevo.";
-}
+// Spanish message for each dethrone_with_coins error code.
+const RPC_MESSAGES: Partial<Record<RpcErrorCode, string>> = {
+  [RPC_ERROR.AMOUNT_TOO_LOW]: "El monto no alcanza: alguien pagó más. Mirá el nuevo mínimo.",
+  [RPC_ERROR.INSUFFICIENT_BALANCE]: "No te alcanzan las Coronas.",
+  [RPC_ERROR.ALREADY_HOLDER]: "Ya sos el dueño de este título.",
+  [RPC_ERROR.MESSAGE_TOO_LONG]: "El mensaje es demasiado largo (máx. 80 caracteres).",
+  [RPC_ERROR.NOT_AUTHENTICATED]: NOT_AUTH,
+  [RPC_ERROR.PROFILE_INCOMPLETE]: PROFILE_INCOMPLETE_ERROR,
+  [RPC_ERROR.AMOUNT_NOT_POSITIVE]: "Monto inválido.",
+};
 
 // Spends the user's Coronas to take a title; price and balance are re-validated atomically by the RPC.
 export async function destronar(
@@ -57,7 +56,7 @@ export async function destronar(
   try {
     reign = await dethrone(supabase, titleId, amount, message);
   } catch (err: unknown) {
-    return { success: false, error: translateRpcError(errorMessage(err)) };
+    return { success: false, error: rpcErrorMessage(err, RPC_MESSAGES, "No se pudo procesar la solicitud. Probá de nuevo.") };
   }
 
   // Holders and balances change site-wide: header chip, cards, ticker, both wallets.

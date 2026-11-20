@@ -36,15 +36,15 @@ describe("reaccionar", () => {
   });
 
   it.each([
-    ["Rate limited", "Pará un poco: máximo 10 reacciones por minuto."],
-    ["Reign not active", "Ese reinado ya terminó."],
-    ["Own reign", "No podés reaccionar a tu propio reinado."],
-    ["Not authenticated", "Tenés que iniciar sesión para reaccionar."],
-    ["Profile incomplete", "Elegí tu nombre en el perfil antes de jugar."],
-    ["boom", "No se pudo reaccionar. Probá de nuevo."],
-  ])("maps the RPC error %j to a Spanish message", async (rpcMessage, expected) => {
+    ["CT304", "Pará un poco: máximo 10 reacciones por minuto."],
+    ["CT302", "Ese reinado ya terminó."],
+    ["CT303", "No podés reaccionar a tu propio reinado."],
+    ["CT001", "Tenés que iniciar sesión para reaccionar."],
+    ["CT002", "Elegí tu nombre en el perfil antes de jugar."],
+    ["XX000", "No se pudo reaccionar. Probá de nuevo."],
+  ])("maps the RPC error code %j to a Spanish message", async (rpcCode, expected) => {
     createClientMock.mockResolvedValue(
-      createSupabaseMock({ user: { id: "u1" }, rpc: { data: null, error: { message: rpcMessage } } }),
+      createSupabaseMock({ user: { id: "u1" }, rpc: { data: null, error: { code: rpcCode, message: "rpc error" } } }),
     );
     await expect(reaccionar(REIGN_ID, "applause")).resolves.toEqual({ success: false, error: expected });
   });

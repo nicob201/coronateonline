@@ -61,7 +61,7 @@ DO $$
 DECLARE ok boolean := false;
 BEGIN
   BEGIN PERFORM public.react_to_reign('fc222222-2222-4222-8222-222222222222', 'applause');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Own reign'; END;
+  EXCEPTION WHEN SQLSTATE 'CT303' THEN ok := SQLERRM = 'Own reign'; END;
   ASSERT ok, 'h must not react to their own reign';
 END $$;
 
@@ -75,17 +75,17 @@ DECLARE
 BEGIN
   ok := false;
   BEGIN PERFORM public.react_to_reign(active, 'egg');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Invalid reaction'; END;
+  EXCEPTION WHEN SQLSTATE 'CT301' THEN ok := SQLERRM = 'Invalid reaction'; END;
   ASSERT ok, 'an unknown kind must be rejected';
 
   ok := false;
   BEGIN PERFORM public.react_to_reign('fc111111-1111-4111-8111-111111111111', 'tomato');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Reign not active'; END;
+  EXCEPTION WHEN SQLSTATE 'CT302' THEN ok := SQLERRM = 'Reign not active'; END;
   ASSERT ok, 'an ended reign must be rejected';
 
   ok := false;
   BEGIN PERFORM public.react_to_reign(gen_random_uuid(), 'tomato');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Reign not active'; END;
+  EXCEPTION WHEN SQLSTATE 'CT302' THEN ok := SQLERRM = 'Reign not active'; END;
   ASSERT ok, 'an unknown reign must be rejected';
 
   FOR i IN 1..7 LOOP
@@ -98,7 +98,7 @@ BEGIN
 
   ok := false;
   BEGIN PERFORM public.react_to_reign(active, 'tomato');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Rate limited'; END;
+  EXCEPTION WHEN SQLSTATE 'CT304' THEN ok := SQLERRM = 'Rate limited'; END;
   ASSERT ok, 'a: the 11th throw within a minute must be rate limited';
 
   ASSERT (SELECT count(*) FROM public.reign_reactions) = 10, 'a sees only their own 10 rows';
@@ -149,7 +149,7 @@ DO $$
 DECLARE ok boolean := false;
 BEGIN
   BEGIN PERFORM public.react_to_reign('fc222222-2222-4222-8222-222222222222', 'tomato');
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Profile incomplete'; END;
+  EXCEPTION WHEN SQLSTATE 'CT002' THEN ok := SQLERRM = 'Profile incomplete'; END;
   ASSERT ok, 'a profile without a display name must be rejected';
 END $$;
 

@@ -69,7 +69,7 @@ BEGIN
   ok := false;
   BEGIN
     PERFORM public.claim_salary();
-  EXCEPTION WHEN OTHERS THEN ok := SQLERRM = 'Salary already claimed today';
+  EXCEPTION WHEN OTHERS THEN ok := SQLSTATE = 'CT201' AND SQLERRM = 'Salary already claimed today';
   END;
   ASSERT ok, 'u: a second claim the same day must be rejected';
 END $$;
@@ -139,7 +139,7 @@ DO $$
 DECLARE ok boolean := false;
 BEGIN
   BEGIN PERFORM public.claim_salary();
-  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Profile incomplete'; END;
+  EXCEPTION WHEN SQLSTATE 'CT002' THEN ok := SQLERRM = 'Profile incomplete'; END;
   ASSERT ok, 'a profile without a display name must be rejected';
 END $$;
 

@@ -112,6 +112,7 @@ The domain tables are `profiles`, `titles`, `title_proposals`, `provinces`, `rei
 ### Database rules
 - RLS enabled on every table. Public read for `profiles`, `titles`, `reigns`. No client-side writes to `titles`/`reigns` — transfers happen exclusively inside a `SECURITY DEFINER` function.
 - Money integrity enforced by CHECK constraints (positive amounts; non-zero ledger movements).
+- **Error codes:** every error an RPC raises for the app carries its own SQLSTATE in the custom class `CT` (`CT001` not authenticated, `CT002` profile incomplete, `CT003` insufficient balance, `CT105` amount below the minimum, ... full table in migration `0023`). The English message stays for logs, but actions translate by code through `src/lib/rpc-errors.ts`. A custom SQLSTATE is not caught by `WHEN raise_exception`, so `bot_tick` also catches `SQLSTATE 'CT000'` (the whole class).
 - **Onboarding gate:** `assert_onboarded(user_id)` raises `Profile incomplete` when the profile has no `display_name`; `dethrone_with_coins`, `react_to_reign`, `propose_title` and `claim_salary` call it, so no path (action, RPC, bot, manual SQL) can skip `/onboarding`. Guests are named when they enter.
 - Keep-alive: pg_cron jobs do not count as activity for Supabase's free-tier pause, so a daily GitHub Actions request to `/titulos` keeps the project awake.
 

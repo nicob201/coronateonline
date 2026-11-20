@@ -2,11 +2,23 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { errorMessage, PROFILE_INCOMPLETE_ERROR } from "@/lib/errors";
+import {
+  PROFILE_INCOMPLETE_ERROR,
+  RPC_ERROR,
+  rpcErrorMessage,
+  type RpcErrorCode,
+} from "@/lib/rpc-errors";
 import { claimSalary } from "@/services/wallet.server";
 import type { ActionResult } from "@/types";
 
 const NOT_AUTH = "Tenés que iniciar sesión para cobrar.";
+
+// Spanish message for each claim_salary error code.
+const RPC_MESSAGES: Partial<Record<RpcErrorCode, string>> = {
+  [RPC_ERROR.SALARY_CLAIMED]: "Ya cobraste el sueldo de hoy. Volvé mañana.",
+  [RPC_ERROR.NOT_AUTHENTICATED]: NOT_AUTH,
+  [RPC_ERROR.PROFILE_INCOMPLETE]: PROFILE_INCOMPLETE_ERROR,
+};
 
 // Claims today's salary for the signed-in user; the RPC computes the amount and allows one claim per day.
 export async function cobrarSueldo(): Promise<ActionResult<number>> {
@@ -21,13 +33,10 @@ export async function cobrarSueldo(): Promise<ActionResult<number>> {
   try {
     amount = await claimSalary(supabase);
   } catch (err: unknown) {
-    const message = errorMessage(err);
-    if (message.includes("already claimed")) {
-      return { success: false, error: "Ya cobraste el sueldo de hoy. Volvé mañana." };
-    }
-    if (message.includes("Not authenticated")) return { success: false, error: NOT_AUTH };
-    if (message.includes("Profile incomplete")) return { success: false, error: PROFILE_INCOMPLETE_ERROR };
-    return { success: false, error: "No se pudo cobrar el sueldo. Probá de nuevo." };
+    return {
+      success: false,
+      error: rpcErrorMessage(err, RPC_MESSAGES, "No se pudo cobrar el sueldo. Probá de nuevo."),
+    };
   }
 
   // The balance chip, its salary dot and the wallet all change.
