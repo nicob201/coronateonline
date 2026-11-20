@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatCoronas, formatReignDuration } from "@/lib/format";
+import { REIGNS_SHOWN } from "@/lib/titles";
 import type { ProfileReign } from "@/types";
 
 function ReignRow({ reign, ongoing }: { reign: ProfileReign; ongoing: boolean }) {
@@ -33,7 +34,7 @@ function ReignRow({ reign, ongoing }: { reign: ProfileReign; ongoing: boolean })
   );
 }
 
-// Full reign history for a public profile: current reigns first, then past ones.
+// Reign history for a public profile: current reigns first, then the newest past ones.
 export function ProfileReignList({
   currentReigns,
   pastReigns,
@@ -54,9 +55,14 @@ export function ProfileReignList({
       {currentReigns.map((reign) => (
         <ReignRow key={`current-${reign.titleSlug}`} reign={reign} ongoing />
       ))}
-      {pastReigns.map((reign, i) => (
+      {pastReigns.slice(0, REIGNS_SHOWN).map((reign, i) => (
         <ReignRow key={`past-${reign.titleSlug}-${i}`} reign={reign} ongoing={false} />
       ))}
+      {pastReigns.length > REIGNS_SHOWN && (
+        <p className="p-4 text-body-sm font-body-sm text-on-surface-variant">
+          … y {pastReigns.length - REIGNS_SHOWN} reinados anteriores
+        </p>
+      )}
     </div>
   );
 }
