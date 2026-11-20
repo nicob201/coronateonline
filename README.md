@@ -22,6 +22,7 @@ Un mercado de estatus: competís por títulos únicos y absurdos (**Rey de Córd
 - **Títulos de la comunidad:** proponés uno por 30 👑 y un admin lo aprueba.
 - **Reacciones 🍅 / 👏** al rey actual, en vivo para todos.
 - **Búsqueda y filtros** en `/titulos`, con todo el estado en la URL.
+- **Case study** (`/acerca`): el problema, la arquitectura, las 7 decisiones con su costo y lo que se haría distinto.
 - **Lighthouse en producción (mobile):** 100 de rendimiento en la home y `/titulos`, 99 en `/mapa`; 100 en accesibilidad, buenas prácticas y SEO.
 
 ## Arquitectura

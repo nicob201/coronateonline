@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { env } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 
-const STATIC_PATHS = ["/", "/titulos", "/mapa", "/rankings"];
+const STATIC_PATHS = ["/", "/titulos", "/mapa", "/rankings", "/acerca"];
 
 // Lists the public pages and every title; profiles stay out so guest accounts don't flood it.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

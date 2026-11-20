@@ -26,6 +26,12 @@ export function SiteFooter() {
         >
           Rankings
         </Link>
+        <Link
+          href="/acerca"
+          className="text-label-caps font-label-caps text-outline hover:text-primary transition-colors"
+        >
+          Acerca
+        </Link>
       </div>
       <span className="text-body-sm font-body-sm text-tertiary text-center md:text-right">
         Coronate si podés.
