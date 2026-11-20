@@ -12,6 +12,11 @@ INSERT INTO auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_d
   ('fa111111-1111-4111-8111-111111111111', 'authenticated', 'authenticated', 'react_h@coronate.test', '{}', '{}', now(), now()),
   ('fa222222-2222-4222-8222-222222222222', 'authenticated', 'authenticated', 'react_a@coronate.test', '{}', '{}', now(), now()),
   ('fa333333-3333-4333-8333-333333333333', 'authenticated', 'authenticated', 'react_b@coronate.test', '{}', '{}', now(), now());
+-- Fixture users finished onboarding; the extra one (no display name) did not.
+UPDATE public.profiles SET display_name = 'Fixture ' || left(id::text, 8)
+WHERE id IN (SELECT id FROM auth.users WHERE email LIKE 'react\_%@coronate.test');
+INSERT INTO auth.users (id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at) VALUES
+  ('fa444444-4444-4444-8444-444444444444', 'authenticated', 'authenticated', 'react_unnamed@coronate.test', '{}', '{}', now(), now());
 
 INSERT INTO titles (id, slug, name, emoji, description) VALUES
   ('fb000000-0000-4000-8000-000000000000', 'reactions-test', 'Rey del Tomate', '🍅', 'x');
@@ -133,6 +138,19 @@ BEGIN
     format('broadcast payload, got %s', m.payload);
 
   RAISE NOTICE 'reactions_test: all assertions passed';
+END $$;
+
+-- A profile without a display name is rejected before anything else happens.
+RESET ROLE;
+SELECT set_config('request.jwt.claims',
+  '{"sub":"fa444444-4444-4444-8444-444444444444","role":"authenticated"}', true);
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE ok boolean := false;
+BEGIN
+  BEGIN PERFORM public.react_to_reign('fc222222-2222-4222-8222-222222222222', 'tomato');
+  EXCEPTION WHEN raise_exception THEN ok := SQLERRM = 'Profile incomplete'; END;
+  ASSERT ok, 'a profile without a display name must be rejected';
 END $$;
 
 ROLLBACK;

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { errorMessage } from "@/lib/errors";
+import { errorMessage, PROFILE_INCOMPLETE_ERROR } from "@/lib/errors";
 import { claimSalary } from "@/services/wallet.server";
 import type { ActionResult } from "@/types";
 
@@ -26,6 +26,7 @@ export async function cobrarSueldo(): Promise<ActionResult<number>> {
       return { success: false, error: "Ya cobraste el sueldo de hoy. Volvé mañana." };
     }
     if (message.includes("Not authenticated")) return { success: false, error: NOT_AUTH };
+    if (message.includes("Profile incomplete")) return { success: false, error: PROFILE_INCOMPLETE_ERROR };
     return { success: false, error: "No se pudo cobrar el sueldo. Probá de nuevo." };
   }
 

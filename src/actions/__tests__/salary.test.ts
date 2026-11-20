@@ -30,6 +30,7 @@ describe("cobrarSueldo", () => {
   it.each([
     ["Salary already claimed today", "Ya cobraste el sueldo de hoy. Volvé mañana."],
     ["Not authenticated", "Tenés que iniciar sesión para cobrar."],
+    ["Profile incomplete", "Elegí tu nombre en el perfil antes de jugar."],
     ["boom", "No se pudo cobrar el sueldo. Probá de nuevo."],
   ])("maps the RPC error %j to a Spanish message", async (rpcMessage, expected) => {
     createClientMock.mockResolvedValue(

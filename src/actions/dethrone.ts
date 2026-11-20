@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { errorMessage } from "@/lib/errors";
+import { errorMessage, PROFILE_INCOMPLETE_ERROR } from "@/lib/errors";
 import { dethrone } from "@/services/dethrone.server";
 import { dethroneSchema } from "@/features/dethrone/schemas/dethrone.schema";
 import type { ActionResult, Reign } from "@/types";
@@ -21,7 +21,7 @@ function translateRpcError(message: string): string {
     return "El mensaje es demasiado largo (máx. 80 caracteres).";
   }
   if (message.includes("Not authenticated")) return NOT_AUTH;
-  if (message.includes("Profile incomplete")) return "Elegí tu nombre en el perfil antes de destronar.";
+  if (message.includes("Profile incomplete")) return PROFILE_INCOMPLETE_ERROR;
   if (message.includes("must be positive")) return "Monto inválido.";
   return "No se pudo procesar la solicitud. Probá de nuevo.";
 }

@@ -40,6 +40,7 @@ describe("reaccionar", () => {
     ["Reign not active", "Ese reinado ya terminó."],
     ["Own reign", "No podés reaccionar a tu propio reinado."],
     ["Not authenticated", "Tenés que iniciar sesión para reaccionar."],
+    ["Profile incomplete", "Elegí tu nombre en el perfil antes de jugar."],
     ["boom", "No se pudo reaccionar. Probá de nuevo."],
   ])("maps the RPC error %j to a Spanish message", async (rpcMessage, expected) => {
     createClientMock.mockResolvedValue(

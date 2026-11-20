@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { errorMessage } from "@/lib/errors";
+import { errorMessage, PROFILE_INCOMPLETE_ERROR } from "@/lib/errors";
 import { formatCoronas } from "@/lib/format";
 import { TITLE_PROPOSAL_COST } from "@/lib/titles";
 import { proposeTitle, reviewProposal } from "@/services/proposals.server";
@@ -21,6 +21,7 @@ const RPC_ERRORS: [string, string][] = [
     `No te alcanzan las Coronas: crear un título cuesta ${formatCoronas(TITLE_PROPOSAL_COST)}.`,
   ],
   ["Not authenticated", NOT_AUTH],
+  ["Profile incomplete", PROFILE_INCOMPLETE_ERROR],
 ];
 
 // Spends the user's Coronas to submit a title for admin review; cost and balance are checked atomically by the RPC.

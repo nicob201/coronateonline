@@ -510,6 +510,7 @@ export type Database = {
     };
     Functions: {
       ar_date: { Args: { p_at: string }; Returns: string };
+      assert_onboarded: { Args: { p_user_id: string }; Returns: undefined };
       bot_move: {
         Args: Record<PropertyKey, never>;
         Returns: {
